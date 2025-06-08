@@ -21,10 +21,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.example.ontrecksmartwatch.presentation.theme.OnTrekSmartwatchTheme
 
@@ -48,7 +51,7 @@ fun WearApp() {
         Column (
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .padding(10.dp)
+                .padding(8.dp)
         ) {
             UpperTitle()
             ScrollableTracksList()
@@ -59,14 +62,23 @@ fun WearApp() {
 
 @Composable
 fun ScrollableTracksList() {
-    val listState = ScalingLazyListState()
-
-    ScalingLazyColumn(
-        state = listState,
-        modifier = Modifier.padding(4.dp)
+    val listState = rememberScalingLazyListState()
+    ScreenScaffold(
+        scrollState = listState,
+        scrollIndicator = {
+            ScrollIndicator(state = listState)
+        }
     ) {
-        items(20) { index ->
-            TrackButton()
+
+        val state = rememberScalingLazyListState()
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            state = state,
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = state)
+        ) {
+            items(20) { index ->
+                TrackButton(index.toString())
+            }
         }
     }
 }
@@ -77,20 +89,20 @@ fun nothing() {
 }
 
 @Composable
-fun TrackButton() {
+fun TrackButton(trackName: String) {
     OutlinedButton(
         onClick = { nothing() },
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Text("Track")
+        Text(trackName)
     }
 }
 
 @Composable
 fun UpperTitle() {
     Text(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
         textAlign = TextAlign.Center,
         color = MaterialTheme.colors.primary,
         text = "My tracks"
