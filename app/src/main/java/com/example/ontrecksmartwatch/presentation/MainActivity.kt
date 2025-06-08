@@ -3,34 +3,30 @@
  * most up to date changes to the libraries and their usages.
  */
 
-package com.example.ontreksmartwatch.presentation
+package com.example.ontrecksmartwatch.presentation
 
+//noinspection SuspiciousImport
+import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.example.ontrecksmartwatch.presentation.theme.OnTreckSmartwatchTheme
+import com.example.ontrecksmartwatch.presentation.theme.OnTrekSmartwatchTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,23 +34,23 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        setTheme(android.R.style.Theme_DeviceDefault)
+        setTheme(R.style.Theme_DeviceDefault)
 
         setContent {
-            WearApp("Android")
+            WearApp()
         }
     }
 }
 
 @Composable
-fun WearApp(greetingName: String) {
-    OnTreckSmartwatchTheme {
+fun WearApp() {
+    OnTrekSmartwatchTheme {
         Column (
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(10.dp)
         ) {
-            Greeting(greetingName = greetingName)
+            UpperTitle()
             ScrollableTracksList()
         }
     }
@@ -92,7 +88,7 @@ fun TrackButton() {
 }
 
 @Composable
-fun Greeting(greetingName: String) {
+fun UpperTitle() {
     Text(
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
@@ -104,5 +100,5 @@ fun Greeting(greetingName: String) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearApp("Preview Android")
+    WearApp()
 }

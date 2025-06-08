@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme
 
 @Composable
-fun OnTreckSmartwatchTheme(
+fun OnTrekSmartwatchTheme(
     content: @Composable () -> Unit
 ) {
     /**

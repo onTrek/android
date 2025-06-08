@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "OnTreckSmartwatch"
+rootProject.name = "OnTrekSmartwatch"
 include(":app")
  
