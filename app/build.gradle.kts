@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ontrecksmartwatch"
+    namespace = "com.ontrecksmartwatch"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.ontrecksmartwatch"
+        applicationId = "com.ontrecksmartwatch"
         minSdk = 30
         targetSdk = 35
         versionCode = 1

@@ -1,16 +1,5 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
- */
+package com.ontrecksmartwatch.screens.home
 
-package com.example.ontrecksmartwatch.presentation
-
-//noinspection SuspiciousImport
-import android.R
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,21 +18,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.example.ontrecksmartwatch.presentation.theme.OnTrekSmartwatchTheme
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
-        super.onCreate(savedInstanceState)
-
-        setTheme(R.style.Theme_DeviceDefault)
-
-        setContent {
-            WearApp()
-        }
-    }
-}
+import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 
 @Composable
 fun WearApp() {
@@ -83,7 +58,7 @@ fun ScrollableTracksList() {
     }
 }
 
-fun nothing() {
+fun openTrack() {
     // This function is intentionally left empty.
     // It can be used to add any additional functionality in the future.
 }
@@ -91,12 +66,18 @@ fun nothing() {
 @Composable
 fun TrackButton(trackName: String) {
     OutlinedButton(
-        onClick = { nothing() },
+        onClick = { openTrack() },
         modifier = Modifier
             .fillMaxWidth()
     ) {
         Text(trackName)
     }
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Composable
+fun DefaultPreview() {
+    WearApp()
 }
 
 @Composable
@@ -107,10 +88,4 @@ fun UpperTitle() {
         color = MaterialTheme.colors.primary,
         text = "My tracks"
     )
-}
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp()
 }

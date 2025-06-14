@@ -1,4 +1,4 @@
-package com.example.ontrecksmartwatch.presentation.theme
+package com.ontrecksmartwatch.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme
