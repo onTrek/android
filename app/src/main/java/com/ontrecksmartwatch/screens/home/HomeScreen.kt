@@ -1,11 +1,11 @@
 package com.ontrecksmartwatch.screens.home
 
-import NavigationStack
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -22,19 +22,10 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.items
 import com.ontrecksmartwatch.screens.Screen
-
-@Composable
-fun HomeScreen() {
-    Column (
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(8.dp)
-    ) {
-        NavigationStack()
-    }
-}
+import com.ontrecksmartwatch.utils.data.Track
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController) {
@@ -51,7 +42,7 @@ fun TrackSelectionScreen(navController: NavHostController) {
 @Composable
 fun ScrollableTracksList(navController: NavHostController) {
     val viewModel = viewModel<HomeViewModel>()
-    val trackList = viewModel.trackListState.collectAsState()
+    val trackList by viewModel.trackListState.collectAsState()
     val listState = rememberScalingLazyListState()
     ScreenScaffold(
         scrollState = listState,
@@ -67,19 +58,19 @@ fun ScrollableTracksList(navController: NavHostController) {
             flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = state),
 
         ) {
-            items(trackList.value) {
+            items(trackList) {
                 TrackButton(it.getTitle(), navController)
             }
-            item { TrackButton("Add one", navController) }
+            item { TrackButton("Add one", null) }
         }
     }
 }
 
 @Composable
-fun TrackButton(trackName: String, navController: NavHostController) {
-    //val viewModel = viewModel<HomeViewModel>()
+fun TrackButton(trackName: String, navController: NavHostController?) {
+    val viewModel = viewModel<HomeViewModel>()
     OutlinedButton(
-        onClick = { navController.navigate(route = Screen.TrackScreen.route + "?text=funziona!") },
+        onClick = { navController?.navigate(route = Screen.TrackScreen.route + "?text=funziona!") ?: viewModel.addTrack(Track("1", trackName)) },
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -90,7 +81,7 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    HomeScreen()
+    TrackSelectionScreen(rememberNavController())
 }
 
 @Composable

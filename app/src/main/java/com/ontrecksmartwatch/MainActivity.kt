@@ -1,12 +1,12 @@
 package com.ontrecksmartwatch
 
 //noinspection SuspiciousImport
+import NavigationStack
 import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.ontrecksmartwatch.screens.home.HomeScreen
 import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OnTrekSmartwatchTheme {
-                HomeScreen()
+                NavigationStack()
             }
         }
     }
