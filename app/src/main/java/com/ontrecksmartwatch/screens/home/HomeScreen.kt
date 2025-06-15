@@ -1,5 +1,6 @@
 package com.ontrecksmartwatch.screens.home
 
+import NavigationStack
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,8 +21,9 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ontrecksmartwatch.utils.data.Track
+import androidx.navigation.NavHostController
 import androidx.wear.compose.foundation.lazy.items
+import com.ontrecksmartwatch.screens.Screen
 
 @Composable
 fun HomeScreen() {
@@ -30,14 +32,24 @@ fun HomeScreen() {
         modifier = Modifier
             .padding(8.dp)
     ) {
+        NavigationStack()
+    }
+}
+
+@Composable
+fun TrackSelectionScreen(navController: NavHostController) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         UpperTitle()
-        ScrollableTracksList()
+        ScrollableTracksList(navController)
     }
 }
 
 
 @Composable
-fun ScrollableTracksList() {
+fun ScrollableTracksList(navController: NavHostController) {
     val viewModel = viewModel<HomeViewModel>()
     val trackList = viewModel.trackListState.collectAsState()
     val listState = rememberScalingLazyListState()
@@ -56,18 +68,18 @@ fun ScrollableTracksList() {
 
         ) {
             items(trackList.value) {
-                TrackButton(it.getTitle())
+                TrackButton(it.getTitle(), navController)
             }
-            item { TrackButton("Add one") }
+            item { TrackButton("Add one", navController) }
         }
     }
 }
 
 @Composable
-fun TrackButton(trackName: String) {
-    val viewModel = viewModel<HomeViewModel>()
+fun TrackButton(trackName: String, navController: NavHostController) {
+    //val viewModel = viewModel<HomeViewModel>()
     OutlinedButton(
-        onClick = { viewModel.addTrack(Track("6","Aggiunto")) },
+        onClick = { navController.navigate(route = Screen.TrackScreen.route + "?text=funziona!") },
         modifier = Modifier
             .fillMaxWidth()
     ) {
