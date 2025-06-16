@@ -1,5 +1,6 @@
 // NavigationStack.kt
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,12 +11,15 @@ import com.ontrecksmartwatch.screens.home.TrackSelectionScreen
 import com.ontrecksmartwatch.screens.track.TrackScreen
 
 @Composable
-fun NavigationStack() {
+fun NavigationStack(modifier: Modifier) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
-            TrackSelectionScreen(navController = navController)
+            TrackSelectionScreen(
+                navController = navController,
+                modifier = modifier
+            )
         }
         composable(
             route = Screen.TrackScreen.route + "?text={text}",
@@ -26,7 +30,10 @@ fun NavigationStack() {
                 }
             )
         ) {
-            TrackScreen(text = it.arguments?.getString("text").toString())
+            TrackScreen(
+                text = it.arguments?.getString("text").toString(),
+                modifier = modifier
+            )
         }
     }
 }

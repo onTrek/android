@@ -6,6 +6,9 @@ import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 
@@ -19,7 +22,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OnTrekSmartwatchTheme {
-                NavigationStack()
+                NavigationStack(
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }

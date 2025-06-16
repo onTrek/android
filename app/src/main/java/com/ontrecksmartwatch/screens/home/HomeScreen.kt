@@ -28,10 +28,10 @@ import com.ontrecksmartwatch.screens.Screen
 import com.ontrecksmartwatch.utils.data.Track
 
 @Composable
-fun TrackSelectionScreen(navController: NavHostController) {
+fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         UpperTitle()
         ScrollableTracksList(navController)

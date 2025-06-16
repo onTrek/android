@@ -23,7 +23,7 @@ import com.ontrecksmartwatch.utils.data.sensors.CompassSensor
  * @param text Testo informativo da visualizzare nella schermata
  */
 @Composable
-fun TrackScreen(text: String) {
+fun TrackScreen(text: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
@@ -48,7 +48,7 @@ fun TrackScreen(text: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         // Etichetta che indica il punto cardinale di riferimento
         Text("Nord")
