@@ -67,18 +67,16 @@ fun ScrollableTracksList(navController: NavHostController) {
             items(trackList) {
                 TrackButton(it.getTitle(), navController)
             }
-            item { TrackButton("Add one", null) }
         }
     }
 }
 
 @Composable
-fun TrackButton(trackName: String, navController: NavHostController?) {
+fun TrackButton(trackName: String, navController: NavHostController) {
     val viewModel = viewModel<HomeViewModel>()
     OutlinedButton(
         onClick = {
-            navController?.navigate(route = Screen.TrackScreen.route + "?text=funziona!")
-                ?: viewModel.addTrack(Track("1", trackName))
+            navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
         },
         modifier = Modifier
             .fillMaxWidth()
