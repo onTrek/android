@@ -26,7 +26,6 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrecksmartwatch.screens.Screen
-import com.ontrecksmartwatch.utils.data.Track
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -73,7 +72,6 @@ fun ScrollableTracksList(navController: NavHostController) {
 
 @Composable
 fun TrackButton(trackName: String, navController: NavHostController) {
-    val viewModel = viewModel<HomeViewModel>()
     OutlinedButton(
         onClick = {
             navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
