@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.ontrecksmartwatch.utils.data.sensors.CompassSensor
 
@@ -51,7 +52,10 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize()
     ) {
         // Etichetta che indica il punto cardinale di riferimento
-        Text(text)
+        Text(
+            text,
+            color = MaterialTheme.colors.primary
+        )
 
         // Componente freccia che ruota in base alla direzione rilevata dai sensori
         Arrow(
