@@ -25,7 +25,7 @@ fun Arrow(
     // Aumentiamo la dimensione a 160.dp per una freccia più grande
     Canvas(modifier = modifier.size(160.dp)) {
         val center = Offset(size.width / 2, size.height / 2)
-        val radius = size.minDimension / 2.5f  // Aumentiamo anche la lunghezza proporzionalmente
+        val radius = size.minDimension / 2f  // Aumentiamo anche la lunghezza proporzionalmente
 
         // Qui creo la freccia, poi il colore lo possiamo usare come parametro e cambiare a seconda delle necessità
         // Rotazione negativa per allineare correttamente con la direzione Nord
@@ -33,9 +33,10 @@ fun Arrow(
             // Disegna il corpo della freccia (linea principale)
             drawLine(
                 color = color,
-                start = center,
+                start = center + Offset(0f, radius / 2),
                 end = Offset(center.x, center.y - radius),
-                strokeWidth = 12f  // Linea più spessa
+                strokeWidth = 20f,  // Linea più spessa
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
             )
 
             // Disegna la punta della freccia
@@ -44,13 +45,15 @@ fun Arrow(
                 color = color,
                 start = Offset(center.x, center.y - radius),
                 end = Offset(center.x - arrowHeadSize, center.y - radius + arrowHeadSize),
-                strokeWidth = 12f  // Linea più spessa
+                strokeWidth = 20f,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
             )
             drawLine(
                 color = color,
                 start = Offset(center.x, center.y - radius),
                 end = Offset(center.x + arrowHeadSize, center.y - radius + arrowHeadSize),
-                strokeWidth = 12f  // Linea più spessa
+                strokeWidth = 20f,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
             )
         }
     }
