@@ -51,18 +51,12 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize()
     ) {
         // Etichetta che indica il punto cardinale di riferimento
-        Text("Nord")
+        Text(text)
 
         // Componente freccia che ruota in base alla direzione rilevata dai sensori
         Arrow(
             direction = direction,  // Angolo di rotazione basato sui dati del sensore
             modifier = Modifier.padding(16.dp)
         )
-
-        // Visualizza l'angolo corrente in gradi rispetto al Nord
-        Text("${direction.toInt()}°")
-
-        // Visualizza il testo informativo passato come parametro
-        Text(text)
     }
 }
