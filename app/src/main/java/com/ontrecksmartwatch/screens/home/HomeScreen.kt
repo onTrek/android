@@ -1,14 +1,11 @@
 package com.ontrecksmartwatch.screens.home
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,9 +23,10 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrecksmartwatch.screens.Screen
+import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 
 @Composable
-fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+fun TrackSelectionScreen(navController: NavHostController) {
     ScrollableTracksList(navController)
 
 }
@@ -82,5 +80,7 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    TrackSelectionScreen(rememberNavController())
+    OnTrekSmartwatchTheme {
+        TrackSelectionScreen(rememberNavController())
+    }
 }
