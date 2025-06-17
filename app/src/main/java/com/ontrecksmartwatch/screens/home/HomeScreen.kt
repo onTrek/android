@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,7 @@ import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
+import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrecksmartwatch.screens.Screen
 import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
@@ -40,15 +42,23 @@ fun ScrollableTracksList(navController: NavHostController) {
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
-            ScrollIndicator(state = listState)
+            ScrollIndicator(
+                state = listState,
+                colors = ScrollIndicatorColors(
+                    indicatorColor = MaterialTheme.colors.primary,
+                    trackColor = MaterialTheme.colors.onSurfaceVariant
+                ),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(start = 8.dp)
+            )
         }
     ) {
 
-        val state = rememberScalingLazyListState()
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
-            state = state,
-            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = state),
+            state = listState,
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState),
         ) {
             item {
                 Text(
@@ -71,7 +81,7 @@ fun TrackButton(trackName: String, navController: NavHostController) {
             navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
         },
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.95f)
     ) {
         Text(trackName)
     }
