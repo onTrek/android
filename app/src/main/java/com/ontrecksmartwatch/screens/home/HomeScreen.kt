@@ -29,12 +29,8 @@ import com.ontrecksmartwatch.screens.Screen
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        ScrollableTracksList(navController)
-    }
+    ScrollableTracksList(navController)
+
 }
 
 
@@ -58,7 +54,7 @@ fun ScrollableTracksList(navController: NavHostController) {
         ) {
             item {
                 Text(
-                    modifier = Modifier.padding(bottom = 10.dp),
+                    modifier = Modifier.padding(bottom = 15.dp),
                     color = MaterialTheme.colors.primary,
                     text = "My tracks"
                 )
@@ -78,7 +74,6 @@ fun TrackButton(trackName: String, navController: NavHostController) {
         },
         modifier = Modifier
             .fillMaxWidth()
-            .height(45.dp)
     ) {
         Text(trackName)
     }
