@@ -1,10 +1,11 @@
-package com.ontrecksmartwatch.screens.track
+package com.ontrecksmartwatch.screens.track.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 
 /**
@@ -32,7 +33,7 @@ fun Arrow(
                 start = Offset(center.x, center.y + radius),
                 end = Offset(center.x, center.y - radius),
                 strokeWidth = 20f,  // Linea più spessa
-                cap = androidx.compose.ui.graphics.StrokeCap.Round
+                cap = StrokeCap.Round
             )
 
             // Disegna la punta della freccia
@@ -42,14 +43,14 @@ fun Arrow(
                 start = Offset(center.x, center.y - radius),
                 end = Offset(center.x - arrowHeadSize, center.y - radius + arrowHeadSize),
                 strokeWidth = 20f,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round
+                cap = StrokeCap.Round
             )
             drawLine(
                 color = color,
                 start = Offset(center.x, center.y - radius),
                 end = Offset(center.x + arrowHeadSize, center.y - radius + arrowHeadSize),
                 strokeWidth = 20f,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round
+                cap = StrokeCap.Round
             )
         }
     }

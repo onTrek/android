@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import com.ontrecksmartwatch.screens.track.components.Arrow
 import com.ontrecksmartwatch.utils.data.sensors.CompassSensor
 
 /**
