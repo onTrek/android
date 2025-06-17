@@ -1,7 +1,6 @@
 package com.ontrecksmartwatch.screens.track
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -46,21 +45,23 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
     }
 
     // Layout principale della schermata
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        // Etichetta che indica il punto cardinale di riferimento
         Text(
             text,
-            color = MaterialTheme.colors.primary
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(5.dp)
         )
 
-        // Componente freccia che ruota in base alla direzione rilevata dai sensori
         Arrow(
             direction = direction,  // Angolo di rotazione basato sui dati del sensore
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
         )
     }
 }
