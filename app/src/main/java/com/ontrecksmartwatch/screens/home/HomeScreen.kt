@@ -26,7 +26,7 @@ import com.ontrecksmartwatch.screens.Screen
 import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 
 @Composable
-fun TrackSelectionScreen(navController: NavHostController) {
+fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
     ScrollableTracksList(navController)
 
 }
