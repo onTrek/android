@@ -11,7 +11,7 @@ import com.ontrecksmartwatch.screens.home.TrackSelectionScreen
 import com.ontrecksmartwatch.screens.track.TrackScreen
 
 @Composable
-fun NavigationStack(modifier: Modifier) {
+fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
