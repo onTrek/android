@@ -20,7 +20,6 @@ import androidx.wear.compose.material.Text
 import com.ontrecksmartwatch.screens.track.components.Arrow
 import com.ontrecksmartwatch.screens.track.components.ProgressBar
 import com.ontrecksmartwatch.screens.track.components.SosButton
-import com.ontrecksmartwatch.screens.track.components.SosButtonPreview
 import com.ontrecksmartwatch.utils.data.sensors.CompassSensor
 
 /**
