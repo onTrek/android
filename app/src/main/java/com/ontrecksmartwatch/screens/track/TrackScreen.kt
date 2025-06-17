@@ -74,7 +74,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                 .height(27.dp)
                 .fillMaxWidth(fraction = 0.6f)
                 .align(Alignment.BottomCenter),
-            onClick = {
+            onLongPress = {
                 Log.d("SOS", "SOS button pressed")
             }
         )

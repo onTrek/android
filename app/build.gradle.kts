@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ontrecksmartwatch"
-        minSdk = 30
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
