@@ -48,8 +48,8 @@ fun ProgressBar(
             // Background arc (full circle)
             drawArc(
                 color = backgroundColor,
-                startAngle = 135f,
-                sweepAngle = 270f,
+                startAngle = 125f,
+                sweepAngle = 290f,
                 useCenter = false,
                 topLeft = Offset(
                     (size.width - diameter) / 2f,
@@ -62,8 +62,8 @@ fun ProgressBar(
             // Foreground progress arc
             drawArc(
                 color = color,
-                startAngle = 135f,
-                sweepAngle = 270f * progress.coerceIn(0f, 1f),
+                startAngle = 125f,
+                sweepAngle = 290f * progress.coerceIn(0f, 1f),
                 useCenter = false,
                 topLeft = Offset(
                     (size.width - diameter) / 2f,
