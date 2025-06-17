@@ -56,7 +56,7 @@ fun ProgressBar(
                     (size.height - diameter) / 2f
                 ),
                 size = Size(diameter, diameter),
-                style = Stroke(width = strokePx)
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
             )
 
             // Foreground progress arc
