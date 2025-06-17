@@ -1,6 +1,7 @@
 package com.ontrecksmartwatch.screens.track.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,14 +36,6 @@ fun SosButton(
             backgroundColor = Color.Red
         ),
         modifier = modifier
-//            .clip(RoundedCornerShape(
-//                topStart = 0.dp,
-//                topEnd = 0.dp,
-//                bottomStart = 0.dp,
-//                bottomEnd = 0.dp
-//            )) // For curved top
-//            .clickable { onClick() }
-//        contentAlignment = Alignment.Center
     ) {
         Text(
             text = "SOS",
@@ -58,7 +51,8 @@ fun SosButton(
 fun SosButtonPreview() {
     OnTrekSmartwatchTheme {
         Box(
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
         ) {
             SosButton(
                 modifier = Modifier
