@@ -2,7 +2,6 @@ package com.ontrecksmartwatch
 
 //noinspection SuspiciousImport
 import NavigationStack
-import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +14,7 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        setTheme(R.style.Theme_DeviceDefault)
+        setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
             OnTrekSmartwatchTheme {
