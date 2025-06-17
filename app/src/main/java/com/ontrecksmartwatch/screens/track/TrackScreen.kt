@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.ontrecksmartwatch.screens.track.components.Arrow
+import com.ontrecksmartwatch.screens.track.components.ProgressBar
 import com.ontrecksmartwatch.utils.data.sensors.CompassSensor
 
 /**
@@ -45,6 +46,8 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
         }
     }
 
+    val progress = 0.75f
+
     // Layout principale della schermata
     Box(
         contentAlignment = Alignment.Center,
@@ -55,7 +58,11 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             color = MaterialTheme.colors.primary,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(5.dp)
+                .padding(10.dp)
+        )
+
+        ProgressBar(
+            progress = progress
         )
 
         Arrow(
