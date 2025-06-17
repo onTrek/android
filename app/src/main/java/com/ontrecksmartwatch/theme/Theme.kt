@@ -15,6 +15,7 @@ private val CustomColorPalette = Colors(
     onSecondary = LightGreen,
     onBackground = LightGreen,
     onSurface = DeepGreen,
+    onSurfaceVariant = DarkGray,
     onError = LightGreen,
 )
 
