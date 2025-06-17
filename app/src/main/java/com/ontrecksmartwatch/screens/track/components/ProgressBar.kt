@@ -23,6 +23,15 @@ import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
 import kotlin.math.min
 
 
+/**
+ * A circular progress bar composable for Wear OS.
+ *
+ * @param progress The progress value, from 0f to 1f.
+ * @param modifier Modifier to be applied to the ProgressBar.
+ * @param strokeWidth The width of the progress bar stroke.
+ * @param color The color of the progress arc.
+ * @param backgroundColor The color of the background arc.
+ */
 @Composable
 fun ProgressBar(
     progress: Float, // from 0f to 1f
