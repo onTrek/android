@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             OnTrekSmartwatchTheme {
                 NavigationStack(
-                    modifier = Modifier.padding(16.dp)
+//                    modifier = Modifier.padding(16.dp)
                 )
             }
         }
