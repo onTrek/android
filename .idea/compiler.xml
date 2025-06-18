@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="21">
+      <module name="OnTrek.OnTrekShared" target="11" />
+      <module name="OnTrek.OnTrekShared.main" target="11" />
+      <module name="OnTrek.OnTrekShared.test" target="11" />
       <module name="OnTrekSmartwatch.OnTrek" target="11" />
       <module name="OnTrekSmartwatch.OnTrek.main" target="11" />
       <module name="OnTrekSmartwatch.OnTrek.test" target="11" />

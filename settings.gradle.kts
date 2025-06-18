@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "OnTrek"
 include(":OnTrekSmartwatch")
 include(":OnTrekSmartphone")
-include(":OnTrekShared")

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ontreksmartphone"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -40,7 +40,8 @@ android {
 }
 
 dependencies {
-
+    //implementation(project(":OnTrekSmartwatch"))
+    implementation(libs.navigation.compose)
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)
