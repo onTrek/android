@@ -79,7 +79,7 @@ fun SosButton(
                         bottomEnd = 0.dp
                     )
                 )
-                .background(Color(0xFFFF4C4C))
+                .background(Color.Red)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = {
@@ -98,17 +98,17 @@ fun SosButton(
                             }
 
                             // Vibrate progressively
-    //                        val vibrationJob = scope.launch {
-    //                            var elapsed = 0L
-    //                            while (elapsed < 5000L && isPressed) {
-    //                                val intensity = ((elapsed / 5000f).coerceIn(0f, 1f) * 255).toInt()
-    //                                vibrator.defaultVibrator.vibrate(
-    //                                    VibrationEffect.createOneShot(50, intensity)
-    //                                )
-    //                                delay(300)
-    //                                elapsed += 300
-    //                            }
-    //                        }
+                            //                        val vibrationJob = scope.launch {
+                            //                            var elapsed = 0L
+                            //                            while (elapsed < 5000L && isPressed) {
+                            //                                val intensity = ((elapsed / 5000f).coerceIn(0f, 1f) * 255).toInt()
+                            //                                vibrator.defaultVibrator.vibrate(
+                            //                                    VibrationEffect.createOneShot(50, intensity)
+                            //                                )
+                            //                                delay(300)
+                            //                                elapsed += 300
+                            //                            }
+                            //                        }
 
                             val success = try {
                                 withTimeoutOrNull(5000L) {
