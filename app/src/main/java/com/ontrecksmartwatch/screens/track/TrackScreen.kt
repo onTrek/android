@@ -69,21 +69,22 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             progress = progress
         )
 
-        SosButton(
-            modifier = Modifier
-                .height(27.dp)
-                .fillMaxWidth(fraction = 0.6f)
-                .align(Alignment.BottomCenter),
-            onLongPress = {
-                Log.d("SOS", "SOS button pressed")
-            }
-        )
 
         Arrow(
             direction = direction,  // Angolo di rotazione basato sui dati del sensore
             modifier = Modifier
                 .fillMaxSize()
                 .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+        )
+
+        SosButton(
+//            modifier = Modifier
+//                .height(27.dp)
+//                .fillMaxWidth(fraction = 0.6f)
+//                .align(Alignment.BottomCenter),
+            onSosTriggered = {
+                Log.d("SOS", "SOS button pressed")
+            }
         )
     }
 }
