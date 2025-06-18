@@ -19,6 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "OnTrekSmartwatch"
-include(":app")
- 
+rootProject.name = "OnTrek"
+include(":OnTrekSmartwatch")
+include(":OnTrekSmartphone")
+include(":OnTrekShared")

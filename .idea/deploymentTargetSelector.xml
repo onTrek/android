@@ -2,12 +2,15 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="app">
+      <SelectionState runConfigName="OnTrek.OnTrekSmartwatch">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-15T14:07:10.472980500Z">
+      </SelectionState>
+      <SelectionState runConfigName="OnTrek.OnTrekSmartphone">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-06-18T16:55:01.003752300Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=49061JEAVW02QK" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.178.157:33217;connection=55c598a2" />
             </handle>
           </Target>
         </DropdownSelection>
