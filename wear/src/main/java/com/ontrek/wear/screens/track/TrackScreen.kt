@@ -57,14 +57,6 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
     val info: String? = null
 
-    val time = TimeText(
-        timeTextStyle = TextStyle(
-            color = MaterialTheme.colors.primary
-        ),
-        modifier = Modifier
-            .padding(5.dp),
-    )
-
     ScreenScaffold (
         timeText = if (info.isNullOrBlank()) {
             {
