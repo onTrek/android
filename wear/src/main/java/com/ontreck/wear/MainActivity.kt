@@ -1,12 +1,12 @@
-package com.ontrecksmartwatch
+package com.ontreck.wear
 
-//noinspection SuspiciousImport
 import NavigationStack
+import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
+import com.ontreck.wear.theme.OnTrekSmartwatchTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        setTheme(android.R.style.Theme_DeviceDefault)
+        setTheme(R.style.Theme_DeviceDefault)
 
         setContent {
             OnTrekSmartwatchTheme {

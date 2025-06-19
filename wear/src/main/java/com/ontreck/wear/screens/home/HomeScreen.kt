@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.screens.home
+package com.ontreck.wear.screens.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,8 +24,8 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrecksmartwatch.screens.Screen
-import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
+import com.ontreck.wear.screens.Screen
+import com.ontreck.wear.theme.OnTrekSmartwatchTheme
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {

@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.utils.data.sensors
+package com.ontreck.wear.utils.data.sensors
 
 import android.content.Context
 import android.hardware.Sensor

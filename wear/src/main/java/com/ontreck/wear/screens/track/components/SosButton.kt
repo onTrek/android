@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.screens.track.components
+package com.ontreck.wear.screens.track.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +17,7 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
+import com.ontreck.wear.theme.OnTrekSmartwatchTheme
 
 @Composable
 fun SosButton(
