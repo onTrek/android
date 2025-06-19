@@ -3,8 +3,6 @@ package com.ontrek.wear.screens.track
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -57,7 +55,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
     val info: String? = null
 
-    ScreenScaffold (
+    ScreenScaffold(
         timeText = if (info.isNullOrBlank()) {
             {
                 TimeText(
@@ -85,26 +83,27 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                 )
             }
 
-        ProgressBar(
-            progress = progress
-        )
+            ProgressBar(
+                progress = progress
+            )
 
 
-        Arrow(
-            direction = direction,  // Angolo di rotazione basato sui dati del sensore
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-        )
+            Arrow(
+                direction = direction,  // Angolo di rotazione basato sui dati del sensore
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+            )
 
-        SosButton(
+            SosButton(
 //            modifier = Modifier
 //                .height(27.dp)
 //                .fillMaxWidth(fraction = 0.6f)
 //                .align(Alignment.BottomCenter),
-            onSosTriggered = {
-                Log.d("SOS", "SOS button pressed")
-            }
-        )
+                onSosTriggered = {
+                    Log.d("SOS", "SOS button pressed")
+                }
+            )
+        }
     }
 }

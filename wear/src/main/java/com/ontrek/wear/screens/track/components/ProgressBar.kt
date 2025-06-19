@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.screens.track.components
+package com.ontrek.wear.screens.track.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
