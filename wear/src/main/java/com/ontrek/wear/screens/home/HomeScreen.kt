@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.screens.home
+package com.ontrek.wear.screens.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
