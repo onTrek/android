@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material3.ScreenScaffold
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
@@ -56,51 +57,62 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
     val info: String? = null
 
-    // Layout principale della schermata
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxSize()
+    val time = TimeText(
+        timeTextStyle = TextStyle(
+            color = MaterialTheme.colors.primary
+        ),
+        modifier = Modifier
+            .padding(5.dp),
+    )
+
+    ScreenScaffold (
+        timeText = if (info.isNullOrBlank()) {
+            {
+                TimeText(
+                    timeTextStyle = TextStyle(
+                        color = MaterialTheme.colors.primary
+                    ),
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+        } else null,
     ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.fillMaxSize()
+        ) {
 
 
-        if (info != null) {
-            Text(
-                info,
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(10.dp)
+            if (info != null) {
+                Text(
+                    info,
+                    color = MaterialTheme.colors.primary,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(10.dp)
+                )
+            }
+
+            ProgressBar(
+                progress = progress
             )
-        } else {
-            TimeText(
-                timeTextStyle = TextStyle(
-                    color = MaterialTheme.colors.primary
-                ),
+
+            SosButton(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(5.dp),
+                    .height(27.dp)
+                    .fillMaxWidth(fraction = 0.6f)
+                    .align(Alignment.BottomCenter),
+                onClick = {
+                    Log.d("SOS", "SOS button pressed")
+                }
+            )
+
+            Arrow(
+                direction = direction,  // Angolo di rotazione basato sui dati del sensore
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
             )
         }
-
-        ProgressBar(
-            progress = progress
-        )
-
-        SosButton(
-            modifier = Modifier
-                .height(27.dp)
-                .fillMaxWidth(fraction = 0.6f)
-                .align(Alignment.BottomCenter),
-            onClick = {
-                Log.d("SOS", "SOS button pressed")
-            }
-        )
-
-        Arrow(
-            direction = direction,  // Angolo di rotazione basato sui dati del sensore
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-        )
     }
 }
