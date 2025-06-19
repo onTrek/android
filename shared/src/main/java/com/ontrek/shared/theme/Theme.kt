@@ -1,8 +1,9 @@
-package com.ontreck.wear.theme
+package com.ontrek.shared.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.Colors
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Typography
 
 private val CustomColorPalette = Colors(
     primary = LightGreen,
@@ -20,7 +21,8 @@ private val CustomColorPalette = Colors(
 )
 
 @Composable
-fun OnTrekSmartwatchTheme(
+fun OnTrekTheme(
+    typography: Typography = MaterialTheme.typography,
     content: @Composable () -> Unit
 ) {
     /**
@@ -29,6 +31,7 @@ fun OnTrekSmartwatchTheme(
      */
     MaterialTheme(
         colors = CustomColorPalette,
+        typography = typography,
         content = content
     )
 }

@@ -1,4 +1,4 @@
-package com.onTrek.shared
+package com.ontrek.shared
 
 import org.junit.Test
 

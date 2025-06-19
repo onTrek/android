@@ -1,4 +1,4 @@
-package com.ontreck.wear.theme
+package com.ontrek.shared.theme
 
 import androidx.compose.ui.graphics.Color
 
