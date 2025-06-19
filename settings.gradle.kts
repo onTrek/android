@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "onTrek"
 include(":wear")
 include(":mobile")
+include(":shared")
