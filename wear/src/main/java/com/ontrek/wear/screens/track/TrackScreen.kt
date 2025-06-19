@@ -96,10 +96,6 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             )
 
             SosButton(
-//            modifier = Modifier
-//                .height(27.dp)
-//                .fillMaxWidth(fraction = 0.6f)
-//                .align(Alignment.BottomCenter),
                 onSosTriggered = {
                     Log.d("SOS", "SOS button pressed")
                 }
