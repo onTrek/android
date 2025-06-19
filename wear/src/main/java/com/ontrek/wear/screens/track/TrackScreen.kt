@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -13,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -42,6 +45,8 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
 
+    val accuracy by compassSensor.accuracy.collectAsState()
+
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor) {
         // Avvia la lettura dei dati dai sensori
@@ -69,6 +74,13 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             }
         } else null,
     ) {
+        if (accuracy < 2) {
+            Box(contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
+                CompassCalibrationNotice(modifier)
+            }
+        } else
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier.fillMaxSize()
@@ -104,6 +116,30 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+            )
+        }
+    }
+}
+
+@Composable
+fun CompassCalibrationNotice(
+    modifier: Modifier = Modifier,
+) {
+    val message = "Low compass accuracy. Move the watch in a figure-eight motion in order to calibrate."
+
+    message.let {
+        Surface(
+            modifier = modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            color = Color(0xFFFFE082), // Giallo tenue
+            shape = RoundedCornerShape(12.dp),
+            tonalElevation = 4.dp,
+        ) {
+            Text(
+                text = it,
+                modifier = Modifier.padding(12.dp),
+                color = Color.Black,
             )
         }
     }
