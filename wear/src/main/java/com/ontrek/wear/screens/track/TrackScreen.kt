@@ -1,13 +1,13 @@
 package com.ontrek.wear.screens.track
 
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -15,17 +15,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.R
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
+import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 
 /**
@@ -74,7 +80,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             }
         } else null,
     ) {
-        if (accuracy < 2) {
+        if (accuracy < 4) {
             Box(contentAlignment = Alignment.Center,
                 modifier = modifier.fillMaxSize()
             ) {
@@ -125,22 +131,38 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 fun CompassCalibrationNotice(
     modifier: Modifier = Modifier,
 ) {
-    val message = "Low compass accuracy. Move the watch in a figure-eight motion in order to calibrate."
+    val message = "Low accuracy"
+    val subMessage = "Tilt and move the device"
 
-    message.let {
-        Surface(
-            modifier = modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            color = Color(0xFFFFE082), // Giallo tenue
-            shape = RoundedCornerShape(12.dp),
-            tonalElevation = 4.dp,
+    Column (
+        modifier = Modifier.fillMaxSize().
+        padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = it,
-                modifier = Modifier.padding(12.dp),
-                color = Color.Black,
-            )
-        }
+        Text(
+            text = message,
+            modifier = Modifier.padding(12.dp),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.primary,
+            textAlign = TextAlign.Center,
+        )
+        GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass)
+        Text(
+            text = subMessage,
+            modifier = Modifier.padding(10.dp),
+            color = MaterialTheme.colors.primary,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Composable
+fun CalibrationPreview() {
+    OnTrekTheme {
+        CompassCalibrationNotice(
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

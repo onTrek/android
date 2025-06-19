@@ -41,6 +41,8 @@ android {
 dependencies {
 
     implementation(project(":shared"))
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     implementation(libs.navigation.compose)
     implementation(libs.play.services.wearable)
     implementation(libs.lifecycle.viewmodel.compose)
