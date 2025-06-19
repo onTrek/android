@@ -136,23 +136,7 @@ fun SosButton(
                         }
                     )
                 }
-        ) {
-
-
-            // 🔴 Vignette Overlay
-//            if (showOverlay) {
-//                Canvas(modifier = Modifier.fillMaxSize()) {
-//                    val radius = size.minDimension * vignetteProgress.value
-//                    drawRect(Color.Red)
-//                    drawCircle(
-//                        color = Color.Black,
-//                        radius = radius,
-//                        center = center,
-//                        blendMode = BlendMode.DstOut
-//                    )
-//                }
-//            }
-        }
+        ) {}
         Text(
             text = "SOS",
             modifier = Modifier.padding(5.dp),
