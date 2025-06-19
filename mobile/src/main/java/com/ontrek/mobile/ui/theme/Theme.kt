@@ -9,6 +9,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.ontrek.shared.DarkGray
+import com.ontrek.shared.DarkOlive
 import com.ontrek.shared.DeepGreen
 import com.ontrek.shared.LightGreen
 import com.ontrek.shared.OliveGreen
@@ -16,7 +17,7 @@ import com.ontrek.shared.OliveGreen
 private val DarkColorScheme = darkColorScheme(
     primary = LightGreen,
     secondary = OliveGreen,
-//    background = DeepGreen,
+    background = DarkGray,
     surface = LightGreen,
     onPrimary = DeepGreen,
     onSecondary = LightGreen,
@@ -27,16 +28,16 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = LightGreen,
+    primary = DarkOlive,
     secondary = OliveGreen,
-    background = DeepGreen,
-    surface = LightGreen,
+//    background = DeepGreen,
+    surface = DarkOlive,
     onPrimary = DeepGreen,
-    onSecondary = LightGreen,
-    onBackground = LightGreen,
+    onSecondary = DarkOlive,
+    onBackground = DarkOlive,
     onSurface = DeepGreen,
     onSurfaceVariant = DarkGray,
-    onError = LightGreen,
+    onError = DarkOlive,
 )
 
 
