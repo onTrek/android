@@ -43,7 +43,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    OnTrekTheme (dynamicColor = false) {
+    OnTrekTheme {
         Greeting("Android")
     }
 }

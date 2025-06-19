@@ -16,7 +16,7 @@ import com.ontrek.shared.OliveGreen
 private val DarkColorScheme = darkColorScheme(
     primary = LightGreen,
     secondary = OliveGreen,
-    background = DeepGreen,
+//    background = DeepGreen,
     surface = LightGreen,
     onPrimary = DeepGreen,
     onSecondary = LightGreen,
@@ -44,7 +44,7 @@ private val LightColorScheme = lightColorScheme(
 fun OnTrekTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
