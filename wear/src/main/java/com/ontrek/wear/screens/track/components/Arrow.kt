@@ -1,4 +1,4 @@
-package com.ontreck.wear.screens.track.components
+package com.ontrek.wear.screens.track.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable

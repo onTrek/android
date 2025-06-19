@@ -1,4 +1,4 @@
-package com.ontreck.wear.screens.track.components
+package com.ontrek.wear.screens.track.components
 
 import android.content.Context
 import android.os.VibratorManager
@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontreck.wear.theme.OnTrekSmartwatchTheme
+import com.ontrek.wear.theme.OnTrekSmartwatchTheme
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 

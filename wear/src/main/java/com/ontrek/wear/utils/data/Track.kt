@@ -1,4 +1,4 @@
-package com.ontreck.wear.utils.data
+package com.ontrek.wear.utils.data
 
 class Track(private var id: String, private var title: String) {
 

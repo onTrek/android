@@ -1,7 +1,7 @@
-package com.ontreck.wear.screens.home
+package com.ontrek.wear.screens.home
 
 import androidx.lifecycle.ViewModel
-import com.ontreck.wear.utils.data.Track
+import com.ontrek.wear.utils.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class HomeViewModel: ViewModel() {
