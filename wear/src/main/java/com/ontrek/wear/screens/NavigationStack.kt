@@ -6,9 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ontreck.wear.screens.Screen
-import com.ontreck.wear.screens.home.TrackSelectionScreen
-import com.ontreck.wear.screens.track.TrackScreen
+import com.ontrek.wear.screens.Screen
+import com.ontrek.wear.screens.home.TrackSelectionScreen
+import com.ontrek.wear.screens.track.TrackScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {

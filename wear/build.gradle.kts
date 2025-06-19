@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ontreck"
+    namespace = "com.ontrek"
     compileSdk = 35
 
     defaultConfig {

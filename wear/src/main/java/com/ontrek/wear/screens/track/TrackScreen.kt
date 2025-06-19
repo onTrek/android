@@ -1,4 +1,4 @@
-package com.ontreck.wear.screens.track
+package com.ontrek.wear.screens.track
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -17,10 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import com.ontreck.wear.screens.track.components.Arrow
-import com.ontreck.wear.screens.track.components.ProgressBar
-import com.ontreck.wear.screens.track.components.SosButton
-import com.ontreck.wear.utils.data.sensors.CompassSensor
+import com.ontrek.wear.screens.track.components.Arrow
+import com.ontrek.wear.screens.track.components.ProgressBar
+import com.ontrek.wear.screens.track.components.SosButton
+import com.ontrek.wear.utils.data.sensors.CompassSensor
 
 /**
  * Schermata che mostra una freccia che punta sempre verso Nord.
