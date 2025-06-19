@@ -1,4 +1,4 @@
-package com.ontrecksmartwatch.screens.track.components
+package com.ontreck.wear.screens.track.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrecksmartwatch.theme.OnTrekSmartwatchTheme
+import com.ontreck.wear.theme.OnTrekSmartwatchTheme
 import kotlin.math.min
 
 

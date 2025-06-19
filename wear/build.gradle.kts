@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ontrecksmartwatch"
+    namespace = "com.ontreck"
     compileSdk = 35
 
     defaultConfig {
