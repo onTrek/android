@@ -20,5 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "OnTrekSmartwatch"
-include(":app")
+include(":wear")
  
