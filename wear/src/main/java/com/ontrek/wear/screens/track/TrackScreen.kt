@@ -14,9 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
@@ -52,18 +54,33 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
     val progress = 0.75f
 
+    val info: String? = null
+
     // Layout principale della schermata
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        Text(
-            text,
-            color = MaterialTheme.colors.primary,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(10.dp)
-        )
+
+
+        if (info != null) {
+            Text(
+                info,
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(10.dp)
+            )
+        } else {
+            TimeText(
+                timeTextStyle = TextStyle(
+                    color = MaterialTheme.colors.primary
+                ),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(5.dp),
+            )
+        }
 
         ProgressBar(
             progress = progress
