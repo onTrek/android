@@ -25,7 +25,7 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.screens.Screen
-import com.ontrek.wear.theme.OnTrekSmartwatchTheme
+import com.ontrek.wear.theme.OnTrekTheme
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -90,7 +90,7 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    OnTrekSmartwatchTheme {
+    OnTrekTheme {
         TrackSelectionScreen(rememberNavController())
     }
 }

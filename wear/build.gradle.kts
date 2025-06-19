@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ontrecks.wear"
-        minSdk = 30
+        minSdk = 33
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -40,6 +40,7 @@ android {
 
 dependencies {
 
+    implementation(project(":shared"))
     implementation(libs.navigation.compose)
     implementation(libs.play.services.wearable)
     implementation(libs.lifecycle.viewmodel.compose)

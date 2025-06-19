@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.ontrek.wear.theme.OnTrekSmartwatchTheme
+import com.ontrek.wear.theme.OnTrekTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,10 +17,8 @@ class MainActivity : ComponentActivity() {
         setTheme(R.style.Theme_DeviceDefault)
 
         setContent {
-            OnTrekSmartwatchTheme {
-                NavigationStack(
-//                    modifier = Modifier.padding(16.dp)
-                )
+            OnTrekTheme {
+                NavigationStack()
             }
         }
     }

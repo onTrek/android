@@ -17,7 +17,7 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrek.wear.theme.OnTrekSmartwatchTheme
+import com.ontrek.wear.theme.OnTrekTheme
 
 @Composable
 fun SosButton(
@@ -49,7 +49,7 @@ fun SosButton(
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun SosButtonPreview() {
-    OnTrekSmartwatchTheme {
+    OnTrekTheme {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomCenter
