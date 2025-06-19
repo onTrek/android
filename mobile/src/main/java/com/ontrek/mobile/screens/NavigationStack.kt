@@ -6,34 +6,32 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ontrek.wear.screens.Screen
-import com.ontrek.wear.screens.home.TrackSelectionScreen
-import com.ontrek.wear.screens.track.TrackScreen
+import com.ontrek.mobile.screens.Screen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
-        composable(route = Screen.MainScreen.route) {
-            TrackSelectionScreen(
-                navController = navController,
-                modifier = modifier
-            )
-        }
-        composable(
-            route = Screen.TrackScreen.route + "?text={text}",
-            arguments = listOf(
-                navArgument("text") {
-                    type = NavType.StringType
-                    nullable = true
-                }
-            )
-        ) {
-            TrackScreen(
-                text = it.arguments?.getString("text").toString(),
-                modifier = modifier
-            )
-        }
-    }
+//    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+//        composable(route = Screen.MainScreen.route) {
+//            TrackSelectionScreen(
+//                navController = navController,
+//                modifier = modifier
+//            )
+//        }
+//        composable(
+//            route = Screen.TrackScreen.route + "?text={text}",
+//            arguments = listOf(
+//                navArgument("text") {
+//                    type = NavType.StringType
+//                    nullable = true
+//                }
+//            )
+//        ) {
+//            TrackScreen(
+//                text = it.arguments?.getString("text").toString(),
+//                modifier = modifier
+//            )
+//        }
+//    }
 }
