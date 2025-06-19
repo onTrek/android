@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ontrecksmartwatch"
+        applicationId = "com.ontrecks.wear"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
