@@ -23,7 +23,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
-import com.ontrek.wear.utils.data.sensors.CompassSensor
+import com.ontrek.wear.utils.sensors.CompassSensor
 
 /**
  * Schermata che mostra una freccia che punta sempre verso Nord.

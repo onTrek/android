@@ -1,4 +1,4 @@
-package com.ontrek.wear.utils.data.sensors
+package com.ontrek.wear.utils.sensors
 
 import android.content.Context
 import android.hardware.Sensor
