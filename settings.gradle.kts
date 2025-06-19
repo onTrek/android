@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OnTrekSmartwatch"
 include(":wear")
- 
+include(":mobile")
