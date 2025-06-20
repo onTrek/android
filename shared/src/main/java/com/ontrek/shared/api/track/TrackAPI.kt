@@ -1,4 +1,4 @@
-package com.ontrek.shared.api.gpx
+package com.ontrek.shared.api.track
 
 import android.util.Log
 import com.ontrek.shared.data.GpxResponse

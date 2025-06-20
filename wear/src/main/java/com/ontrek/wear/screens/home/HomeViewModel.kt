@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ontrek.shared.data.Track
-import com.ontrek.shared.api.gpx.fetchData
+import com.ontrek.shared.api.track.fetchData
 import com.ontrek.shared.data.GpxResponse
 
 class HomeViewModel: ViewModel() {
