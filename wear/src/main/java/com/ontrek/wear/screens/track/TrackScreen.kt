@@ -68,7 +68,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
     val info: String? = null
 
-    ScreenScaffold (
+    ScreenScaffold(
         timeText = if (info.isNullOrBlank()) {
             {
                 TimeText(
@@ -81,48 +81,50 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
         } else null,
     ) {
         if (accuracy < 4) {
-            Box(contentAlignment = Alignment.Center,
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = modifier.fillMaxSize()
             ) {
                 CompassCalibrationNotice(modifier)
             }
-        } else
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier.fillMaxSize()
-        ) {
+        } else {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
 
 
-            if (info != null) {
-                Text(
-                    info,
-                    color = MaterialTheme.colors.primary,
+                if (info != null) {
+                    Text(
+                        info,
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(10.dp)
+                    )
+                }
+
+                ProgressBar(
+                    progress = progress
+                )
+
+                SosButton(
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(10.dp)
+                        .height(27.dp)
+                        .fillMaxWidth(fraction = 0.6f)
+                        .align(Alignment.BottomCenter),
+                    onClick = {
+                        Log.d("SOS", "SOS button pressed")
+                    }
+                )
+
+                Arrow(
+                    direction = direction,  // Angolo di rotazione basato sui dati del sensore
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
                 )
             }
-
-            ProgressBar(
-                progress = progress
-            )
-
-            SosButton(
-                modifier = Modifier
-                    .height(27.dp)
-                    .fillMaxWidth(fraction = 0.6f)
-                    .align(Alignment.BottomCenter),
-                onClick = {
-                    Log.d("SOS", "SOS button pressed")
-                }
-            )
-
-            Arrow(
-                direction = direction,  // Angolo di rotazione basato sui dati del sensore
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-            )
         }
     }
 }
@@ -134,23 +136,25 @@ fun CompassCalibrationNotice(
     val message = "Low accuracy"
     val subMessage = "Tilt and move the device"
 
-    Column (
-        modifier = Modifier.fillMaxSize().
-        padding(10.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-        ) {
+    ) {
         Text(
             text = message,
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(top = 15.dp),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colors.primary,
             textAlign = TextAlign.Center,
+            fontSize = MaterialTheme.typography.title2.fontSize
         )
         GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass)
         Text(
             text = subMessage,
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp),
             color = MaterialTheme.colors.primary,
             textAlign = TextAlign.Center,
         )
