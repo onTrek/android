@@ -3,12 +3,12 @@ package com.ontrek.wear.theme
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.Colors
 import androidx.wear.compose.material.MaterialTheme
-import com.ontrek.shared.DarkGray
-import com.ontrek.shared.DarkOlive
-import com.ontrek.shared.DeepGreen
-import com.ontrek.shared.LightGreen
-import com.ontrek.shared.MediumGreen
-import com.ontrek.shared.OliveGreen
+import com.ontrek.shared.theme.DarkGray
+import com.ontrek.shared.theme.DarkOlive
+import com.ontrek.shared.theme.DeepGreen
+import com.ontrek.shared.theme.LightGreen
+import com.ontrek.shared.theme.MediumGreen
+import com.ontrek.shared.theme.OliveGreen
 
 private val CustomColorPalette = Colors(
     primary = LightGreen,

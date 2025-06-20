@@ -8,11 +8,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.ontrek.shared.DarkGray
-import com.ontrek.shared.DarkOlive
-import com.ontrek.shared.DeepGreen
-import com.ontrek.shared.LightGreen
-import com.ontrek.shared.OliveGreen
+import com.ontrek.shared.theme.DarkGray
+import com.ontrek.shared.theme.DarkOlive
+import com.ontrek.shared.theme.DeepGreen
+import com.ontrek.shared.theme.LightGreen
+import com.ontrek.shared.theme.OliveGreen
 
 private val DarkColorScheme = darkColorScheme(
     primary = LightGreen,

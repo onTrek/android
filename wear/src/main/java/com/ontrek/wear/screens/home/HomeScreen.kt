@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,7 +37,7 @@ fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = 
 @Composable
 fun ScrollableTracksList(navController: NavHostController) {
     val viewModel = viewModel<HomeViewModel>()
-    val trackList by viewModel.trackListState.collectAsState()
+    val trackList by viewModel.trackListState.observeAsState()
     val listState = rememberScalingLazyListState()
     ScreenScaffold(
         scrollState = listState,
@@ -67,8 +67,8 @@ fun ScrollableTracksList(navController: NavHostController) {
                     text = "My tracks"
                 )
             }
-            items(trackList) {
-                TrackButton(it.getTitle(), navController)
+            items(trackList ?: emptyList()) {
+                TrackButton(it.title, navController)
             }
         }
     }
