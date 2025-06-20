@@ -41,6 +41,8 @@ android {
 dependencies {
 
     implementation(project(":shared"))
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     implementation(libs.navigation.compose)
     implementation(libs.play.services.wearable)
     implementation(libs.lifecycle.viewmodel.compose)
@@ -55,6 +57,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
     implementation(libs.compose.material3)
+    implementation(libs.material3.android)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
