@@ -39,8 +39,10 @@ android {
 }
 
 dependencies {
-
     implementation(project(":shared"))
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.runtime.livedata)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.navigation.compose)
