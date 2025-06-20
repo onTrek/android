@@ -109,7 +109,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                 modifier = modifier.fillMaxSize()
             ) {
          */
-        if (accuracy < 4) {
+        if (accuracy < 2) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = modifier.fillMaxSize()
@@ -180,7 +180,7 @@ fun CompassCalibrationNotice(
             textAlign = TextAlign.Center,
             fontSize = MaterialTheme.typography.title2.fontSize
         )
-        GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass)
+        GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass, R.drawable.compassplaceholder)
         Text(
             text = subMessage,
             modifier = Modifier.padding(horizontal = 10.dp),

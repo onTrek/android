@@ -14,7 +14,7 @@ import com.ontrek.R
 import com.ontrek.wear.theme.OnTrekTheme
 
 @Composable
-fun GifRenderer(modifier: Modifier = Modifier, image: Any = R.drawable.compass) {
+fun GifRenderer(modifier: Modifier = Modifier, image: Any = R.drawable.compass, placeholder: Int = R.drawable.compassplaceholder) {
     val context = LocalContext.current
 
     val imageLoader = ImageLoader.Builder(context)
@@ -26,7 +26,7 @@ fun GifRenderer(modifier: Modifier = Modifier, image: Any = R.drawable.compass) 
     AsyncImage(
         model = ImageRequest.Builder(context)
             .data(image)
-            .crossfade(true)
+            .placeholder(placeholder)
             .build(),
         contentDescription = "GIF",
         imageLoader = imageLoader,
