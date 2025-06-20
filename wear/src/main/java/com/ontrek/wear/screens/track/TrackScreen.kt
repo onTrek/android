@@ -33,6 +33,12 @@ import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 
 /**
  * Schermata che mostra una freccia che punta sempre verso Nord.
@@ -80,16 +86,10 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             }
         } else null,
     ) {
-        /*
-        import androidx.compose.animation.AnimatedVisibility
-        import androidx.compose.animation.fadeIn
-        import androidx.compose.animation.fadeOut
-        import androidx.compose.animation.core.tween
-
         AnimatedVisibility(
-            visible = accuracy < 4,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
+            visible = accuracy < 2,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -98,25 +98,11 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                 CompassCalibrationNotice(modifier)
             }
         }
-
         AnimatedVisibility(
-            visible = accuracy >= 4,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
+            visible = accuracy >= 2,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxSize()
-            ) {
-         */
-        if (accuracy < 2) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxSize()
-            ) {
-                CompassCalibrationNotice(modifier)
-            }
-        } else {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = modifier.fillMaxSize()

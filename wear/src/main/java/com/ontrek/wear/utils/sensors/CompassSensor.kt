@@ -18,7 +18,7 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 3f) {
     private val _direction = MutableStateFlow(0f)
     val direction: StateFlow<Float> = _direction
 
-    private val _accuracy = MutableStateFlow(0)
+    private val _accuracy = MutableStateFlow(3)
     val accuracy: StateFlow<Int> = _accuracy
 
     private val gravity = FloatArray(3)
@@ -47,7 +47,9 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 3f) {
 
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
             Log.d("COMPASS", "Sensor accuracy changed: ${sensor.name} - $accuracy")
-            _accuracy.value = accuracy
+            if (sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                _accuracy.value = accuracy
+            }
         }
     }
 
