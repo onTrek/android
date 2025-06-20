@@ -80,6 +80,35 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
             }
         } else null,
     ) {
+        /*
+        import androidx.compose.animation.AnimatedVisibility
+        import androidx.compose.animation.fadeIn
+        import androidx.compose.animation.fadeOut
+        import androidx.compose.animation.core.tween
+
+        AnimatedVisibility(
+            visible = accuracy < 4,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
+                CompassCalibrationNotice(modifier)
+            }
+        }
+
+        AnimatedVisibility(
+            visible = accuracy >= 4,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
+         */
         if (accuracy < 4) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -137,7 +166,7 @@ fun CompassCalibrationNotice(
     val subMessage = "Tilt and move the device"
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
