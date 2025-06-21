@@ -10,7 +10,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
-import com.ontrek.R
+import com.ontrek.wear.R
 import com.ontrek.wear.theme.OnTrekTheme
 
 @Composable

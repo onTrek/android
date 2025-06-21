@@ -24,21 +24,25 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.wear.MainViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
 
 @Composable
-fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    ScrollableTracksList(navController)
-
+fun TrackSelectionScreen(navController: NavHostController, mainViewModel: MainViewModel, modifier: Modifier) {
+    ScrollableTracksList(navController, mainViewModel, modifier)
 }
 
 
 @Composable
-fun ScrollableTracksList(navController: NavHostController) {
-    val viewModel = viewModel<HomeViewModel>()
+fun ScrollableTracksList(navController: NavHostController, mainViewModel: MainViewModel, modifier: Modifier) {
+
+    val viewModel: HomeViewModel = viewModel()
+
     val trackList by viewModel.trackListState.observeAsState()
+    val token by mainViewModel.tokenState.observeAsState()
     val listState = rememberScalingLazyListState()
+    viewModel.fetchData(token ?: "")
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -48,7 +52,7 @@ fun ScrollableTracksList(navController: NavHostController) {
                     indicatorColor = MaterialTheme.colors.primary,
                     trackColor = MaterialTheme.colors.onSurfaceVariant
                 ),
-                modifier = Modifier
+                modifier = modifier
                     .align(Alignment.CenterEnd)
                     .padding(start = 8.dp)
             )
@@ -90,7 +94,8 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
+    val mainViewModel: MainViewModel = viewModel()
     OnTrekTheme {
-        TrackSelectionScreen(rememberNavController())
+        TrackSelectionScreen(rememberNavController(), mainViewModel, Modifier)
     }
 }
