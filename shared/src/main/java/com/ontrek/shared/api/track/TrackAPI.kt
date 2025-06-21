@@ -1,6 +1,7 @@
 package com.ontrek.shared.api.track
 
 import android.util.Log
+import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.Callback
