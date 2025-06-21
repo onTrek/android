@@ -13,8 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import com.ontrek.shared.ui.Visibility
-import com.ontrek.shared.ui.Visibility_off
+import com.ontrek.shared.icon.Visibility
+import com.ontrek.shared.icon.Visibility_off
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -68,14 +68,11 @@ fun LoginScreen(
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = "Logo OnTrek",
-                    modifier = Modifier.height(100.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.FillHeight
                 )
-                Text(
-                    text = "OnTrek",
-                    style = MaterialTheme.typography.headlineLarge
-                )
-
-                Spacer(modifier = Modifier.height(130.dp))
 
                 // Campo email
                 OutlinedTextField(

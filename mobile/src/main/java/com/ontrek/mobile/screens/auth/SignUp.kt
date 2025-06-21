@@ -39,8 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
-import com.ontrek.shared.ui.Visibility
-import com.ontrek.shared.ui.Visibility_off
+import com.ontrek.shared.icon.Visibility
+import com.ontrek.shared.icon.Visibility_off
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +72,10 @@ fun SignUpScreen(
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = "Logo OnTrek",
-                    modifier = Modifier.height(100.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.FillHeight
                 )
                 Text(
                     text = "OnTrek",

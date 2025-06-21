@@ -1,4 +1,4 @@
-package com.ontrek.shared.ui
+package com.ontrek.shared.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
