@@ -1,3 +1,5 @@
+package com.ontrek.shared.api
+
 import com.ontrek.shared.data.GpxResponse
 import retrofit2.Call
 import retrofit2.http.GET
