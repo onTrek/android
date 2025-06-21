@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -67,17 +66,16 @@ fun LoginScreen(
                 // Logo e titolo dell'app
                 Spacer(modifier = Modifier.height(48.dp))
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = "Logo OnTrek",
                     modifier = Modifier.height(100.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "OnTrek",
                     style = MaterialTheme.typography.headlineLarge
                 )
 
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(130.dp))
 
                 // Campo email
                 OutlinedTextField(
@@ -141,7 +139,7 @@ fun LoginScreen(
                 onClick = onSignUpClicked,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 10.dp)
             ) {
                 Text("Sign up")
             }
