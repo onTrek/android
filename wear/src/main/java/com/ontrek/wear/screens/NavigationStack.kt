@@ -1,12 +1,14 @@
 // NavigationStack.kt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ontrek.wear.screens.Screen
+import com.ontrek.wear.screens.home.HomeViewModel
 import com.ontrek.wear.screens.home.TrackSelectionScreen
 import com.ontrek.wear.screens.track.TrackScreen
 
@@ -16,9 +18,10 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
+            val homeViewModel = viewModel<HomeViewModel>()
             TrackSelectionScreen(
                 navController = navController,
-                modifier = modifier
+                homeViewModel.trackListState
             )
         }
         composable(
@@ -30,6 +33,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 }
             )
         ) {
+
             TrackScreen(
                 text = it.arguments?.getString("text").toString(),
                 modifier = modifier
