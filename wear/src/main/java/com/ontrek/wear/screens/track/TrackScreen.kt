@@ -1,6 +1,11 @@
 package com.ontrek.wear.screens.track
 
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,21 +29,15 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
-import com.ontrek.wear.screens.Screen
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.R
+import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 
 /**
  * Composable function that represents the Track screen.
@@ -76,7 +75,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
 
     val info: String? = null
 
-    ScreenScaffold (
+    ScreenScaffold(
         timeText = if (info.isNullOrBlank()) {
             {
                 TimeText(
@@ -126,18 +125,19 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
                 )
 
 
-            Arrow(
-                direction = direction,  // Angolo di rotazione basato sui dati del sensore
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-            )
+                Arrow(
+                    direction = direction,  // Angolo di rotazione basato sui dati del sensore
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+                )
 
-            SosButton(
-                onSosTriggered = {
-                    navController.navigate(route = Screen.SOSScreen.route)
-                }
-            )
+                SosButton(
+                    onSosTriggered = {
+                        navController.navigate(route = Screen.SOSScreen.route)
+                    }
+                )
+            }
         }
     }
 }
