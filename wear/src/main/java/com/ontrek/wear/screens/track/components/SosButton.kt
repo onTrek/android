@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,11 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.Icon
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.theme.OnTrekTheme
 import kotlinx.coroutines.launch
@@ -73,10 +73,7 @@ fun SosButton(
                 .fillMaxWidth(0.6f)
                 .clip(
                     RoundedCornerShape(
-                        topStart = 100.dp,
-                        topEnd = 100.dp,
-                        bottomStart = 0.dp,
-                        bottomEnd = 0.dp
+                        topStart = 100.dp, topEnd = 100.dp, bottomStart = 0.dp, bottomEnd = 0.dp
                     )
                 )
                 .background(Color.Red)
@@ -89,10 +86,8 @@ fun SosButton(
                             scope.launch {
                                 scaleAnim.snapTo(1f)
                                 scaleAnim.animateTo(
-                                    scaleRate,
-                                    animationSpec = tween(
-                                        durationMillis = 5000,
-                                        easing = LinearEasing
+                                    scaleRate, animationSpec = tween(
+                                        durationMillis = 5000, easing = LinearEasing
                                     )
                                 )
                             }
@@ -126,23 +121,21 @@ fun SosButton(
                             } else {
                                 scope.launch {
                                     scaleAnim.animateTo(
-                                        1f,
-                                        animationSpec = tween(durationMillis = 300)
+                                        1f, animationSpec = tween(durationMillis = 300)
                                     )
                                 }
                                 Toast.makeText(context, "Hold for 5 seconds", Toast.LENGTH_SHORT)
                                     .show()
                             }
-                        }
-                    )
+                        })
                 }
         ) {}
-        Text(
-            text = "SOS",
-            modifier = Modifier.padding(5.dp),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.button
+        Icon(
+            imageVector = Icons.Filled.Sos,
+            contentDescription = "SOS Icon",
+            modifier = Modifier
+                .padding(2.dp),
+            tint = Color.White
         )
     }
 }
