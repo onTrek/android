@@ -15,7 +15,6 @@ import com.ontrek.wear.screens.track.TrackScreen
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    // TODO: change start destination to MainScreen before merging
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
             TrackSelectionScreen(
