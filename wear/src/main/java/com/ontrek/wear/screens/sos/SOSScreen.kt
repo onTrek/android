@@ -69,7 +69,7 @@ fun SOSScreen(navController: NavHostController) {
             DismissSOSDialog(
                 showDialog = showDialog,
                 onConfirm = { closeScreen(navController) },
-                onDismiss = { /* Handle dismiss */ }
+                onDismiss = { showDialog = false }
             )
         }
     }
