@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material3.AlertDialog
@@ -95,12 +96,14 @@ fun DismissSOSDialog(
             Text(
                 text = "Dismiss SOS?",
                 color = Color.Red,
+                style = MaterialTheme.typography.title2
             )
         },
         text = {
             Text(
                 text = "Are you sure you want to dismiss the SOS?",
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.body2
             )
         },
         confirmButton = {
@@ -113,7 +116,15 @@ fun DismissSOSDialog(
             ) { Text("Yes") }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) { Text("No") }
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.White
+                ),
+                border = ButtonDefaults.outlinedButtonBorder(
+                    borderColor = Color.White
+                )
+            ) { Text("No") }
         }
     )
 }
