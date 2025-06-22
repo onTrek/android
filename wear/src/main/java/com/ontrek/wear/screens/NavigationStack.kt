@@ -14,7 +14,7 @@ import com.ontrek.wear.screens.track.TrackScreen
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.TrackScreen.route) {  // MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
             TrackSelectionScreen(
                 navController = navController,
@@ -34,6 +34,9 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 text = it.arguments?.getString("text").toString(),
                 modifier = modifier
             )
+        }
+        composable(route = Screen.SOSScreen.route) {
+
         }
     }
 }
