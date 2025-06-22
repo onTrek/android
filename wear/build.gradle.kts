@@ -41,6 +41,7 @@ android {
 dependencies {
 
     implementation(project(":shared"))
+    implementation(libs.material.icons.extended)
     implementation(libs.navigation.compose)
     implementation(libs.play.services.wearable)
     implementation(libs.lifecycle.viewmodel.compose)

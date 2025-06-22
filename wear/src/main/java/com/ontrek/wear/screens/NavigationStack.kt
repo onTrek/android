@@ -8,13 +8,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.home.TrackSelectionScreen
+import com.ontrek.wear.screens.sos.SOSScreen
 import com.ontrek.wear.screens.track.TrackScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.TrackScreen.route) {  // MainScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
             TrackSelectionScreen(
                 navController = navController,
@@ -31,12 +32,15 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             )
         ) {
             TrackScreen(
+                navController = navController,
                 text = it.arguments?.getString("text").toString(),
                 modifier = modifier
             )
         }
         composable(route = Screen.SOSScreen.route) {
-
+            SOSScreen(
+                navController = navController,
+            )
         }
     }
 }

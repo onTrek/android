@@ -1,6 +1,5 @@
 package com.ontrek.wear.screens.track
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,23 +13,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
+import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.utils.sensors.CompassSensor
 
 /**
- * Schermata che mostra una freccia che punta sempre verso Nord.
- * Utilizza i sensori di orientamento dello smartwatch per determinare la direzione.
- *
- * @param text Testo informativo da visualizzare nella schermata
+ * Composable function that represents the Track screen.
+ * This screen displays a compass arrow indicating the current direction, the progress bar of the track,
+ * and a button to trigger an SOS signal.
+ * @param navController The navigation controller to handle navigation actions.
+ * @param text A string parameter that can be used to display additional information on the screen.
+ * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(text: String, modifier: Modifier = Modifier) {
+fun TrackScreen(navController: NavHostController, text: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
@@ -97,7 +100,7 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
 
             SosButton(
                 onSosTriggered = {
-                    Log.d("SOS", "SOS button pressed")
+                    navController.navigate(route = Screen.SOSScreen.route)
                 }
             )
         }
