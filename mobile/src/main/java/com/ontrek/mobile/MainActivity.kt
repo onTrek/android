@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.ontrek.mobile.screens.auth.LoginScreen
+import com.ontrek.mobile.screens.auth.AuthScreen
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     )
                 }*/
-                LoginScreen()
+                AuthScreen()
             }
         }
     }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -37,18 +38,32 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
+enum class AuthMode {
+    LOGIN,
+    SIGNUP
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
+fun AuthScreen(
     onLoginClicked: (String, String) -> Unit = { _, _ -> },
-    onSignUpClicked: () -> Unit = {}
+    onSignUpClicked: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
+    var authMode by remember { mutableStateOf(AuthMode.LOGIN) }
     var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordRepeat by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var passwordRepeatVisible by remember { mutableStateOf(false) }
 
     Scaffold { paddingValues ->
         Box(
@@ -93,6 +108,33 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Campo username (solo per signup)
+                AnimatedVisibility(
+                    visible = authMode == AuthMode.SIGNUP,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically()
+                ) {
+                    Column {
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = { Text("Username") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Username Icon"
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+
                 // Campo password
                 OutlinedTextField(
                     value = password,
@@ -116,28 +158,75 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
+                        imeAction = if (authMode == AuthMode.LOGIN) ImeAction.Done else ImeAction.Next
                     )
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
+                // Campo ripeti password (solo per signup)
+                AnimatedVisibility(
+                    visible = authMode == AuthMode.SIGNUP,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically()
+                ) {
+                    Column {
+                        OutlinedTextField(
+                            value = passwordRepeat,
+                            onValueChange = { passwordRepeat = it },
+                            label = { Text("Repeat password") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = "Repeat Password Icon"
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = { passwordRepeatVisible = !passwordRepeatVisible }) {
+                                    Icon(
+                                        imageVector = if (passwordRepeatVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = "Toggle repeat password visibility"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (passwordRepeatVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottone principale (cambia in base allo stato)
                 Button(
-                    onClick = { onLoginClicked(email, password) },
+                    onClick = {
+                        if (authMode == AuthMode.LOGIN) {
+                            onLoginClicked(email, password)
+                        } else {
+                            onSignUpClicked(email, username, password)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Login")
+                    Text(if (authMode == AuthMode.LOGIN) "Login" else "Sign up")
                 }
             }
 
-            // Testo per registrazione in basso a destra
+            // Testo e azione per cambiare modalità
             TextButton(
-                onClick = onSignUpClicked,
+                onClick = {
+                    authMode = if (authMode == AuthMode.LOGIN) AuthMode.SIGNUP else AuthMode.LOGIN
+                },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(bottom = 10.dp)
             ) {
-                Text("Sign up")
+                Text(if (authMode == AuthMode.LOGIN) "Sign up" else "Log in")
             }
         }
     }
@@ -145,8 +234,8 @@ fun LoginScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
+fun AuthScreenPreview() {
     OnTrekTheme {
-        LoginScreen()
+        AuthScreen()
     }
 }
