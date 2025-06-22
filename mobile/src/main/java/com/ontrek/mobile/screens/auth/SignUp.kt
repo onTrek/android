@@ -14,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,8 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
-import com.ontrek.shared.icon.Visibility
-import com.ontrek.shared.icon.Visibility_off
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,7 +138,7 @@ fun SignUpScreen(
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                imageVector = if (passwordVisible) Visibility else Visibility_off,
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = "Toggle password visibility"
                             )
                         }
@@ -167,7 +167,7 @@ fun SignUpScreen(
                     trailingIcon = {
                         IconButton(onClick = { passwordRepeatVisible = !passwordRepeatVisible }) {
                             Icon(
-                                imageVector = if (passwordRepeatVisible) Visibility else Visibility_off,
+                                imageVector = if (passwordRepeatVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = "Toggle repeat password visibility"
                             )
                         }
