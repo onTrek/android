@@ -8,37 +8,44 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import com.ontrek.wear.data.TokenViewModel
+import com.ontrek.wear.screens.login.AppLogo
 import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
-    private val mainViewModel: MainViewModel by viewModels()
     private val dataClient by lazy { Wearable.getDataClient(this) }
+    private val tokenViewModel : TokenViewModel by viewModels { TokenViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
-
         setTheme(R.style.Theme_DeviceDefault)
 
         setContent {
-            val token by mainViewModel.tokenState.observeAsState()
+            val tokenViewModel : TokenViewModel = viewModel(factory = TokenViewModel.Factory)
+            val preferencesStore by tokenViewModel.uiState.collectAsState()
             OnTrekTheme {
-                if (token.isNullOrEmpty()) {
-                    Login(Modifier.fillMaxSize())
+                // At startup the token is "undefined" because it has not been fetched yet
+                if (preferencesStore.token == "undefined") {
+                    AppLogo(Modifier.fillMaxSize())
                 } else
-                NavigationStack(mainViewModel)
+                    if (preferencesStore.token.isEmpty()) {
+                        Login(Modifier.fillMaxSize())
+                    } else
+                    NavigationStack()
             }
         }
     }
@@ -56,11 +63,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         Log.d("WATCH_CONNECTION", "Querying data changes")
+
         for (event in dataEvents) {
             if (event.type == DataEvent.TYPE_CHANGED &&
                 event.dataItem.uri.path == "/auth") {
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-                mainViewModel.saveToken(dataMap.getString("token") ?: "")
+                tokenViewModel.saveToken(dataMap.getString("token") ?: "")
             }
         }
     }

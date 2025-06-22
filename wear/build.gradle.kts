@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.datastore.preferences)
     implementation(libs.fragment.ktx)
     implementation(libs.play.services.wearable.v1810)
     implementation(libs.retrofit)
