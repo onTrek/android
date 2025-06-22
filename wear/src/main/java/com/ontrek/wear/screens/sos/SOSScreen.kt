@@ -43,7 +43,7 @@ fun SOSScreen(navController: NavHostController) {
                 contentDescription = "Location",
                 tint = Color.White
             )
-            IconButton(
+            IconButton(  // TODO: Add a confirmation dialog before closing
                 onClick = { closeScreen(navController) },
                 modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
             ) {
