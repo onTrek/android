@@ -43,6 +43,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.material3.MaterialTheme
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
@@ -96,7 +97,8 @@ fun AuthScreen(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
-                            contentDescription = "Email Icon"
+                            contentDescription = "Email Icon",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -122,7 +124,8 @@ fun AuthScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    contentDescription = "Username Icon"
+                                    contentDescription = "Username Icon",
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -143,14 +146,16 @@ fun AuthScreen(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Password Icon"
+                            contentDescription = "Password Icon",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Toggle password visibility"
+                                contentDescription = "Toggle password visibility",
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -178,14 +183,16 @@ fun AuthScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
-                                    contentDescription = "Repeat Password Icon"
+                                    contentDescription = "Repeat Password Icon",
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             },
                             trailingIcon = {
                                 IconButton(onClick = { passwordRepeatVisible = !passwordRepeatVisible }) {
                                     Icon(
                                         imageVector = if (passwordRepeatVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Toggle repeat password visibility"
+                                        contentDescription = "Toggle repeat password visibility",
+                                        tint = MaterialTheme.colorScheme.onBackground
                                     )
                                 }
                             },

@@ -7,6 +7,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.ontrek.shared.theme.DarkGray
 import com.ontrek.shared.theme.DarkOlive
@@ -22,7 +23,7 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = DeepGreen,
     onSecondary = LightGreen,
     onBackground = LightGreen,
-    onSurface = DeepGreen,
+    onSurface = Color.White,
     onSurfaceVariant = DarkGray,
     onError = LightGreen,
 )
@@ -35,7 +36,7 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = DeepGreen,
     onSecondary = DarkOlive,
     onBackground = DarkOlive,
-    onSurface = DeepGreen,
+    onSurface = Color.Black,
     onSurfaceVariant = DarkGray,
     onError = DarkOlive,
 )
