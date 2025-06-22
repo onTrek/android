@@ -126,7 +126,7 @@ fun LoginScreen(
                     onClick = { onLoginClicked(email, password) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Accedi")
+                    Text("Login")
                 }
             }
 

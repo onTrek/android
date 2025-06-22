@@ -77,12 +77,6 @@ fun SignUpScreen(
                         .height(300.dp),
                     contentScale = androidx.compose.ui.layout.ContentScale.FillHeight
                 )
-                Text(
-                    text = "OnTrek",
-                    style = MaterialTheme.typography.headlineLarge
-                )
-
-                Spacer(modifier = Modifier.height(60.dp))
 
                 // Campo email
                 OutlinedTextField(
@@ -157,7 +151,7 @@ fun SignUpScreen(
                 OutlinedTextField(
                     value = passwordRepeat,
                     onValueChange = { passwordRepeat = it },
-                    label = { Text("Ripeti password") },
+                    label = { Text("Repeat password") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
