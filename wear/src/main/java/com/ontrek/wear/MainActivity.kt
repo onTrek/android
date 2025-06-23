@@ -12,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -26,7 +25,7 @@ import com.ontrek.wear.utils.components.Loading
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
-    private val preferencesViewModel : PreferencesViewModel by viewModels { PreferencesViewModel.Factory }  // TODO: CHIEDERE A DECO PERCHÉ CE NE SONO DUE
+    private val preferencesViewModel : PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -35,14 +34,13 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setTheme(Theme_DeviceDefault)
 
         setContent {
-            val preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)  // TODO: CHIEDERE A DECO PERCHÉ CE NE SONO DUE
             val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
-                // At startup the token is "undefined" because it has not been fetched yet
-                // TODO: distingush between loading token and undefined token
-//                if (token.isNullOrEmpty()) {
-//                    Loading(Modifier.fillMaxSize())
-//                } else
+                // Token not yet retrieved
+                if (token == null) {
+                    Loading(Modifier.fillMaxSize())
+                } else
+                    // Token is empty, show login screen
                     if (token.isNullOrEmpty()) {
                         Login(Modifier.fillMaxSize())
                     } else
