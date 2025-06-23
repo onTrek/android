@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ontrecks.wear"
+        applicationId = "com.ontrek.wear"
         minSdk = 33
         targetSdk = 35
         versionCode = 1
@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.material.icons.extended)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.runtime.livedata)

@@ -1,12 +1,15 @@
 package com.ontrek.wear.screens.track
 
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,33 +24,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.R
+import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 
 /**
- * Schermata che mostra una freccia che punta sempre verso Nord.
- * Utilizza i sensori di orientamento dello smartwatch per determinare la direzione.
- *
- * @param text Testo informativo da visualizzare nella schermata
+ * Composable function that represents the Track screen.
+ * This screen displays a compass arrow indicating the current direction, the progress bar of the track,
+ * and a button to trigger an SOS signal.
+ * @param navController The navigation controller to handle navigation actions.
+ * @param text A string parameter that can be used to display additional information on the screen.
+ * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(text: String, modifier: Modifier = Modifier) {
+fun TrackScreen(navController: NavHostController, text: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
@@ -123,21 +124,18 @@ fun TrackScreen(text: String, modifier: Modifier = Modifier) {
                     progress = progress
                 )
 
-                SosButton(
-                    modifier = Modifier
-                        .height(27.dp)
-                        .fillMaxWidth(fraction = 0.6f)
-                        .align(Alignment.BottomCenter),
-                    onClick = {
-                        Log.d("SOS", "SOS button pressed")
-                    }
-                )
 
                 Arrow(
                     direction = direction,  // Angolo di rotazione basato sui dati del sensore
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+                )
+
+                SosButton(
+                    onSosTriggered = {
+                        navController.navigate(route = Screen.SOSScreen.route)
+                    }
                 )
             }
         }
