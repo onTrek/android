@@ -1,23 +1,32 @@
 package com.ontrek.wear.screens.home
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.ontrek.shared.data.Track
 import com.ontrek.shared.api.track.fetchData
+import com.ontrek.shared.data.Track
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class HomeViewModel: ViewModel() {
+class HomeViewModel : ViewModel() {
 
-    private val _data = MutableLiveData<List<Track>>(listOf<Track>())
-    val trackListState : LiveData<List<Track>> = _data
-    private val _isLoading = MutableLiveData<Boolean>(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _data = MutableStateFlow<List<Track>>(listOf<Track>())
+    val trackListState: StateFlow<List<Track>> = _data
+
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
 
     fun fetchData(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
-        fetchData(::updateData, token)
+
+        fetchData(
+            onSuccess = ::updateData,
+            onError = ::setError,
+            token = token,
+        )
     }
 
     fun updateData(data: List<Track>?) {
@@ -27,6 +36,12 @@ class HomeViewModel: ViewModel() {
         } else {
             Log.e("WearOS", "Data is null")
         }
+        _isLoading.value = false
+    }
+
+    fun setError(error: String?) {
+        Log.e("WearOS", "Error occurred: $error")
+        _error.value = error
         _isLoading.value = false
     }
 }

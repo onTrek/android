@@ -12,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -35,13 +34,13 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setTheme(Theme_DeviceDefault)
 
         setContent {
-            val preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
             val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
-                // At startup the token is "undefined" because it has not been fetched yet
-                if (token.isNullOrEmpty()) {
+                // Token not yet retrieved
+                if (token == null) {
                     Loading(Modifier.fillMaxSize())
                 } else
+                    // Token is empty, show login screen
                     if (token.isNullOrEmpty()) {
                         Login(Modifier.fillMaxSize())
                     } else
