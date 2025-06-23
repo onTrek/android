@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.material.icons.extended)
     implementation(libs.datastore.preferences)
     implementation(libs.fragment.ktx)
     implementation(libs.play.services.wearable.v1810)

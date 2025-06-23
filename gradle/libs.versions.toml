@@ -1,11 +1,13 @@
 [versions]
 agp = "8.10.1"
+composeMaterialVersion = "1.4.1"
 coilCompose = "2.5.0"
 converterGson = "2.9.0"
 datastorePreferences = "1.1.7"
 fragmentKtx = "1.8.8"
 kotlin = "2.0.21"
 lifecycleViewmodelCompose = "2.9.1"
+materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.0"
 playServicesWearable = "19.0.0"
 composeBom = "2024.09.00"
@@ -34,6 +36,7 @@ converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
