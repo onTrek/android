@@ -31,9 +31,9 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
-import com.ontrek.shared.data.TrackStats
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.samples.trackList
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, trackListState: LiveData<List<Track>>) {
@@ -57,7 +57,7 @@ fun TrackSelectionScreen(navController: NavHostController, trackListState: LiveD
         // TODO: add a loading, error and empty states
 
         if (trackList.isNullOrEmpty()) {
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .wrapContentHeight()
@@ -134,50 +134,7 @@ fun DefaultPreview() {
     OnTrekTheme {
         val navController = rememberNavController()
         val sampleTracks = MutableLiveData<List<Track>>().apply {
-            value = listOf(
-                Track(
-                    id = 1,
-                    filename = "track1.gpx",
-                    stats = TrackStats(
-                        km = 5.2f,
-                        duration = "00:45:00",
-                        ascent = 120.0,
-                        descent = 110.0,
-                        max_altitude = 450,
-                        min_altitude = 320
-                    ),
-                    title = "Morning Hike",
-                    upload_date = "2024-06-01"
-                ),
-                Track(
-                    id = 3,
-                    filename = "track3.gpx",
-                    stats = TrackStats(
-                        km = 8.7f,
-                        duration = "01:20:00",
-                        ascent = 200.0,
-                        descent = 195.0,
-                        max_altitude = 600,
-                        min_altitude = 400
-                    ),
-                    title = "Mount Everest Expedition",
-                    upload_date = "2024-06-02"
-                ),
-                Track(
-                    id = 2,
-                    filename = "track2.gpx",
-                    stats = TrackStats(
-                        km = 8.7f,
-                        duration = "01:20:00",
-                        ascent = 200.0,
-                        descent = 195.0,
-                        max_altitude = 600,
-                        min_altitude = 400
-                    ),
-                    title = "Evening Trail",
-                    upload_date = "2024-06-02"
-                )
-            )
+            value = trackList
         }
         TrackSelectionScreen(navController, sampleTracks)
     }
