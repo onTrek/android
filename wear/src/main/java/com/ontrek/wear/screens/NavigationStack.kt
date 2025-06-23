@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.home.HomeViewModel
 import com.ontrek.wear.screens.home.TrackSelectionScreen
@@ -17,16 +18,22 @@ import com.ontrek.wear.screens.track.TrackScreen
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
+    // Initialize the preferences view model to access data store
+    val preferencesViewModel: PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
+
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
             val homeViewModel = viewModel<HomeViewModel>()
             TrackSelectionScreen(
                 navController = navController,
-                homeViewModel.trackListState
+                trackListState = homeViewModel.trackListState,
+                fetchTrackList = homeViewModel::fetchData,
+                loadingState = homeViewModel.isLoading,
+                tokenState = preferencesViewModel.tokenState,
             )
         }
         composable(
-            route = Screen.TrackScreen.route + "?text={text}",
+            route = Screen.TrackScreen.route + "?text={text}",  // TODO: pass the filename/path of the track
             arguments = listOf(
                 navArgument("text") {
                     type = NavType.StringType

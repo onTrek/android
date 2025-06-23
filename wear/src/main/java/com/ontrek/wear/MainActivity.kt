@@ -26,7 +26,7 @@ import com.ontrek.wear.utils.components.Loading
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
-    private val preferencesViewModel : PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
+    private val preferencesViewModel : PreferencesViewModel by viewModels { PreferencesViewModel.Factory }  // TODO: CHIEDERE A DECO PERCHÉ CE NE SONO DUE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -35,13 +35,14 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setTheme(Theme_DeviceDefault)
 
         setContent {
-            val preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
+            val preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)  // TODO: CHIEDERE A DECO PERCHÉ CE NE SONO DUE
             val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
                 // At startup the token is "undefined" because it has not been fetched yet
-                if (token.isNullOrEmpty()) {
-                    Loading(Modifier.fillMaxSize())
-                } else
+                // TODO: distingush between loading token and undefined token
+//                if (token.isNullOrEmpty()) {
+//                    Loading(Modifier.fillMaxSize())
+//                } else
                     if (token.isNullOrEmpty()) {
                         Login(Modifier.fillMaxSize())
                     } else

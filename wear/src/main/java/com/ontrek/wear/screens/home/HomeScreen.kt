@@ -1,26 +1,22 @@
 package com.ontrek.wear.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -36,22 +32,24 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
-import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
-import com.ontrek.wear.utils.samples.trackList
+import com.ontrek.wear.utils.samples.sampleTrackList
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun TrackSelectionScreen(
-    navController: NavHostController,
-    trackListState: LiveData<List<Track>>,
-    fetchTrackList: (String) -> (Unit),
-    preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
+    navController: NavHostController = rememberNavController(),
+    trackListState: StateFlow<List<Track>>,
+    fetchTrackList: (String) -> (Unit) = { _ -> },
+    loadingState: StateFlow<Boolean>,
+    tokenState: StateFlow<String?>,
 ) {
-    val trackList by trackListState.observeAsState()
-    val isLoading by viewModel.isLoading.observeAsState(initial = false)
-    val token by preferencesViewModel.tokenState.collectAsState()
+    val trackList by trackListState.collectAsStateWithLifecycle()
+    val isLoading by loadingState.collectAsStateWithLifecycle()
+    val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
@@ -72,63 +70,63 @@ fun TrackSelectionScreen(
             )
         }
     ) {
-        // TODO: add a loading, error and empty states
 
-        if (!isLoading && trackList.isNullOrEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentHeight()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = "No tracks available",
-                    tint = MaterialTheme.colors.primary
-                )
+
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState),
+        ) {
+            item {
                 Text(
                     modifier = Modifier.padding(bottom = 15.dp),
                     color = MaterialTheme.colors.primary,
-                    style = MaterialTheme.typography.title3,
-                    text = "No tracks available",
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = "Please upload them from your smartphone.",
-                    color = MaterialTheme.colors.secondary,
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.title2,
+                    text = "My tracks"
                 )
             }
-        } else {
-            ScalingLazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = listState,
-                flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState),
-            ) {
+            if (token.isNullOrEmpty() || isLoading) {
+                item {
+                    Loading(modifier = Modifier.fillMaxSize())
+                    Log.d("TrackSelectionScreen", "Loading tracks with token: $token, isLoading: $isLoading")
+                }
+            } else if (trackList.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Warning,
+                            contentDescription = "No tracks available",
+                            tint = MaterialTheme.colors.error
+                        )
+                        Text(
+                            color = MaterialTheme.colors.error,
+                            style = MaterialTheme.typography.title3,
+                            text = "No tracks available",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
                 item {
                     Text(
-                        modifier = Modifier.padding(bottom = 15.dp),
-                        color = MaterialTheme.colors.primary,
-                        style = MaterialTheme.typography.title2,
-                        text = "My tracks"
+                        text = "Please upload them from your smartphone.",
+                        color = MaterialTheme.colors.secondary,
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Center
                     )
                 }
-                if (token.isNullOrEmpty() || isLoading) {
-                    item {
-                        Loading(modifier = Modifier.fillMaxSize())
-                    }
-                } else
-                items(trackList ?: emptyList()) {
+            } else
+                items(trackList) {
                     TrackButton(it.title, navController)
                 }
-            }
         }
     }
 }
+
 
 @Composable
 fun TrackButton(trackName: String, navController: NavHostController) {
@@ -155,14 +153,15 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Composable
 fun DefaultPreview() {
     OnTrekTheme {
-        val navController = rememberNavController()
-        val sampleTracks = MutableLiveData<List<Track>>().apply {
-            value = trackList
-        }
+        val trackList = sampleTrackList
+        val emptyTrackList = listOf<Track>()
+        val isLoading = false
+        val token = "sample_token"
+
         TrackSelectionScreen(
-            navController, sampleTracks,
-            fetchTrackList = TODO(),
-            preferencesViewModel = TODO()
+            trackListState = MutableStateFlow<List<Track>>(emptyTrackList),
+            loadingState = MutableStateFlow<Boolean>(isLoading),
+            tokenState = MutableStateFlow<String?>(token)
         )
     }
 }

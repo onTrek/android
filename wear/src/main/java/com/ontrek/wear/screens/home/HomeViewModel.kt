@@ -6,13 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.api.track.fetchData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class HomeViewModel: ViewModel() {
 
-    private val _data = MutableLiveData<List<Track>>(listOf<Track>())
-    val trackListState : LiveData<List<Track>> = _data
-    private val _isLoading = MutableLiveData<Boolean>(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _data = MutableStateFlow<List<Track>>(listOf<Track>())
+    val trackListState : StateFlow<List<Track>> = _data
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     fun fetchData(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")

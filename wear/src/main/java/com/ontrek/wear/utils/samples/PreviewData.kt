@@ -3,7 +3,7 @@ package com.ontrek.wear.utils.samples
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.data.TrackStats
 
-val trackList: List<Track> = listOf(
+val sampleTrackList: List<Track> = listOf(
     Track(
         id = 1,
         filename = "track1.gpx",
