@@ -28,6 +28,7 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.Loading
 
 @Composable
 fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier) {
@@ -41,6 +42,7 @@ fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, p
     val viewModel: HomeViewModel = viewModel()
 
     val trackList by viewModel.trackListState.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(initial = false)
     val token by preferencesViewModel.tokenState.collectAsState()
     val listState = rememberScalingLazyListState()
     // this because token update is asynchronous, so it could happen that a token has been provided
@@ -62,7 +64,6 @@ fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, p
             )
         }
     ) {
-
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
@@ -75,6 +76,11 @@ fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, p
                     text = "My tracks"
                 )
             }
+            if (token.isNullOrEmpty() || isLoading) {
+                item {
+                    Loading(modifier = Modifier.fillMaxSize())
+                }
+            } else
             items(trackList ?: emptyList()) {
                 TrackButton(it.title, navController)
             }

@@ -19,9 +19,9 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.data.PreferencesViewModel
-import com.ontrek.wear.screens.login.AppLogo
 import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.Loading
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
@@ -39,8 +39,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
                 // At startup the token is "undefined" because it has not been fetched yet
-                if (token == null) {
-                    AppLogo(Modifier.fillMaxSize())
+                if (token.isNullOrEmpty()) {
+                    Loading(Modifier.fillMaxSize())
                 } else
                     if (token.isNullOrEmpty()) {
                         Login(Modifier.fillMaxSize())
