@@ -29,6 +29,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 trackListState = homeViewModel.trackListState,
                 fetchTrackList = homeViewModel::fetchData,
                 loadingState = homeViewModel.isLoading,
+                errorState = homeViewModel.error,
                 tokenState = preferencesViewModel.tokenState,
             )
         }

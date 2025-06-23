@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ fun TrackSelectionScreen(
     trackListState: StateFlow<List<Track>>,
     fetchTrackList: (String) -> (Unit) = { _ -> },
     loadingState: StateFlow<Boolean>,
+    errorState: StateFlow<String?>,
     tokenState: StateFlow<String?>,
 ) {
     val trackList by trackListState.collectAsStateWithLifecycle()
@@ -88,7 +90,31 @@ fun TrackSelectionScreen(
             if (token.isNullOrEmpty() || isLoading) {
                 item {
                     Loading(modifier = Modifier.fillMaxSize())
-                    Log.d("TrackSelectionScreen", "Loading tracks with token: $token, isLoading: $isLoading")
+                    Log.d(
+                        "TrackSelectionScreen",
+                        "Loading tracks with token: $token, isLoading: $isLoading"
+                    )
+                }
+            } else if (errorState.value != null) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Error,
+                            contentDescription = "Error loading tracks",
+                            tint = MaterialTheme.colors.error
+                        )
+                        Text(
+                            color = MaterialTheme.colors.error,
+                            style = MaterialTheme.typography.title3,
+                            text = "Error loading tracks",
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             } else if (trackList.isEmpty()) {
                 item {
@@ -99,7 +125,7 @@ fun TrackSelectionScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Warning,
+                            imageVector = Icons.Outlined.Warning,
                             contentDescription = "No tracks available",
                             tint = MaterialTheme.colors.error
                         )
@@ -157,11 +183,13 @@ fun DefaultPreview() {
         val emptyTrackList = listOf<Track>()
         val isLoading = false
         val token = "sample_token"
+        val error = "Sample error message"
 
         TrackSelectionScreen(
             trackListState = MutableStateFlow<List<Track>>(emptyTrackList),
             loadingState = MutableStateFlow<Boolean>(isLoading),
-            tokenState = MutableStateFlow<String?>(token)
+            tokenState = MutableStateFlow<String?>(token),
+            errorState = MutableStateFlow<String?>(null),
         )
     }
 }
