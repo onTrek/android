@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -24,21 +25,30 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.Loading
 
 @Composable
-fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    ScrollableTracksList(navController)
-
+fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier) {
+    ScrollableTracksList(navController, modifier)
 }
 
 
 @Composable
-fun ScrollableTracksList(navController: NavHostController) {
-    val viewModel = viewModel<HomeViewModel>()
+fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)) {
+
+    val viewModel: HomeViewModel = viewModel()
+
     val trackList by viewModel.trackListState.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(initial = false)
+    val token by preferencesViewModel.tokenState.collectAsState()
     val listState = rememberScalingLazyListState()
+    // this because token update is asynchronous, so it could happen that a token has been provided
+    // but the viewModel has not yet fetched the data
+    // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
+    if (!token.isNullOrEmpty()) viewModel.fetchData(token ?: "")
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -48,13 +58,12 @@ fun ScrollableTracksList(navController: NavHostController) {
                     indicatorColor = MaterialTheme.colors.primary,
                     trackColor = MaterialTheme.colors.onSurfaceVariant
                 ),
-                modifier = Modifier
+                modifier = modifier
                     .align(Alignment.CenterEnd)
                     .padding(start = 8.dp)
             )
         }
     ) {
-
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
@@ -67,6 +76,11 @@ fun ScrollableTracksList(navController: NavHostController) {
                     text = "My tracks"
                 )
             }
+            if (token.isNullOrEmpty() || isLoading) {
+                item {
+                    Loading(modifier = Modifier.fillMaxSize())
+                }
+            } else
             items(trackList ?: emptyList()) {
                 TrackButton(it.title, navController)
             }
@@ -91,6 +105,6 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 @Composable
 fun DefaultPreview() {
     OnTrekTheme {
-        TrackSelectionScreen(rememberNavController())
+        TrackSelectionScreen(rememberNavController(), Modifier)
     }
 }

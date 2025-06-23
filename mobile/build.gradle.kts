@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ontrek.mobile"
+        applicationId = "com.ontrek"
         minSdk = 33
         targetSdk = 35
         versionCode = 1
@@ -42,6 +42,7 @@ android {
 dependencies {
 
     implementation(project(":shared"))
+    implementation(libs.play.services.wearable.v1810)
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)

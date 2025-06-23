@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ontrek"
+    namespace = "com.ontrek.wear"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ontrek.wear"
+        applicationId = "com.ontrek"
         minSdk = 33
         targetSdk = 35
         versionCode = 1
@@ -41,6 +41,9 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation(libs.material.icons.extended)
+    implementation(libs.datastore.preferences)
+    implementation(libs.fragment.ktx)
+    implementation(libs.play.services.wearable.v1810)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.runtime.livedata)

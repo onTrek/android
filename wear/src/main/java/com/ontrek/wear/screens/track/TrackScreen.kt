@@ -30,7 +30,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrek.R
+import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.ProgressBar
