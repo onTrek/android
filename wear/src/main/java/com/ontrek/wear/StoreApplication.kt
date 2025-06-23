@@ -5,7 +5,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.ontrek.wear.data.TokenStore
+import com.ontrek.wear.data.PreferencesStore
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "setting"
@@ -13,9 +13,9 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
 
 class StoreApplication: Application() {
 
-    lateinit var tokenStore: TokenStore
+    lateinit var preferencesStore: PreferencesStore
     override fun onCreate() {
         super.onCreate()
-        tokenStore = TokenStore(dataStore)
+        preferencesStore = PreferencesStore(dataStore)
     }
 }

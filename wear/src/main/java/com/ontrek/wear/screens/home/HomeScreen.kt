@@ -25,7 +25,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrek.wear.data.TokenViewModel
+import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
 
@@ -36,17 +36,17 @@ fun TrackSelectionScreen(navController: NavHostController, modifier: Modifier) {
 
 
 @Composable
-fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, tokenViewModel : TokenViewModel = viewModel(factory = TokenViewModel.Factory)) {
+fun ScrollableTracksList(navController: NavHostController, modifier: Modifier, preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)) {
 
     val viewModel: HomeViewModel = viewModel()
 
     val trackList by viewModel.trackListState.observeAsState()
-    val preferencesStore by tokenViewModel.uiState.collectAsState()
+    val token by preferencesViewModel.tokenState.collectAsState()
     val listState = rememberScalingLazyListState()
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
     // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
-    if (preferencesStore.token != "undefined") viewModel.fetchData(preferencesStore.token)
+    if (!token.isNullOrEmpty()) viewModel.fetchData(token ?: "")
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {

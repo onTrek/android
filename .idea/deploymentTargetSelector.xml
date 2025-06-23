@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="onTrek.wear">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-21T17:39:10.273889087Z">
+        <DropdownSelection timestamp="2025-06-23T10:01:29.349611245Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=49061JEAVW02QK" />

@@ -9,40 +9,32 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ontrek.wear.StoreApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class UiState (
-    val token: String
-)
-
-class TokenViewModel(
-    private val tokenStore: TokenStore
+class PreferencesViewModel(
+    private val preferencesStore: PreferencesStore
 ): ViewModel() {
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as StoreApplication)
-                TokenViewModel(application.tokenStore)
+                PreferencesViewModel(application.preferencesStore)
             }
         }
     }
 
-    val uiState: StateFlow<UiState> =
-        tokenStore.currentToken.map { token ->
-            UiState(token)
-        }.stateIn(
+    val tokenState: StateFlow<String?> =
+        preferencesStore.currentToken.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = UiState("undefined")
+            started = SharingStarted.Eagerly,
+            initialValue = null
         )
 
     fun saveToken(userName: String) {
         viewModelScope.launch {
-            tokenStore.saveToken(userName)
+            preferencesStore.saveToken(userName)
         }
     }
-
 }

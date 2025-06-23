@@ -21,10 +21,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import com.ontrek.wear.R
-import com.ontrek.wear.data.TokenViewModel
+import com.ontrek.wear.data.PreferencesViewModel
 
 @Composable
-fun Login(modifier: Modifier = Modifier, tokenViewModel : TokenViewModel = viewModel(factory = TokenViewModel.Factory)) {
+fun Login(modifier: Modifier = Modifier, preferencesViewModel : PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)) {
     Box(
         modifier
     ) {
@@ -48,7 +48,7 @@ fun Login(modifier: Modifier = Modifier, tokenViewModel : TokenViewModel = viewM
                 //Only for debug purposes
                 OutlinedButton(
                     onClick = {
-                        tokenViewModel.saveToken("041da16a-dcda-4d43-947b-2194524ee114") //fuck it we ball
+                        preferencesViewModel.saveToken("3e530eef-2f77-418e-89e7-d82537c9109a") //fuck it we ball
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.95f)

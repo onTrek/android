@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity(){
 
     private fun login(context: Context) {
         val putDataMapReq = PutDataMapRequest.create("/auth").apply {
-            dataMap.putString("token", "041da16a-dcda-4d43-947b-2194524ee114")
+            dataMap.putString("token", "3e530eef-2f77-418e-89e7-d82537c9109a")
             dataMap.putLong("timestamp", System.currentTimeMillis())
         }
         val request = putDataMapReq.asPutDataRequest().setUrgent()
