@@ -6,17 +6,23 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.ontrek.mobile.ui.theme.ExampleLogin
+import com.ontrek.mobile.data.PreferencesViewModel
+import com.ontrek.mobile.screens.auth.AuthScreen
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
 class MainActivity : ComponentActivity(){
+    private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +30,9 @@ class MainActivity : ComponentActivity(){
         enableEdgeToEdge()
         setContent {
             OnTrekTheme {
-                ExampleLogin(::login)
+                val token by preferencesViewModel.tokenState.collectAsState()
+                AuthScreen()
+                Log.d("MOBILE_AUTH", "Token state: \"$token\"")
             }
         }
 

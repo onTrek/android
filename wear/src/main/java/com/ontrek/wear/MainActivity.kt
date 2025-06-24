@@ -34,8 +34,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setTheme(Theme_DeviceDefault)
 
         setContent {
-            val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
+                val token by preferencesViewModel.tokenState.collectAsState()
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
                 when {
                         token == null -> Loading(Modifier.fillMaxSize())

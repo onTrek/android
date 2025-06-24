@@ -1,4 +1,4 @@
-package com.ontrek.mobile.ui.theme
+package com.ontrek.mobile.screens.connection
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.Greeting
 
 @Composable
-fun ExampleLogin(login : (Context) -> Unit) {
+fun ConnectionToWear(login : (Context) -> Unit) {
     val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
