@@ -9,7 +9,7 @@ import androidx.wear.compose.foundation.AnchorType
 import androidx.wear.compose.foundation.CurvedLayout
 import androidx.wear.compose.foundation.CurvedTextStyle
 import androidx.wear.compose.foundation.curvedRow
-import androidx.wear.compose.material.curvedText
+import androidx.wear.compose.material3.curvedText
 
 /**
  * A composable function that displays curved text at a specified anchor point.

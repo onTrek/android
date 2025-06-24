@@ -25,9 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
@@ -79,9 +79,9 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
         timeText = if (info.isNullOrBlank()) {
             {
                 TimeText(
-                    timeTextStyle = TextStyle(
-                        color = MaterialTheme.colors.primary
-                    ),
+//                    timeTextStyle = TextStyle(
+//                        color = MaterialTheme.colorScheme.primary
+//                    ),
                     modifier = Modifier.padding(5.dp)
                 )
             }
@@ -113,7 +113,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
                 if (info != null) {
                     Text(
                         info,
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .padding(10.dp)
@@ -160,15 +160,15 @@ fun CompassCalibrationNotice(
             text = message,
             modifier = Modifier.padding(top = 15.dp),
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colors.primary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
-            fontSize = MaterialTheme.typography.title2.fontSize
+            fontSize = MaterialTheme.typography.titleMedium.fontSize
         )
         GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass, R.drawable.compassplaceholder)
         Text(
             text = subMessage,
             modifier = Modifier.padding(horizontal = 10.dp),
-            color = MaterialTheme.colors.primary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
     }

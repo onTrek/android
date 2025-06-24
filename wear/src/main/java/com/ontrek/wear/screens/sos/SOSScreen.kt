@@ -21,11 +21,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.OutlinedButton
-import androidx.wear.compose.material.Text
+import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.ButtonDefaults
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.OutlinedButton
+import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.AlertDialogDefaults
 import androidx.wear.compose.material3.Icon
@@ -93,28 +93,28 @@ fun DismissSOSDialog(
             Icon(
                 imageVector = Icons.Outlined.Dangerous,
                 contentDescription = "Dismiss SOS",
-                tint = MaterialTheme.colors.error
+                tint = MaterialTheme.colorScheme.error
             )
         },
         title = {
             Text(
                 text = "Dismiss SOS?",
-                color = MaterialTheme.colors.error,
-                style = MaterialTheme.typography.title2
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.titleMedium
             )
         },
         confirmButton = { AlertDialogDefaults.ConfirmButton(
             onClick = onConfirm,
             colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colors.error,
-                contentColor = MaterialTheme.colors.onError
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
             )
         ) },
         dismissButton = {
             AlertDialogDefaults.DismissButton (
                 onClick = onDismiss,
                 colors = IconButtonDefaults.outlinedIconButtonColors(
-                    contentColor = MaterialTheme.colors.onBackground
+                    contentColor = MaterialTheme.colorScheme.onBackground
                 ),
             )
         }

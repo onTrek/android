@@ -14,9 +14,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.OutlinedButton
-import androidx.wear.compose.material.Text
+import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.OutlinedButton
+import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.ScreenScaffold
 import com.ontrek.wear.data.PreferencesViewModel
 
