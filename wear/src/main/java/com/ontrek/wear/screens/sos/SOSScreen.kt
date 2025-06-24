@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.outlined.Dangerous
@@ -26,8 +27,11 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material3.AlertDialog
+import androidx.wear.compose.material3.AlertDialogDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
+import androidx.wear.compose.material3.IconButtonColors
+import androidx.wear.compose.material3.IconButtonDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.theme.OnTrekTheme
@@ -89,42 +93,30 @@ fun DismissSOSDialog(
             Icon(
                 imageVector = Icons.Outlined.Dangerous,
                 contentDescription = "Dismiss SOS",
-                tint = Color.Red
+                tint = MaterialTheme.colors.error
             )
         },
         title = {
             Text(
                 text = "Dismiss SOS?",
-                color = Color.Red,
+                color = MaterialTheme.colors.error,
                 style = MaterialTheme.typography.title2
             )
         },
-        text = {
-            Text(
-                text = "Are you sure you want to dismiss the SOS?",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body2
+        confirmButton = { AlertDialogDefaults.ConfirmButton(
+            onClick = onConfirm,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colors.error,
+                contentColor = MaterialTheme.colors.onError
             )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Red,
-                    contentColor = Color.White
-                )
-            ) { Text("Yes") }
-        },
+        ) },
         dismissButton = {
-            OutlinedButton(
+            AlertDialogDefaults.DismissButton (
                 onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.White
+                colors = IconButtonDefaults.outlinedIconButtonColors(
+                    contentColor = MaterialTheme.colors.onBackground
                 ),
-                border = ButtonDefaults.outlinedButtonBorder(
-                    borderColor = Color.White
-                )
-            ) { Text("No") }
+            )
         }
     )
 }
