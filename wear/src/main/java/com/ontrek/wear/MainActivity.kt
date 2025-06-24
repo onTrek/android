@@ -36,15 +36,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setContent {
             val token by preferencesViewModel.tokenState.collectAsState()
             OnTrekTheme {
-                // Token not yet retrieved
-                if (token == null) {
-                    Loading(Modifier.fillMaxSize())
-                } else
-                    // Token is empty, show login screen
-                    if (token.isNullOrEmpty()) {
-                        Login(Modifier.fillMaxSize())
-                    } else
-                    NavigationStack()
+                Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
+                when {
+                        token == null -> Loading(Modifier.fillMaxSize())
+                        token!!.isEmpty() -> Login()
+                        else -> NavigationStack()
+                    }
             }
         }
     }
