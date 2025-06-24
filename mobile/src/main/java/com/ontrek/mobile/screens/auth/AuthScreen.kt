@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.auth
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +53,7 @@ import com.ontrek.mobile.ui.theme.OnTrekTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun AuthScreen(navController: () -> Unit = {}) {
+fun AuthScreen() {
     val viewModel = viewModel<AuthViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current

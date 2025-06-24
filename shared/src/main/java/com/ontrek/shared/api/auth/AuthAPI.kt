@@ -2,6 +2,7 @@ package com.ontrek.shared.api.auth
 
 
 import android.util.Log
+import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Signup

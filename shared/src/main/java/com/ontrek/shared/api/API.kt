@@ -24,10 +24,8 @@ object RetrofitClient {
 }
 
 interface ApiService {
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("gpx/")
-    fun getData(@Header("Bearer") token: String): Call<List<Track>>
 
+    // ------- AUTH ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/login")
     fun login(@Body loginBody: Login): Call<TokenResponse>
@@ -35,4 +33,10 @@ interface ApiService {
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/register")
     fun signup(@Body loginBody: Signup): Call<MessageResponse>
+
+
+    // ------- GPX ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("gpx/")
+    fun getData(@Header("Bearer") token: String): Call<List<Track>>
 }

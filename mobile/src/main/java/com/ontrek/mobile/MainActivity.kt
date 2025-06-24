@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.ontrek.mobile.ui.theme.ExampleLogin
+import com.ontrek.mobile.screens.auth.AuthScreen
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 
 class MainActivity : ComponentActivity(){
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity(){
         enableEdgeToEdge()
         setContent {
             OnTrekTheme {
-                ExampleLogin(::login)
+                AuthScreen()
             }
         }
 
