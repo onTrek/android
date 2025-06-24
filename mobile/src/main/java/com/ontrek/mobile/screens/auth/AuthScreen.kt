@@ -50,12 +50,15 @@ import androidx.compose.runtime.collectAsState
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ontrek.mobile.data.PreferencesViewModel
 
 @Composable
 fun AuthScreen() {
     val viewModel = viewModel<AuthViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val preferencesViewModel: PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
+
 
     LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
         if (uiState.errorMessage != null || uiState.successMessage != null) {
@@ -227,7 +230,9 @@ fun AuthScreen() {
                 Button(
                     onClick = {
                         if (uiState.authMode == AuthMode.LOGIN) {
-                            viewModel.loginFunc()
+                            viewModel.loginFunc(saveToken = { token ->
+                                preferencesViewModel.saveToken(token)
+                            })
                         } else {
                             viewModel.signUpFunc()
                         }

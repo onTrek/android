@@ -74,7 +74,7 @@ class AuthViewModel : ViewModel() {
     }
 
     // Funzione per il login
-    fun loginFunc() {
+    fun loginFunc(saveToken: (String) -> Unit) {
         val currentState = _uiState.value
         val email = currentState.email
         val password = currentState.password
@@ -93,18 +93,33 @@ class AuthViewModel : ViewModel() {
         login(
             loginBody = Login(email, password),
             onSuccess = { response ->
-                _uiState.update {
-                    it.copy(
+                val token = response?.token ?: ""
+                if (token.isNotEmpty()) {
+                    saveToken(token)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = "Login successful!",
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(
                         isLoading = false,
-                        successMessage = "Login successful! Token: ${response?.token}",
-                    )
+                        errorMessage = "Login failed: No token received"
+                    ) }
                 }
             },
             onError = { error ->
+                val msg = when (error) {
+                    "401" -> "Login failed: Invalid credentials"
+                    "403" -> "Login failed: Access forbidden"
+                    else -> "Login failed: $error"
+                }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Login failed: $error"
+                        errorMessage = msg
                     )
                 }
             }
