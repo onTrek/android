@@ -113,6 +113,9 @@ class AuthViewModel : ViewModel() {
                 val msg = when (error) {
                     "401" -> "Login failed: Invalid credentials"
                     "403" -> "Login failed: Access forbidden"
+                    "404" -> "Login failed: User not found"
+                    "500" -> "Login failed: Server error"
+                    "400" -> "Login failed: Email or password is incorrect"
                     else -> "Login failed: $error"
                 }
 
