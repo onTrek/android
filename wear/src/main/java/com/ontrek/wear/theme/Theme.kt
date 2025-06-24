@@ -3,26 +3,30 @@ package com.ontrek.wear.theme
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.Colors
 import androidx.wear.compose.material.MaterialTheme
-import com.ontrek.shared.theme.DarkGray
-import com.ontrek.shared.theme.DarkOlive
-import com.ontrek.shared.theme.DeepGreen
-import com.ontrek.shared.theme.LightGreen
-import com.ontrek.shared.theme.MediumGreen
-import com.ontrek.shared.theme.OliveGreen
+import com.ontrek.shared.theme.backgroundDark
+import com.ontrek.shared.theme.errorDark
+import com.ontrek.shared.theme.onBackgroundDark
+import com.ontrek.shared.theme.onErrorDark
+import com.ontrek.shared.theme.onPrimaryDark
+import com.ontrek.shared.theme.onSecondaryDark
+import com.ontrek.shared.theme.onSurfaceDark
+import com.ontrek.shared.theme.onSurfaceVariantDark
+import com.ontrek.shared.theme.primaryDark
+import com.ontrek.shared.theme.secondaryDark
+import com.ontrek.shared.theme.surfaceDark
 
-private val CustomColorPalette = Colors(
-    primary = LightGreen,
-    primaryVariant = MediumGreen,
-    secondary = OliveGreen,
-    secondaryVariant = DarkOlive,
-    background = DeepGreen,
-    surface = LightGreen,
-    onPrimary = DeepGreen,
-    onSecondary = LightGreen,
-    onBackground = LightGreen,
-    onSurface = DeepGreen,
-    onSurfaceVariant = DarkGray,
-    onError = LightGreen,
+private val ColorPalette = Colors(
+    primary = primaryDark,
+    onPrimary = onPrimaryDark,
+    secondary = secondaryDark,
+    onSecondary = onSecondaryDark,
+    error = errorDark,
+    onError = onErrorDark,
+    background = backgroundDark,
+    onBackground = onBackgroundDark,
+    surface = surfaceDark,
+    onSurface = onSurfaceDark,
+    onSurfaceVariant = onSurfaceVariantDark,
 )
 
 @Composable
@@ -34,7 +38,7 @@ fun OnTrekTheme(
      * See: https://developer.android.com/jetpack/compose/designsystems/custom
      */
     MaterialTheme(
-        colors = CustomColorPalette,
+        colors = ColorPalette,
         content = content
     )
 }
