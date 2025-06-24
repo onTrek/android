@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.ontrek.shared.api.auth.login
+import com.ontrek.shared.data.Login
 
 enum class AuthMode {
     LOGIN, SIGNUP
@@ -74,7 +76,7 @@ class AuthViewModel : ViewModel() {
     }
 
     // Funzione per il login
-    fun login() {
+    fun loginFunc() {
         val currentState = _uiState.value
         val email = currentState.email
         val password = currentState.password
@@ -86,29 +88,29 @@ class AuthViewModel : ViewModel() {
 
         _uiState.update { it.copy(isLoading = true) }
 
-        viewModelScope.launch {
-            try {
-                // Simula una chiamata API
-                delay(1000)
+        login(
+            loginBody = Login(email, password),
+            onSuccess = { response ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        successMessage = "Successfully logged in!",
+                        successMessage = "Login successful! Token: ${response?.token}",
                     )
                 }
-            } catch (e: Exception) {
+            },
+            onError = { error ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error during login: ${e.message}"
+                        errorMessage = "Login failed: $error"
                     )
                 }
             }
-        }
+        )
     }
 
     // Funzione per la registrazione
-    fun signUp() {
+    fun signUpFunc() {
         val currentState = _uiState.value
         val email = currentState.email
         val username = currentState.username

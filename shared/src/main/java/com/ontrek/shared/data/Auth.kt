@@ -5,6 +5,10 @@ data class Login(
     val password: String
 )
 
+data class TokenResponse(
+    val token: String
+)
+
 
 data class Signup(
     val email: String,

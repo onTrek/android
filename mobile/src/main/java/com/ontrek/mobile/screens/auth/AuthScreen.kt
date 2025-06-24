@@ -227,9 +227,9 @@ fun AuthScreen(navController: () -> Unit = {}) {
                 Button(
                     onClick = {
                         if (uiState.authMode == AuthMode.LOGIN) {
-                            viewModel.login()
+                            viewModel.loginFunc()
                         } else {
-                            viewModel.signUp()
+                            viewModel.signUpFunc()
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
