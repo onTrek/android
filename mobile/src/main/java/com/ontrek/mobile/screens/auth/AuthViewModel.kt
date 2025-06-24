@@ -1,13 +1,11 @@
 package com.ontrek.mobile.screens.auth
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import com.ontrek.shared.api.auth.login
+import com.ontrek.shared.api.auth.signup
 import com.ontrek.shared.data.Login
 
 enum class AuthMode {
@@ -86,7 +84,11 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        _uiState.update { it.copy(isLoading = true) }
+        // Controllo se l'email è valida
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _uiState.update { it.copy(errorMessage = "Invalid email format") }
+            return
+        }
 
         login(
             loginBody = Login(email, password),
@@ -122,30 +124,41 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        // Controllo se l'email è valida
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _uiState.update { it.copy(errorMessage = "Invalid email format") }
+            return
+        }
+
         if (password != passwordRepeat) {
             _uiState.update { it.copy(errorMessage = "Passwords do not match") }
             return
         }
 
-        _uiState.update { it.copy(isLoading = true) }
-
-        viewModelScope.launch {
-            try {
-                delay(1500)
+        signup(
+            signupBody = com.ontrek.shared.data.Signup(email, username, password),
+            onSuccess = { response ->
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
-                        successMessage = "Successfully registered! Please log in.",
+                        username = "",
+                        email = email,
+                        password = "",
+                        passwordRepeat = "",
+                        passwordVisible = false,
+                        passwordRepeatVisible = false,
+                        authMode = AuthMode.LOGIN,
+                        successMessage = "Registration successful! Welcome, $username!",
                     )
                 }
-            } catch (e: Exception) {
+            },
+            onError = { error ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error during registration: ${e.message}"
+                        errorMessage = "Registration failed: $error"
                     )
                 }
             }
-        }
+        )
     }
 }
