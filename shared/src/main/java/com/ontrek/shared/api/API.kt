@@ -1,4 +1,6 @@
-import com.ontrek.shared.data.GpxResponse
+package com.ontrek.shared.api
+
+import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -24,7 +26,7 @@ object RetrofitClient {
 interface ApiService {
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/")
-    fun getData(@Header("Authorization") token: String): Call<GpxResponse>
+    fun getData(@Header("Bearer") token: String): Call<List<Track>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/login")

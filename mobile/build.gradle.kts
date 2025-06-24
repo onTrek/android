@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ontrek.mobile"
+        applicationId = "com.ontrek"
         minSdk = 33
         targetSdk = 35
         versionCode = 1

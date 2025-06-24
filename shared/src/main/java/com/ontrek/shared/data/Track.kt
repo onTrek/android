@@ -16,7 +16,3 @@ data class Track(
     val title: String,
     val upload_date: String
 )
-
-data class GpxResponse(
-    val gpx_files: List<Track>,
-)
