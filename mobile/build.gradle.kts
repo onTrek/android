@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.runtime.livedata)
     implementation(libs.play.services.wearable)
+    implementation(libs.datastore.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
