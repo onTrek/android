@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,17 +25,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,7 +46,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.collectAsState
 import com.ontrek.mobile.R
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,24 +54,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun AuthScreen(navController: () -> Unit = {}) {
     val viewModel = viewModel<AuthViewModel>()
-    val uiState by viewModel.uiState.observeAsState(AuthUiState())
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
-    // Message handling for errors and success messages
     LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
-        uiState.errorMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearMessages()
-        }
-        uiState.successMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        if (uiState.errorMessage != null || uiState.successMessage != null) {
+            Toast.makeText(
+                context,
+                uiState.errorMessage ?: uiState.successMessage ?: "",
+                Toast.LENGTH_SHORT
+            ).show()
             viewModel.clearMessages()
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+    Scaffold()
+    {
+        paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
