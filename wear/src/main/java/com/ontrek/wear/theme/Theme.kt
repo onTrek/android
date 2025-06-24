@@ -1,32 +1,60 @@
 package com.ontrek.wear.theme
 
 import androidx.compose.runtime.Composable
-import androidx.wear.compose.material.Colors
-import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material3.ColorScheme
+import androidx.wear.compose.material3.MaterialTheme
 import com.ontrek.shared.theme.backgroundDark
+import com.ontrek.shared.theme.errorContainerDark
 import com.ontrek.shared.theme.errorDark
 import com.ontrek.shared.theme.onBackgroundDark
+import com.ontrek.shared.theme.onErrorContainerDark
 import com.ontrek.shared.theme.onErrorDark
+import com.ontrek.shared.theme.onPrimaryContainerDark
 import com.ontrek.shared.theme.onPrimaryDark
+import com.ontrek.shared.theme.onSecondaryContainerDark
 import com.ontrek.shared.theme.onSecondaryDark
 import com.ontrek.shared.theme.onSurfaceDark
 import com.ontrek.shared.theme.onSurfaceVariantDark
+import com.ontrek.shared.theme.onTertiaryContainerDark
+import com.ontrek.shared.theme.onTertiaryDark
+import com.ontrek.shared.theme.outlineDark
+import com.ontrek.shared.theme.outlineVariantDark
+import com.ontrek.shared.theme.primaryContainerDark
 import com.ontrek.shared.theme.primaryDark
+import com.ontrek.shared.theme.secondaryContainerDark
 import com.ontrek.shared.theme.secondaryDark
-import com.ontrek.shared.theme.surfaceDark
+import com.ontrek.shared.theme.surfaceContainerDark
+import com.ontrek.shared.theme.surfaceContainerHighDark
+import com.ontrek.shared.theme.surfaceContainerLowDark
+import com.ontrek.shared.theme.tertiaryContainerDark
+import com.ontrek.shared.theme.tertiaryDark
 
-private val ColorPalette = Colors(
+private val ColorPalette = ColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
+    primaryContainer = primaryContainerDark,
+    onPrimaryContainer = onPrimaryContainerDark,
     secondary = secondaryDark,
     onSecondary = onSecondaryDark,
+    secondaryContainer = secondaryContainerDark,
+    onSecondaryContainer = onSecondaryContainerDark,
+    tertiary = tertiaryDark,
+    onTertiary = onTertiaryDark,
+    tertiaryContainer = tertiaryContainerDark,
+    onTertiaryContainer = onTertiaryContainerDark,
     error = errorDark,
     onError = onErrorDark,
+    errorContainer = errorContainerDark,
+    onErrorContainer = onErrorContainerDark,
     background = backgroundDark,
     onBackground = onBackgroundDark,
-    surface = surfaceDark,
     onSurface = onSurfaceDark,
     onSurfaceVariant = onSurfaceVariantDark,
+    outline = outlineDark,
+    outlineVariant = outlineVariantDark,
+    surfaceContainerLow = surfaceContainerLowDark,
+    surfaceContainer = surfaceContainerDark,
+    surfaceContainerHigh = surfaceContainerHighDark,
 )
 
 @Composable
@@ -38,7 +66,7 @@ fun OnTrekTheme(
      * See: https://developer.android.com/jetpack/compose/designsystems/custom
      */
     MaterialTheme(
-        colors = ColorPalette,
+        colorScheme = ColorPalette,
         content = content
     )
 }
