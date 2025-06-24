@@ -1,4 +1,4 @@
-package com.ontrek.wear.screens.home
+package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -7,7 +7,7 @@ import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class HomeViewModel : ViewModel() {
+class TrackSelectionViewModel : ViewModel() {
 
     private val _data = MutableStateFlow<List<Track>>(listOf<Track>())
     val trackListState: StateFlow<List<Track>> = _data

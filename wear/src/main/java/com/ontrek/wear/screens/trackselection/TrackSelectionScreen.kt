@@ -1,4 +1,4 @@
-package com.ontrek.wear.screens.home
+package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
