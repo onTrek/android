@@ -3,13 +3,16 @@ package com.ontrek.wear.screens.trackselection
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +60,7 @@ fun TrackSelectionScreen(
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
     // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
-    if (!token.isNullOrEmpty()) fetchTrackList(token ?: "")
+    if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -115,15 +118,20 @@ fun TrackButton(trackName: String, navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth(0.95f),
     ) {
+        Icon(
+            imageVector = Icons.Default.Download,
+            contentDescription = "Download track",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text(
             text = trackName,
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Left,
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(8.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -175,7 +183,8 @@ fun EmptyList() {
             text = "Please upload them from your smartphone.",
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(8.dp)
         )
     }
 }
@@ -184,7 +193,7 @@ fun EmptyList() {
 @Composable
 fun DefaultPreview() {
     OnTrekTheme {
-        val empty = true
+        val empty = false
         val isLoading = false
         val token = "sample_token"
         val error = ""
