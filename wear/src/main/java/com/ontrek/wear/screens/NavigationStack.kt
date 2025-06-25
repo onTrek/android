@@ -9,8 +9,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
-import com.ontrek.wear.screens.home.HomeViewModel
-import com.ontrek.wear.screens.home.TrackSelectionScreen
+import com.ontrek.wear.screens.trackselection.TrackSelectionViewModel
+import com.ontrek.wear.screens.trackselection.TrackSelectionScreen
 import com.ontrek.wear.screens.sos.SOSScreen
 import com.ontrek.wear.screens.track.TrackScreen
 
@@ -23,13 +23,13 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
-            val homeViewModel = viewModel<HomeViewModel>()
+            val trackSelectionViewModel = viewModel<TrackSelectionViewModel>()
             TrackSelectionScreen(
                 navController = navController,
-                trackListState = homeViewModel.trackListState,
-                fetchTrackList = homeViewModel::fetchData,
-                loadingState = homeViewModel.isLoading,
-                errorState = homeViewModel.error,
+                trackListState = trackSelectionViewModel.trackListState,
+                fetchTrackList = trackSelectionViewModel::fetchData,
+                loadingState = trackSelectionViewModel.isLoading,
+                errorState = trackSelectionViewModel.error,
                 tokenState = preferencesViewModel.tokenState,
             )
         }

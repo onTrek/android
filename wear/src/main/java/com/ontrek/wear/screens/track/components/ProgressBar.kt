@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.theme.OnTrekTheme
 import kotlin.math.min
@@ -36,9 +36,9 @@ import kotlin.math.min
 fun ProgressBar(
     progress: Float, // from 0f to 1f
     modifier: Modifier = Modifier,
-    strokeWidth: Dp = 3.dp,
-    color: Color = MaterialTheme.colors.primary,
-    backgroundColor: Color = MaterialTheme.colors.onSurfaceVariant
+    strokeWidth: Dp = 5.dp,
+    color: Color = MaterialTheme.colorScheme.primary,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -95,7 +95,7 @@ fun PreviewProgressBar() {
         ) {
             ProgressBar(
                 progress = 0.75f,
-                strokeWidth = 8.dp,
+                strokeWidth = 5.dp,
             )
         }
     }
