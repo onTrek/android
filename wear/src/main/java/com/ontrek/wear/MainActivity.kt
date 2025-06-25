@@ -41,9 +41,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 when {
                     token == null -> Loading(Modifier.fillMaxSize())
                     token!!.isEmpty() -> Login()
-                    else -> AppScaffold {
-                        NavigationStack()
-                    }
+                    else -> NavigationStack()
+//                    else -> AppScaffold {
+//                        NavigationStack()
+//                    }
                 }
             }
         }
