@@ -55,7 +55,7 @@ fun SosButton(
 
     val widthFactor = remember(sweepAngle) {
         val normalizedAngle = (sweepAngle / 360f).coerceIn(0f, 1f)
-        0.4f + (normalizedAngle * 0.5f)
+        0.4f + (normalizedAngle * 0.7f)
     }
 
 
