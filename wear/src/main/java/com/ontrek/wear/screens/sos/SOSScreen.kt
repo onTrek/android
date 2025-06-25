@@ -46,7 +46,7 @@ fun SOSScreen(navController: NavHostController) {
                 backgroundColor = MaterialTheme.colorScheme.onError
             ) { time ->
                 curvedText(
-                    text = "Help coming!",
+                    text = "Help coming!",  // TODO: SOS send (if no one responded yet)
 //                    CurvedModifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
                     color = textColor,
