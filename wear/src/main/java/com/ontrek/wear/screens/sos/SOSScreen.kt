@@ -15,60 +15,65 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
-import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.AlertDialog
-import androidx.wear.compose.material3.AlertDialogDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
-import androidx.wear.compose.material3.IconButtonColors
-import androidx.wear.compose.material3.IconButtonDefaults
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.curvedText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.theme.OnTrekTheme
-import com.ontrek.wear.utils.components.CurvedText
 
 
 @Composable
 fun SOSScreen(navController: NavHostController) {
     var showDialog by remember { mutableStateOf(false) }
 
-    ScreenScaffold {
+    ScreenScaffold(
+        modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer),
+    ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Red),
+                .fillMaxSize(),
             contentAlignment = androidx.compose.ui.Alignment.Center
         ) {
-            CurvedText(
-                anchor = 270f,
-                color = Color.White,
-                text = "Help is on the way!",
-                fontSize = 16,
-                modifier = Modifier.padding(5.dp)
-            )
+            val textColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+            TimeText(
+                backgroundColor = MaterialTheme.colorScheme.onError
+            ) { time ->
+                curvedText(
+                    text = "Help coming!",
+//                    CurvedModifier.weight(1f),
+                    overflow = TextOverflow.Ellipsis,
+                    color = textColor,
+                )
+            }
             Icon(
                 imageVector = Icons.Filled.MyLocation,
                 contentDescription = "Location",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onErrorContainer
             )
             IconButton(
                 onClick = { showDialog = true },
-                modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
+
+                modifier = Modifier
+                    .align(androidx.compose.ui.Alignment.BottomCenter)
+                    .fillMaxSize(0.15f),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.fillMaxSize(0.6f)
                 )
             }
             DismissSOSDialog(
@@ -93,32 +98,48 @@ fun DismissSOSDialog(
             Icon(
                 imageVector = Icons.Outlined.Dangerous,
                 contentDescription = "Dismiss SOS",
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 30.dp)
             )
         },
         title = {
             Text(
                 text = "Dismiss SOS?",
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
         },
-        confirmButton = { AlertDialogDefaults.ConfirmButton(
-            onClick = onConfirm,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
-        ) },
-        dismissButton = {
-            AlertDialogDefaults.DismissButton (
-                onClick = onDismiss,
-                colors = IconButtonDefaults.outlinedIconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onBackground
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ),
-            )
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Confirm",
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(end = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Confirm",
+                )
+            }
         }
-    )
+    ) {}
 }
 
 fun closeScreen(navController: NavHostController) {
