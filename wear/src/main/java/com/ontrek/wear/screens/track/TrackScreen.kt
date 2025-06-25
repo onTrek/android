@@ -19,16 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
-import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.curvedText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
@@ -73,74 +74,69 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
 
     val progress = 0.75f
 
-    val info: String? = null
+    var info: String? = null
+    var infobackgroundColor: androidx.compose.ui.graphics.Color =
+        MaterialTheme.colorScheme.primaryContainer
+    var infotextColor: androidx.compose.ui.graphics.Color =
+        MaterialTheme.colorScheme.onPrimaryContainer
 
-    ScreenScaffold(
-        timeText = if (info.isNullOrBlank()) {
-            {
-                TimeText(
-//                    timeTextStyle = TextStyle(
-//                        color = MaterialTheme.colorScheme.primary
-//                    ),
-                    modifier = Modifier.padding(5.dp)
-                )
-            }
-        } else null,
+    AnimatedVisibility(
+        visible = accuracy < 2,
+        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
-        AnimatedVisibility(
-            visible = accuracy < 2,
-            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.fillMaxSize()
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxSize()
-            ) {
-                CompassCalibrationNotice(modifier)
-            }
-        }
-        AnimatedVisibility(
-            visible = accuracy >= 2 ,
-            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxSize()
-            ) {
-
-
-                if (info != null) {
-                    Text(
-                        info,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(10.dp)
-                    )
-                }
-
-                ProgressBar(
-                    progress = progress
-                )
-
-
-                Arrow(
-                    direction = direction,  // Angolo di rotazione basato sui dati del sensore
-//                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-                )
-
-                SosButton(
-                    onSosTriggered = {
-                        navController.navigate(route = Screen.SOSScreen.route)
-                    }
-                )
-            }
+            CompassCalibrationNotice(modifier)
         }
     }
+    AnimatedVisibility(
+        visible = accuracy >= 2,
+        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
+    ) {
+        ScreenScaffold(
+        timeText = {
+            TimeText(
+                backgroundColor = infobackgroundColor,
+                modifier = Modifier.padding(6.dp)
+            ) { time ->
+                curvedText(
+                    text = if (info.isNullOrBlank()) time else info,
+                    overflow = TextOverflow.Ellipsis,
+                    color = infotextColor,
+                )
+            }
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.fillMaxSize()
+        ) {
+
+            ProgressBar(
+                progress = progress
+            )
+
+
+            Arrow(
+                direction = direction,  // Angolo di rotazione basato sui dati del sensore
+//                    color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+            )
+
+            SosButton(
+                onSosTriggered = {
+                    navController.navigate(route = Screen.SOSScreen.route)
+                }
+            )
+        }
+    }
+}
 }
 
 @Composable

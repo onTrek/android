@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material3.AppScaffold
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -25,7 +26,7 @@ import com.ontrek.wear.utils.components.Loading
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
-    private val preferencesViewModel : PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
+    private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -38,10 +39,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 val token by preferencesViewModel.tokenState.collectAsState()
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
                 when {
-                        token == null -> Loading(Modifier.fillMaxSize())
-                        token!!.isEmpty() -> Login()
-                        else -> NavigationStack()
+                    token == null -> Loading(Modifier.fillMaxSize())
+                    token!!.isEmpty() -> Login()
+                    else -> AppScaffold {
+                        NavigationStack()
                     }
+                }
             }
         }
     }
@@ -62,7 +65,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
         for (event in dataEvents) {
             if (event.type == DataEvent.TYPE_CHANGED &&
-                event.dataItem.uri.path == "/auth") {
+                event.dataItem.uri.path == "/auth"
+            ) {
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
                 preferencesViewModel.saveToken(dataMap.getString("token") ?: "")
             }

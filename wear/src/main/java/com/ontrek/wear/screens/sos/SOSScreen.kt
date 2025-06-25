@@ -37,16 +37,11 @@ import com.ontrek.wear.theme.OnTrekTheme
 @Composable
 fun SOSScreen(navController: NavHostController) {
     var showDialog by remember { mutableStateOf(false) }
+    val textColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
 
     ScreenScaffold(
         modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.Center
-        ) {
-            val textColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+        timeText = {
             TimeText(
                 backgroundColor = MaterialTheme.colorScheme.onError
             ) { time ->
@@ -57,6 +52,13 @@ fun SOSScreen(navController: NavHostController) {
                     color = textColor,
                 )
             }
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = androidx.compose.ui.Alignment.Center
+        ) {
             Icon(
                 imageVector = Icons.Filled.MyLocation,
                 contentDescription = "Location",

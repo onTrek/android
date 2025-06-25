@@ -70,7 +70,7 @@ fun SosButton(
                     alpha = if (isPressed) 0.9f else 1f
                 }
                 .fillMaxHeight(initialHeight)
-                .fillMaxWidth(0.6f)
+                .fillMaxWidth(0.55f)
                 .clip(
                     RoundedCornerShape(
                         topStart = 100.dp, topEnd = 100.dp, bottomStart = 0.dp, bottomEnd = 0.dp
