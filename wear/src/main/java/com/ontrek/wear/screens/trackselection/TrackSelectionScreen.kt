@@ -118,20 +118,21 @@ fun TrackButton(trackName: String, navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth(0.95f),
     ) {
-        Icon(
-            imageVector = Icons.Default.Download,
-            contentDescription = "Download track",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         Text(
             text = trackName,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Left,
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(0.85f)
                 .padding(8.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+        )
+        Icon(
+            imageVector = Icons.Default.Download,
+            contentDescription = "Download track",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(0.15f)
         )
     }
 }
