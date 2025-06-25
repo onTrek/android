@@ -26,7 +26,6 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.FilledTonalIconButton
 import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.IconButtonColors
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
@@ -68,7 +67,7 @@ fun SOSScreen(navController: NavHostController) {
                 contentDescription = "Location",
                 tint = MaterialTheme.colorScheme.onErrorContainer
             )
-            FilledTonalIconButton (
+            FilledTonalIconButton(
                 onClick = { showDialog = true },
                 colors = IconButtonColors(
                     containerColor = MaterialTheme.colorScheme.onError,
