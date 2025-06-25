@@ -100,7 +100,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
             }
         }
         AnimatedVisibility(
-            visible = accuracy >= 2,
+            visible = accuracy >= 2 ,
             enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
             exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
@@ -127,6 +127,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
 
                 Arrow(
                     direction = direction,  // Angolo di rotazione basato sui dati del sensore
+//                    color = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
@@ -160,7 +161,7 @@ fun CompassCalibrationNotice(
             text = message,
             modifier = Modifier.padding(top = 15.dp),
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
             fontSize = MaterialTheme.typography.titleMedium.fontSize
         )
@@ -168,7 +169,6 @@ fun CompassCalibrationNotice(
         Text(
             text = subMessage,
             modifier = Modifier.padding(horizontal = 10.dp),
-            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
     }

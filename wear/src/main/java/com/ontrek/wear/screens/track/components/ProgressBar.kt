@@ -36,9 +36,9 @@ import kotlin.math.min
 fun ProgressBar(
     progress: Float, // from 0f to 1f
     modifier: Modifier = Modifier,
-    strokeWidth: Dp = 3.dp,
+    strokeWidth: Dp = 5.dp,
     color: Color = MaterialTheme.colorScheme.primary,
-    backgroundColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -95,7 +95,7 @@ fun PreviewProgressBar() {
         ) {
             ProgressBar(
                 progress = 0.75f,
-                strokeWidth = 8.dp,
+                strokeWidth = 5.dp,
             )
         }
     }
