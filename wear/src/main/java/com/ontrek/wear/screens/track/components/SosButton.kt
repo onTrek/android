@@ -41,6 +41,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 @Composable
 fun SosButton(
     modifier: Modifier = Modifier,
+    sweepAngle: Float = 0f,
     onSosTriggered: () -> Unit
 ) {
     val context = LocalContext.current
@@ -51,6 +52,12 @@ fun SosButton(
 
     var isPressed by remember { mutableStateOf(false) }
     val scaleAnim = remember { Animatable(1f) }
+
+    val widthFactor = remember(sweepAngle) {
+        val normalizedAngle = (sweepAngle / 360f).coerceIn(0f, 1f)
+        0.4f + (normalizedAngle * 0.5f)
+    }
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -70,7 +77,7 @@ fun SosButton(
                     alpha = if (isPressed) 0.9f else 1f
                 }
                 .fillMaxHeight(initialHeight)
-                .fillMaxWidth(0.55f)
+                .fillMaxWidth(widthFactor)
                 .clip(
                     RoundedCornerShape(
                         topStart = 100.dp, topEnd = 100.dp, bottomStart = 0.dp, bottomEnd = 0.dp

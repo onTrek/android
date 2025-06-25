@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
@@ -34,11 +35,13 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
-import com.ontrek.wear.screens.track.components.ProgressBar
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
+
+
+private const val buttonSweepAngle = 60f
 
 /**
  * Composable function that represents the Track screen.
@@ -74,6 +77,8 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
 
     val progress = 0.75f
 
+    var alone = false
+    val buttonWidth = if (alone) 0f else buttonSweepAngle
     var info: String? = null
     var infobackgroundColor: androidx.compose.ui.graphics.Color =
         MaterialTheme.colorScheme.primaryContainer
@@ -101,7 +106,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
         timeText = {
             TimeText(
                 backgroundColor = infobackgroundColor,
-                modifier = Modifier.padding(6.dp)
+                modifier = Modifier.padding(10.dp)
             ) { time ->
                 curvedText(
                     text = if (info.isNullOrBlank()) time else info,
@@ -116,8 +121,10 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
             modifier = modifier.fillMaxSize()
         ) {
 
-            ProgressBar(
-                progress = progress
+            CircularProgressIndicator(
+                progress = { progress },
+                startAngle = 90f + buttonWidth / 2,
+                endAngle = 90f - buttonWidth / 2,
             )
 
 
@@ -129,11 +136,14 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
                     .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
             )
 
-            SosButton(
-                onSosTriggered = {
-                    navController.navigate(route = Screen.SOSScreen.route)
-                }
-            )
+            if (!alone) {
+                SosButton(
+                    sweepAngle = buttonSweepAngle,
+                    onSosTriggered = {
+                        navController.navigate(route = Screen.SOSScreen.route)
+                    }
+                )
+            }
         }
     }
 }
