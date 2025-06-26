@@ -60,7 +60,13 @@ fun TrackSelectionScreen(
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
     // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
-    if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+
+    // starts only when the token changes avoiding unnecessary calls
+    LaunchedEffect(token) {
+        if (!token.isNullOrEmpty()) {
+            fetchTrackList(token!!)
+        }
+    }
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -80,10 +86,6 @@ fun TrackSelectionScreen(
 
         if (token.isNullOrEmpty() || isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-            Log.d(
-                "TrackSelectionScreen",
-                "Loading tracks with token: $token, isLoading: $isLoading"
-            )
         } else if (!error.isNullOrEmpty()) {
             ErrorFetch()
         } else if (trackList.isEmpty()) {
