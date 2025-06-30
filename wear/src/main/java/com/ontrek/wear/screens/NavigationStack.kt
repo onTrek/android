@@ -34,9 +34,9 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             )
         }
         composable(
-            route = Screen.TrackScreen.route + "?text={text}",  // TODO: pass the filename/path of the track
+            route = Screen.TrackScreen.route + "?trackID={trackID}",
             arguments = listOf(
-                navArgument("text") {
+                navArgument("trackID") {
                     type = NavType.StringType
                     nullable = true
                 }
@@ -45,7 +45,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
             TrackScreen(
                 navController = navController,
-                text = it.arguments?.getString("text").toString(),
+                trackID = it.arguments?.getString("trackID").toString(),
                 modifier = modifier
             )
         }

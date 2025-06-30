@@ -37,6 +37,7 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 
@@ -48,26 +49,32 @@ private const val buttonSweepAngle = 60f
  * This screen displays a compass arrow indicating the current direction, the progress bar of the track,
  * and a button to trigger an SOS signal.
  * @param navController The navigation controller to handle navigation actions.
- * @param text A string parameter that can be used to display additional information on the screen.
+ * @param trackID A string parameter that can be used to display additional information on the screen.
  * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(navController: NavHostController, text: String, modifier: Modifier = Modifier) {
+fun TrackScreen(navController: NavHostController, trackID: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
 
+    val gpxViewModel = remember { TrackScreenViewModel() }
+
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
 
     val accuracy by compassSensor.accuracy.collectAsState()
 
+    val gpx by gpxViewModel.gpxData.collectAsState()
+
+
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor) {
         // Avvia la lettura dei dati dai sensori
         compassSensor.start()
+        gpxViewModel.loadGpx(context, "$trackID.gpx")
 
         // Pulisce le risorse quando il componente viene rimosso dalla composizione
         onDispose {
@@ -86,7 +93,14 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
         MaterialTheme.colorScheme.onPrimaryContainer
 
     AnimatedVisibility(
-        visible = accuracy < 2,
+        visible = gpx == null,
+        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
+    ) {
+        Loading(Modifier.fillMaxSize())
+    }
+    AnimatedVisibility(
+        visible = accuracy < 2 && gpx != null,
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
@@ -98,7 +112,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
         }
     }
     AnimatedVisibility(
-        visible = accuracy >= 2,
+        visible = accuracy >= 2 && gpx != null,
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {

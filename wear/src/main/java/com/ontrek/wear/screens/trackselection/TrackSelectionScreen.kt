@@ -60,11 +60,11 @@ fun TrackSelectionScreen(
     val error by errorState.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
-    // this because token update is asynchronous, so it could happen that a token has been provided
-    // but the viewModel has not yet fetched the data
+
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -80,7 +80,6 @@ fun TrackSelectionScreen(
             )
         }
     ) {
-
 
         if (token.isNullOrEmpty() || isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
@@ -124,7 +123,8 @@ fun TrackButton(trackName: String,
                 downloadGpx(token, trackID, context,  ::onGPXSuccess, ::onGPXDownloadError)
                 //Number of files in the context's file list
                 Log.d("Download","Number of files in the context: " +  context.fileList().size.toString())
-                navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
+                Log.d("Download","Track ID: $trackID")
+                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}")
             }
 
         },
