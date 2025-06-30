@@ -210,7 +210,7 @@ fun DefaultPreview() {
         val empty = false
         val isLoading = false
         val token = "sample_token"
-        val error = "error"
+        val error = ""
 
         TrackSelectionScreen(
             trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
