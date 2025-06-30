@@ -33,6 +33,7 @@ class TrackSelectionViewModel : ViewModel() {
         Log.d("WearOS", "Data updated: $data")
         if (data != null) {
             _data.value = data
+            _error.value = null
         } else {
             Log.e("WearOS", "Data is null")
         }
