@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +29,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
@@ -85,7 +87,7 @@ fun TrackSelectionScreen(
                 "Loading tracks with token: $token, isLoading: $isLoading"
             )
         } else if (!error.isNullOrEmpty()) {
-            ErrorFetch()
+            ErrorFetch(token, fetchTrackList)
         } else if (trackList.isEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
@@ -138,7 +140,7 @@ fun TrackButton(trackName: String, navController: NavHostController) {
 }
 
 @Composable
-fun ErrorFetch() {
+fun ErrorFetch(token: String?, fetchTracks: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -157,6 +159,17 @@ fun ErrorFetch() {
             text = "Error loading tracks",
             textAlign = TextAlign.Center
         )
+        IconButton(
+            onClick = {
+                fetchTracks(token!!)
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Refresh,
+                contentDescription = "Retry",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
@@ -197,7 +210,7 @@ fun DefaultPreview() {
         val empty = false
         val isLoading = false
         val token = "sample_token"
-        val error = ""
+        val error = "error"
 
         TrackSelectionScreen(
             trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
