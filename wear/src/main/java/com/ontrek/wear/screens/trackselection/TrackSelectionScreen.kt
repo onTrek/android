@@ -3,7 +3,6 @@ package com.ontrek.wear.screens.trackselection
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,8 +13,10 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +43,8 @@ import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.ontrek.shared.api.gpx.downloadGpx
+import kotlinx.coroutines.launch
 
 @Composable
 fun TrackSelectionScreen(
@@ -59,8 +62,9 @@ fun TrackSelectionScreen(
     val listState = rememberScalingLazyListState()
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
-    // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
-    if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+    LaunchedEffect(token) {
+        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+    }
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -80,10 +84,6 @@ fun TrackSelectionScreen(
 
         if (token.isNullOrEmpty() || isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-            Log.d(
-                "TrackSelectionScreen",
-                "Loading tracks with token: $token, isLoading: $isLoading"
-            )
         } else if (!error.isNullOrEmpty()) {
             ErrorFetch()
         } else if (trackList.isEmpty()) {
@@ -102,7 +102,7 @@ fun TrackSelectionScreen(
                 )
             }
             items(trackList) {
-                TrackButton(it.title, navController)
+                TrackButton(it.title, it.id, token ?: "", navController)
             }
         }
     }
@@ -110,10 +110,23 @@ fun TrackSelectionScreen(
 
 
 @Composable
-fun TrackButton(trackName: String, navController: NavHostController) {
+fun TrackButton(trackName: String,
+                trackID: Int,
+                token: String,
+                navController: NavHostController) {
+
+    val context = LocalContext.current
+    val composableScope = rememberCoroutineScope()
+
     OutlinedButton(
         onClick = {
-            navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
+            composableScope.launch {
+                downloadGpx(token, trackID, context,  ::onGPXSuccess, ::onGPXDownloadError)
+                //Number of files in the context's file list
+                Log.d("Download","Number of files in the context: " +  context.fileList().size.toString())
+                navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
+            }
+
         },
         modifier = Modifier
             .fillMaxWidth(0.95f),
@@ -203,7 +216,15 @@ fun DefaultPreview() {
             trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
             loadingState = MutableStateFlow<Boolean>(isLoading),
             tokenState = MutableStateFlow<String?>(token),
-            errorState = MutableStateFlow<String?>(error),
+            errorState = MutableStateFlow<String?>(error)
         )
     }
+}
+
+// Maybe move this two functions into the viewModel in order to update the UI dynamically
+fun onGPXSuccess() {
+    Log.d("TrackSelectionScreen", "GPX downloaded successfully")
+}
+fun onGPXDownloadError(errorMessage: String) {
+    Log.e("TrackSelectionScreen", "Error downloading GPX: $errorMessage")
 }

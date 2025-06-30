@@ -30,7 +30,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 fetchTrackList = trackSelectionViewModel::fetchData,
                 loadingState = trackSelectionViewModel.isLoading,
                 errorState = trackSelectionViewModel.error,
-                tokenState = preferencesViewModel.tokenState,
+                tokenState = preferencesViewModel.tokenState
             )
         }
         composable(

@@ -12,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.wear.compose.material3.AppScaffold
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -38,6 +37,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
+                Log.d("Download","Number of files in context: " + this.fileList().size.toString())
                 when {
                     token == null -> Loading(Modifier.fillMaxSize())
                     token!!.isEmpty() -> Login()

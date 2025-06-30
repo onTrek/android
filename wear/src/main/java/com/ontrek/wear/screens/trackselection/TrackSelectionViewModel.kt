@@ -12,7 +12,7 @@ class TrackSelectionViewModel : ViewModel() {
     private val _data = MutableStateFlow<List<Track>>(listOf<Track>())
     val trackListState: StateFlow<List<Track>> = _data
 
-    private val _isLoading = MutableStateFlow<Boolean>(false)
+    private val _isLoading = MutableStateFlow<Boolean>(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
