@@ -10,6 +10,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,11 +35,16 @@ class MainActivity : ComponentActivity(){
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
-                when {
-                    token == null -> CircularProgressIndicator()
-                    token!!.isEmpty() -> AuthScreen()
-                    else -> NavigationStack()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    when {
+                        token == null -> CircularProgressIndicator()
+                        token!!.isEmpty() -> AuthScreen()
+                        else -> NavigationStack()
                     }
+                }
             }
         }
 
