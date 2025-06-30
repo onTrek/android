@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +61,9 @@ fun TrackSelectionScreen(
     // this because token update is asynchronous, so it could happen that a token has been provided
     // but the viewModel has not yet fetched the data
     // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
-    if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+    LaunchedEffect(token) {
+        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+    }
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
