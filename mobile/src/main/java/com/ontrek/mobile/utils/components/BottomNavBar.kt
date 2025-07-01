@@ -17,11 +17,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ontrek.mobile.screens.Screen
 
 
@@ -41,39 +39,43 @@ fun BottomNavBar(navController: NavController) {
             title = "Hikes",
             selectedIcon = Icons.Filled.Hiking,
             unselectedIcon = Icons.Outlined.Hiking,
-            route = Screen.GroupsScreen.route,
+            route = Screen.Hikes.route,
         ),
         BottomNavItem(
             title = "Tracks",
             selectedIcon = Icons.Filled.Route,
             unselectedIcon = Icons.Outlined.Route,
-            route = Screen.TracksScreen.route,
+            route = Screen.Tracks.route,
         ),
         BottomNavItem(
             title = "Friends",
             selectedIcon = Icons.Filled.Group,
             unselectedIcon = Icons.Outlined.Group,
-            route = Screen.FriendsScreen.route,
+            route = Screen.Friends.route,
         ),
         BottomNavItem(
             title = "Profile",
             selectedIcon = Icons.Filled.Person,
             unselectedIcon = Icons.Outlined.Person,
-            route = Screen.ConnectionScreen.route,
+            route = Screen.Connection.route,
         ),
     )
 
-    var selectedItemIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+    // Track current route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Find index of current route
+    val selectedItemIndex = items.indexOfFirst { it.route == currentRoute }.takeIf { it >= 0 }
 
     NavigationBar {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 selected = selectedItemIndex == index,
                 onClick = {
-                    selectedItemIndex = index
-                    navController.navigate(item.route)
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route)
+                    }
                 },
                 label = { Text(text = item.title) },
                 icon = {

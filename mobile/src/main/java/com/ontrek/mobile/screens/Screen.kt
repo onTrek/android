@@ -1,8 +1,9 @@
 package com.ontrek.mobile.screens
 
 sealed class Screen(val route: String) {
-    object ConnectionScreen : Screen("ConnectionScreen")
-    object FriendsScreen : Screen("FriendsScreen")
-    object TracksScreen : Screen("TracksScreen")
-    object GroupsScreen : Screen("GroupsScreen")
-}
+        object Connection : Screen("ConnectionScreen")
+        object Friends : Screen("FriendsScreen")
+        object Tracks : Screen("TracksScreen")
+        object Hikes : Screen("HikesScreen")
+    }
+
