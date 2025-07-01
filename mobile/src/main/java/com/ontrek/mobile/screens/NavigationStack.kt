@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.connection.ConnectionToWear
 import com.ontrek.mobile.screens.friends.FriendsScreen
-import com.ontrek.mobile.screens.group.GroupScreen
+import com.ontrek.mobile.screens.hike.GroupScreen
 import com.ontrek.mobile.screens.track.TrackScreen
 
 @Composable

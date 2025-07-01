@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.group
+package com.ontrek.mobile.screens.hike
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
