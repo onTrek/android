@@ -80,7 +80,7 @@ fun TrackSelectionScreen(
     ) {
 
 
-        if (token.isNullOrEmpty() || isLoading) {
+        if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
             Log.d(
                 "TrackSelectionScreen",
