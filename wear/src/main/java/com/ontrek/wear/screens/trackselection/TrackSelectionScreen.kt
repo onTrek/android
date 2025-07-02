@@ -1,7 +1,9 @@
 package com.ontrek.wear.screens.trackselection
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -82,10 +84,6 @@ fun TrackSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-            Log.d(
-                "TrackSelectionScreen",
-                "Loading tracks with token: $token, isLoading: $isLoading"
-            )
         } else if (!error.isNullOrEmpty()) {
             ErrorFetch(token, fetchTrackList)
         } else if (trackList.isEmpty()) {
