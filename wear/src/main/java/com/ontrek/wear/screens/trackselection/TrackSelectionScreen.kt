@@ -61,9 +61,7 @@ fun TrackSelectionScreen(
 
     // starts only when the token changes avoiding unnecessary calls
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) {
-            fetchTrackList(token!!)
-        }
+        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     }
     ScreenScaffold(
         scrollState = listState,
@@ -82,7 +80,7 @@ fun TrackSelectionScreen(
     ) {
 
 
-        if (token.isNullOrEmpty() || isLoading) {
+        if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
         } else if (!error.isNullOrEmpty()) {
             ErrorFetch()
