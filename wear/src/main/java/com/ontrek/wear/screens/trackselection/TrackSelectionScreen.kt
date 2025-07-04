@@ -104,6 +104,24 @@ fun TrackSelectionScreen(
             items(trackList) {
                 TrackButton(it.title, navController)
             }
+            item {
+                IconButton(
+                    onClick = {
+                        Log.d("TrackSelectionScreen", "Refresh tracks")
+                        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .fillMaxHeight(0.1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = "Refresh tracks",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
     }
 }
