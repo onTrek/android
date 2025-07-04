@@ -65,6 +65,14 @@ fun TrackSelectionScreen(
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     }
+
+    // Scroll to top when track list updates
+    LaunchedEffect(trackList) {
+        if (trackList.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
