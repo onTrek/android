@@ -2,7 +2,6 @@ package com.ontrek.wear.screens.trackselection.components
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
@@ -23,14 +22,14 @@ import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun TrackButton(
+fun DownloadTrackButton(
+    modifier: Modifier = Modifier,
     trackName: String,
     trackID: Int,
     token: String,
     isDownloadingState: StateFlow<Boolean>,
     errorMessageState: StateFlow<String?>,
     onDownloadClick: (String, Int, Context) -> Unit = { _, _, _ -> },
-    modifier: Modifier = Modifier,
 ) {
 
     val context = LocalContext.current

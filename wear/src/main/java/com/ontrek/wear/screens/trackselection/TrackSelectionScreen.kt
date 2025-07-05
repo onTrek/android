@@ -32,7 +32,7 @@ import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
-import com.ontrek.wear.screens.trackselection.components.TrackButton
+import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
 import com.ontrek.wear.screens.trackselection.components.TrackButtonViewModel
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
@@ -96,7 +96,7 @@ fun TrackSelectionScreen(
             }
             items(trackList) {
                 val trackButtonViewModel = viewModel<TrackButtonViewModel>()
-                TrackButton(
+                DownloadTrackButton(
                     trackName = it.title,
                     trackID = it.id,
                     token = token ?: "",
