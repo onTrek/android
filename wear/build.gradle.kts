@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.play.services.location)
     implementation(libs.material.icons.extended)
     implementation(libs.android.gpx.parser)
     implementation(libs.datastore.preferences)

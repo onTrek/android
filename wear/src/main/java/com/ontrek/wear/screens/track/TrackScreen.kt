@@ -1,5 +1,6 @@
 package com.ontrek.wear.screens.track
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -40,6 +42,7 @@ import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
+import com.ontrek.wear.utils.sensors.GpsSensor
 
 
 private const val buttonSweepAngle = 60f
@@ -59,27 +62,43 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
-
+    // Inizializza il sensore GPS
+    val gpsSensor = remember { GpsSensor(context) }
+    // Contiene il file GPX caricato
     val gpxViewModel = remember { TrackScreenViewModel() }
 
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
-
+    // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
     val accuracy by compassSensor.accuracy.collectAsState()
 
-    val gpx by gpxViewModel.gpxData.collectAsState()
+    // Raccoglie la lista dei punti del tracciato dal ViewModel
+    val trackList by gpxViewModel.trackPointListState.collectAsState()
+    // Raccoglie la lunghezza totale del tracciato come stato osservabile
+    val totalLength by gpxViewModel.totalLengthState.collectAsState()
+    // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
+    val parsingError by gpxViewModel.parsingErrorState.collectAsState()
+
+    // Raccoglie la posizione corrente come stato osservabile
+    val currentLocation by gpsSensor.location.collectAsState()
 
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
-    DisposableEffect(compassSensor) {
+    DisposableEffect(compassSensor, gpsSensor) {
         // Avvia la lettura dei dati dai sensori
         compassSensor.start()
+        gpsSensor.start()
         gpxViewModel.loadGpx(context, "$trackID.gpx")
 
         // Pulisce le risorse quando il componente viene rimosso dalla composizione
         onDispose {
             compassSensor.stop()
+            gpsSensor.stop()
         }
+    }
+
+    LaunchedEffect(currentLocation) {
+        Log.d("TrackScreen", "Current Location: ${currentLocation?.latitude}, ${currentLocation?.longitude}")
     }
 
     val progress = 0.75f
@@ -93,14 +112,14 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
         MaterialTheme.colorScheme.onPrimaryContainer
 
     AnimatedVisibility(
-        visible = gpx == null,
+        visible = trackList.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
         Loading(Modifier.fillMaxSize())
     }
     AnimatedVisibility(
-        visible = accuracy < 2 && gpx != null,
+        visible = accuracy < 2 && !trackList.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
@@ -112,7 +131,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
         }
     }
     AnimatedVisibility(
-        visible = accuracy >= 2 && gpx != null,
+        visible = accuracy >= 2 && !trackList.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
