@@ -33,7 +33,7 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
-import com.ontrek.wear.screens.trackselection.components.TrackButtonViewModel
+import com.ontrek.wear.screens.trackselection.components.DownloadTrackButtonViewModel
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
@@ -95,7 +95,7 @@ fun TrackSelectionScreen(
                 )
             }
             items(trackList) {
-                val trackButtonViewModel = viewModel<TrackButtonViewModel>()
+                val trackButtonViewModel = viewModel<DownloadTrackButtonViewModel>()
                 DownloadTrackButton(
                     trackName = it.title,
                     trackID = it.id,

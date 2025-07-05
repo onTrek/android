@@ -7,7 +7,7 @@ import com.ontrek.shared.api.gpx.downloadGpx
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class TrackButtonViewModel : ViewModel() {
+class DownloadTrackButtonViewModel : ViewModel() {
 
     private val _isLoading = MutableStateFlow<Boolean>(false)
     val isLoading: StateFlow<Boolean> = _isLoading
