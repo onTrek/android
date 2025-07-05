@@ -1,27 +1,23 @@
 package com.ontrek.wear.screens.trackselection
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -30,21 +26,19 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
-import com.ontrek.wear.screens.Screen
+import com.ontrek.wear.screens.trackselection.components.TrackButton
+import com.ontrek.wear.screens.trackselection.components.TrackButtonViewModel
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.ontrek.shared.api.gpx.downloadGpx
-import kotlinx.coroutines.launch
 
 @Composable
 fun TrackSelectionScreen(
@@ -101,52 +95,18 @@ fun TrackSelectionScreen(
                 )
             }
             items(trackList) {
-                TrackButton(it.title, it.id, token ?: "", navController)
+                val trackButtonViewModel = viewModel<TrackButtonViewModel>()
+                TrackButton(
+                    trackName = it.title,
+                    trackID = it.id,
+                    token = token ?: "",
+                    isDownloadingState = trackButtonViewModel.isLoading,
+                    errorMessageState = trackButtonViewModel.error,
+                    onDownloadClick = trackButtonViewModel::downloadTrack,
+                    modifier = Modifier.fillMaxWidth(0.95f),
+                )
             }
         }
-    }
-}
-
-
-@Composable
-fun TrackButton(trackName: String,
-                trackID: Int,
-                token: String,
-                navController: NavHostController) {
-
-    val context = LocalContext.current
-    val composableScope = rememberCoroutineScope()
-
-    OutlinedButton(
-        onClick = {
-            composableScope.launch {
-                downloadGpx(token, trackID, context,  ::onGPXSuccess, ::onGPXDownloadError)
-                //Number of files in the context's file list
-                Log.d("Download","Number of files in the context: " +  context.fileList().size.toString())
-                Log.d("Download","Track ID: $trackID")
-                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}")
-            }
-
-        },
-        modifier = Modifier
-            .fillMaxWidth(0.95f),
-    ) {
-        Text(
-            text = trackName,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Left,
-            modifier = Modifier
-                .weight(0.85f)
-                .padding(8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Icon(
-            imageVector = Icons.Default.Download,
-            contentDescription = "Download track",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.15f)
-        )
     }
 }
 
@@ -219,12 +179,4 @@ fun DefaultPreview() {
             errorState = MutableStateFlow<String?>(error)
         )
     }
-}
-
-// Maybe move this two functions into the viewModel in order to update the UI dynamically
-fun onGPXSuccess() {
-    Log.d("TrackSelectionScreen", "GPX downloaded successfully")
-}
-fun onGPXDownloadError(errorMessage: String) {
-    Log.e("TrackSelectionScreen", "Error downloading GPX: $errorMessage")
 }
