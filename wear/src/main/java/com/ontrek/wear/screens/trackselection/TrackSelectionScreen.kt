@@ -3,12 +3,14 @@ package com.ontrek.wear.screens.trackselection
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +31,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
@@ -65,6 +68,13 @@ fun TrackSelectionScreen(
         if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     }
 
+    // Scroll to top when track list updates
+    LaunchedEffect(trackList) {
+        if (trackList.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -81,10 +91,11 @@ fun TrackSelectionScreen(
         }
     ) {
 
-        if (token.isNullOrEmpty() || isLoading) {
+
+        if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
         } else if (!error.isNullOrEmpty()) {
-            ErrorFetch()
+            ErrorFetch(token, fetchTrackList)
         } else if (trackList.isEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
@@ -102,6 +113,24 @@ fun TrackSelectionScreen(
             }
             items(trackList) {
                 TrackButton(it.title, it.id, token ?: "", navController)
+            }
+            item {
+                IconButton(
+                    onClick = {
+                        Log.d("TrackSelectionScreen", "Refresh tracks")
+                        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .fillMaxHeight(0.1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = "Refresh tracks",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
@@ -151,7 +180,7 @@ fun TrackButton(trackName: String,
 }
 
 @Composable
-fun ErrorFetch() {
+fun ErrorFetch(token: String?, fetchTracks: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -170,6 +199,17 @@ fun ErrorFetch() {
             text = "Error loading tracks",
             textAlign = TextAlign.Center
         )
+        IconButton(
+            onClick = {
+                fetchTracks(token!!)
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Refresh,
+                contentDescription = "Retry",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
