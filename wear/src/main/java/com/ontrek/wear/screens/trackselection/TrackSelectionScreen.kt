@@ -1,12 +1,14 @@
 package com.ontrek.wear.screens.trackselection
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +28,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
@@ -37,6 +40,7 @@ import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButtonViewModel
 import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,6 +68,13 @@ fun TrackSelectionScreen(
         if (!token.isNullOrEmpty()) fetchTrackList(token!!)
     }
 
+    // Scroll to top when track list updates
+    LaunchedEffect(trackList) {
+        if (trackList.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -80,10 +91,9 @@ fun TrackSelectionScreen(
         }
     ) {
 
-        if (token.isNullOrEmpty() || isLoading) {
+
+        if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (!error.isNullOrEmpty()) {
-            ErrorFetch()
         } else if (trackList.isEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
@@ -122,30 +132,36 @@ fun TrackSelectionScreen(
                     )
                 }
             }
+            item {
+                if (!error.isNullOrEmpty()) {
+                    ErrorScreen(
+                        "Error loading tracks",
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        token,
+                        fetchTrackList
+                    )
+                } else {
+                    IconButton(
+                        onClick = {
+                            Log.d("TrackSelectionScreen", "Refresh tracks")
+                            if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .fillMaxHeight(0.1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh tracks",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
         }
-    }
-}
-
-@Composable
-fun ErrorFetch() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Error,
-            contentDescription = "Error loading tracks",
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.titleSmall,
-            text = "Error loading tracks",
-            textAlign = TextAlign.Center
-        )
     }
 }
 
