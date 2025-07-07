@@ -2,6 +2,7 @@ package com.ontrek.wear.screens.trackselection.components
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
@@ -48,7 +49,7 @@ fun DownloadTrackButton(
         modifier = modifier
     ) {
         if (isDownloading) {
-            Loading()
+            Loading(Modifier.fillMaxWidth())
         } else if (errorMessage != null) {
             LaunchedEffect(errorMessage) {
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
