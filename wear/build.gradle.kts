@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,6 +41,9 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
     implementation(libs.play.services.location)
     implementation(libs.material.icons.extended)
     implementation(libs.android.gpx.parser)

@@ -15,6 +15,7 @@ composeBom = "2024.09.00"
 composeMaterial = "1.2.1"
 composeFoundation = "1.2.1"
 playServicesWearableVersion = "18.1.0"
+roomRuntime = "2.7.2"
 runtime = "1.8.2"
 runtimeLivedata = "1.8.3"
 wearToolingPreview = "1.0.0"
@@ -45,6 +46,8 @@ play-services-wearable = { group = "com.google.android.gms", name = "play-servic
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 play-services-wearable-v1810 = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearableVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 runtime = { module = "androidx.compose.runtime:runtime", version.ref = "runtime" }
 runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 ui = { group = "androidx.compose.ui", name = "ui" }
