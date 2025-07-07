@@ -24,7 +24,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         modifier = modifier,
     ) {
         composable(route = Screen.Connection.route) {
-            ConnectionToWear(navController) { }
+            ConnectionToWear(navController)
         }
         composable(route = Screen.Tracks.route) {
             TrackScreen(navController)

@@ -49,37 +49,7 @@ class MainActivity : ComponentActivity(){
         }
 
     }
-
-    fun login(context: Context) {
-        val putDataMapReq = PutDataMapRequest.create("/auth").apply {
-            dataMap.putString("token", "3e530eef-2f77-418e-89e7-d82537c9109a")
-            dataMap.putLong("timestamp", System.currentTimeMillis())
-        }
-        val request = putDataMapReq.asPutDataRequest().setUrgent()
-        Wearable.getDataClient(context).putDataItem(request)
-            .addOnSuccessListener { Log.d("WATCH_CONNECTION", "Started Activity") }
-            .addOnFailureListener { Log.e("WATCH_CONNECTION", "Failed to send data", it) }
-    }
 }
-
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    OnTrekTheme {
-        Greeting("Android")
-    }
-}
-
 
 /* Può tornare utile per debuggare la connessione tra mobile e watch
 fun printSignatureSHA1(context: Context) {
