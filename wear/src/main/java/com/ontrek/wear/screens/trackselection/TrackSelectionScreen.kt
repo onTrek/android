@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,11 +35,13 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButtonViewModel
+import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
 @Composable
 fun TrackSelectionScreen(
@@ -54,6 +57,8 @@ fun TrackSelectionScreen(
     val error by errorState.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
+
+    val context = LocalContext.current
 
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) fetchTrackList(token!!)
@@ -95,16 +100,27 @@ fun TrackSelectionScreen(
                 )
             }
             items(trackList) {
-                val trackButtonViewModel = viewModel<DownloadTrackButtonViewModel>()
-                DownloadTrackButton(
-                    trackName = it.title,
-                    trackID = it.id,
-                    token = token ?: "",
-                    isDownloadingState = trackButtonViewModel.isLoading,
-                    errorMessageState = trackButtonViewModel.error,
-                    onDownloadClick = trackButtonViewModel::downloadTrack,
-                    modifier = Modifier.fillMaxWidth(0.95f),
-                )
+                val file = File(context.filesDir, "${it.id}.gpx")
+                if (file.exists()) {
+                    // If the file exists, navigate to the track screen
+                    TrackButton(
+                        trackName = it.title,
+                        trackID = it.id,
+                        navController = navController,
+                        modifier = Modifier.fillMaxWidth(0.95f)
+                    )
+                } else {
+                    val trackButtonViewModel = viewModel<DownloadTrackButtonViewModel>()
+                    DownloadTrackButton(
+                        trackName = it.title,
+                        trackID = it.id,
+                        token = token ?: "",
+                        isDownloadingState = trackButtonViewModel.isLoading,
+                        errorMessageState = trackButtonViewModel.error,
+                        onDownloadClick = trackButtonViewModel::downloadTrack,
+                        modifier = Modifier.fillMaxWidth(0.95f),
+                    )
+                }
             }
         }
     }
