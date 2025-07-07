@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
@@ -39,14 +38,15 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.shared.api.gpx.downloadGpx
 import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.samples.sampleTrackList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.ontrek.shared.api.gpx.downloadGpx
 import kotlinx.coroutines.launch
 
 @Composable
@@ -94,8 +94,6 @@ fun TrackSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (!error.isNullOrEmpty()) {
-            ErrorFetch(token, fetchTrackList)
         } else if (trackList.isEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
@@ -115,21 +113,31 @@ fun TrackSelectionScreen(
                 TrackButton(it.title, it.id, token ?: "", navController)
             }
             item {
-                IconButton(
-                    onClick = {
-                        Log.d("TrackSelectionScreen", "Refresh tracks")
-                        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .fillMaxHeight(0.1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Refresh,
-                        contentDescription = "Refresh tracks",
-                        tint = MaterialTheme.colorScheme.onSurface
+                Log.d("ERROR", "Error state: $error")
+                if (!error.isNullOrEmpty()) {
+                    ErrorScreen(
+                        "Error loading tracks",
+                        Modifier.fillMaxWidth().padding(8.dp),
+                        token,
+                        fetchTrackList
                     )
+                } else {
+                    IconButton(
+                        onClick = {
+                            Log.d("TrackSelectionScreen", "Refresh tracks")
+                            if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .fillMaxHeight(0.1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh tracks",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }
@@ -138,10 +146,12 @@ fun TrackSelectionScreen(
 
 
 @Composable
-fun TrackButton(trackName: String,
-                trackID: Int,
-                token: String,
-                navController: NavHostController) {
+fun TrackButton(
+    trackName: String,
+    trackID: Int,
+    token: String,
+    navController: NavHostController
+) {
 
     val context = LocalContext.current
     val composableScope = rememberCoroutineScope()
@@ -149,11 +159,14 @@ fun TrackButton(trackName: String,
     OutlinedButton(
         onClick = {
             composableScope.launch {
-                downloadGpx(token, trackID, context,  ::onGPXSuccess, ::onGPXDownloadError)
+                downloadGpx(token, trackID, context, ::onGPXSuccess, ::onGPXDownloadError)
                 //Number of files in the context's file list
-                Log.d("Download","Number of files in the context: " +  context.fileList().size.toString())
-                Log.d("Download","Track ID: $trackID")
-                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}")
+                Log.d(
+                    "Download",
+                    "Number of files in the context: " + context.fileList().size.toString()
+                )
+                Log.d("Download", "Track ID: $trackID")
+                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}&sessionID=0") // Navigate to TrackScreen with trackID and sessionID
             }
 
         },
@@ -176,40 +189,6 @@ fun TrackButton(trackName: String,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.15f)
         )
-    }
-}
-
-@Composable
-fun ErrorFetch(token: String?, fetchTracks: (String) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Error,
-            contentDescription = "Error loading tracks",
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.titleSmall,
-            text = "Error loading tracks",
-            textAlign = TextAlign.Center
-        )
-        IconButton(
-            onClick = {
-                fetchTracks(token!!)
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Refresh,
-                contentDescription = "Retry",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
     }
 }
 
@@ -265,6 +244,7 @@ fun DefaultPreview() {
 fun onGPXSuccess() {
     Log.d("TrackSelectionScreen", "GPX downloaded successfully")
 }
+
 fun onGPXDownloadError(errorMessage: String) {
     Log.e("TrackSelectionScreen", "Error downloading GPX: $errorMessage")
 }

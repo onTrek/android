@@ -34,11 +34,16 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             )
         }
         composable(
-            route = Screen.TrackScreen.route + "?trackID={trackID}",
+            route = Screen.TrackScreen.route + "?trackID={trackID}&sessionID={sessionID}",
             arguments = listOf(
                 navArgument("trackID") {
                     type = NavType.StringType
+                    nullable = false
+                },
+                navArgument("sessionID") {
+                    type = NavType.StringType
                     nullable = true
+                    defaultValue = ""
                 }
             )
         ) {
@@ -46,6 +51,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             TrackScreen(
                 navController = navController,
                 trackID = it.arguments?.getString("trackID").toString(),
+                sessionID = it.arguments?.getString("sessionID").toString(),
                 modifier = modifier
             )
         }

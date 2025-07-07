@@ -39,6 +39,7 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
@@ -53,10 +54,11 @@ private const val buttonSweepAngle = 60f
  * and a button to trigger an SOS signal.
  * @param navController The navigation controller to handle navigation actions.
  * @param trackID A string parameter that can be used to display additional information on the screen.
+ * @param sessionID A string parameter representing the session ID, which can be used to fetch friends data or other session-related information.
  * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(navController: NavHostController, trackID: String, modifier: Modifier = Modifier) {
+fun TrackScreen(navController: NavHostController, trackID: String, sessionID: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
@@ -73,9 +75,9 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
     val accuracy by compassSensor.accuracy.collectAsState()
 
     // Raccoglie la lista dei punti del tracciato dal ViewModel
-    val trackList by gpxViewModel.trackPointListState.collectAsState()
+    val trackPoints by gpxViewModel.trackPointListState.collectAsState()
     // Raccoglie la lunghezza totale del tracciato come stato osservabile
-    val totalLength by gpxViewModel.totalLengthState.collectAsState()
+    //val totalLength by gpxViewModel.totalLengthState.collectAsState()
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
     val parsingError by gpxViewModel.parsingErrorState.collectAsState()
 
@@ -103,7 +105,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
 
     val progress = 0.75f
 
-    var alone = false
+    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     var info: String? = null
     var infobackgroundColor: androidx.compose.ui.graphics.Color =
@@ -111,15 +113,18 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
     var infotextColor: androidx.compose.ui.graphics.Color =
         MaterialTheme.colorScheme.onPrimaryContainer
 
+    if (!parsingError.isEmpty()) {
+        ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
+    }
     AnimatedVisibility(
-        visible = trackList.isEmpty(),
+        visible = trackPoints.isEmpty() && parsingError.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
         Loading(Modifier.fillMaxSize())
     }
     AnimatedVisibility(
-        visible = accuracy < 2 && !trackList.isEmpty(),
+        visible = accuracy < 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
@@ -131,7 +136,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, modifier: Mod
         }
     }
     AnimatedVisibility(
-        visible = accuracy >= 2 && !trackList.isEmpty(),
+        visible = accuracy >= 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {

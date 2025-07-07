@@ -18,8 +18,8 @@ class TrackScreenViewModel : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
     val trackPointListState: StateFlow<List<TrackPoint>> = trackPoints
-    private val parsingError = MutableStateFlow<String?>(null)
-    val parsingErrorState: StateFlow<String?> = parsingError
+    private val parsingError = MutableStateFlow<String>("")
+    val parsingErrorState: StateFlow<String> = parsingError
     private val totalLength = MutableStateFlow(0.0)
     val totalLengthState: StateFlow<Double> = totalLength
 
@@ -49,7 +49,7 @@ class TrackScreenViewModel : ViewModel() {
                             }
                         }
                     totalLength.value = trackPoints.value.sumOf { it.distance }
-                    Log.d("TrackScreenViewModel", "Track Lenght " + totalLength.value.toString())
+                    Log.d("TrackScreenViewModel", "Track Lenght $totalLengthState")
                 } ?: {
                     Log.e("TrackScreenViewModel", "Generic GPX parsing error")
                     parsingError.value = "Error parsing GPX file: No data found"
