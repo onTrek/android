@@ -87,9 +87,8 @@ fun Profile(navController: NavHostController) {
                 actions = {
                     androidx.compose.material3.IconButton(
                         onClick = {
-                            navController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
-                            }
+                            // Azione di logout
+                            viewModel.logout()
                         }
                     ) {
                         Icon(

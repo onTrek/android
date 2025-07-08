@@ -125,6 +125,11 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
+    fun logout() {
+        viewModelScope.launch {
+            _msgToast.value = "This feature is not implemented yet"
+        }
+    }
     fun resetMsgToast() {
         viewModelScope.launch {
             _msgToast.value = ""
