@@ -18,7 +18,7 @@ class GpsSensor(val context: Context) {
             LocationServices.getFusedLocationProviderClient(context)
 
     private val LOCATION_REFRESH_TIME = 5000L // Update interval in milliseconds
-    private val LOCATION_REFRESH_DISTANCE = 10f // Update distance in meters
+    private val LOCATION_REFRESH_DISTANCE = 5f // Update distance in meters
 
     private val _location = MutableStateFlow<Location?>(null)
     val location: StateFlow<Location?> = _location.asStateFlow()

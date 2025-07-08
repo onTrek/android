@@ -1,13 +1,13 @@
 package com.ontrek.wear.utils.functions
 
+import com.ontrek.shared.data.SimplePoint
 import io.ticofab.androidgpxparser.parser.domain.TrackPoint
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
-
-fun getDistanceTo(point1: TrackPoint, point2: TrackPoint): Double {
+fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     val earthRadiusKm = 6371.0
 
     val lat1Rad = Math.toRadians(point1.latitude)
@@ -32,4 +32,26 @@ fun getDistanceTo(point1: TrackPoint, point2: TrackPoint): Double {
     val totalDistance = sqrt(surfaceDistance.pow(2.0) + elevationDiff.pow(2.0))
 
     return totalDistance
+}
+
+fun getDistanceTo(point1: TrackPoint, point2: TrackPoint): Double {
+    return getDistanceTo(
+        SimplePoint(point1.latitude, point1.longitude, point1.elevation ?: 0.0),
+        SimplePoint(point2.latitude, point2.longitude, point2.elevation ?: 0.0)
+    )
+}
+
+fun distanceToTrack(
+    latitude: Double,
+    longitude: Double,
+    trackPoints: List<com.ontrek.shared.data.TrackPoint>
+): Double {
+    if (trackPoints.isEmpty()) return Double.MAX_VALUE
+
+    return trackPoints.minOfOrNull { point ->
+        getDistanceTo(
+            SimplePoint(latitude, longitude, 0.0),
+            SimplePoint(point.latitude, point.longitude, point.elevation ?: 0.0)
+        )
+    } ?: Double.MAX_VALUE
 }

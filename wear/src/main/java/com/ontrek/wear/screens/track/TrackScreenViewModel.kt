@@ -1,10 +1,12 @@
 package com.ontrek.wear.screens.track
 
 import android.content.Context
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.data.TrackPoint
+import com.ontrek.wear.utils.functions.distanceToTrack
 import com.ontrek.wear.utils.functions.getDistanceTo
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
@@ -13,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
+import kotlin.collections.isNotEmpty
+import kotlin.collections.maxOfOrNull
 
 class TrackScreenViewModel : ViewModel() {
 
@@ -22,6 +26,8 @@ class TrackScreenViewModel : ViewModel() {
     val parsingErrorState: StateFlow<String> = parsingError
     private val totalLength = MutableStateFlow(0.0)
     val totalLengthState: StateFlow<Double> = totalLength
+    private val isNearTrack = MutableStateFlow<Boolean?>(null)
+    val isNearTrackState: StateFlow<Boolean?> = isNearTrack
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -42,7 +48,7 @@ class TrackScreenViewModel : ViewModel() {
                                     TrackPoint(
                                         latitude = point.latitude,
                                         longitude = point.longitude,
-                                        altitude = point.elevation,
+                                        elevation = point.elevation,
                                         distance = distance
                                     )
                                 }
@@ -62,5 +68,25 @@ class TrackScreenViewModel : ViewModel() {
                 parsingError.value = "Error parsing GPX file: ${e.message}"
             }
         }
+    }
+
+    // Controlla se la posizione corrente è vicina al tracciato
+    fun checkDistance(currentLocation: Location) {
+        if (trackPoints.value.isNotEmpty()) {
+            val distance = distanceToTrack(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                trackPoints.value
+            )
+            Log.d("TrackScreen", "Distance to track: $distance")
+            isNearTrack.value = distance < (trackPoints.value.maxOfOrNull { it.distance } ?: Double.MIN_VALUE)
+        }
+    }
+
+    fun reset() {
+        trackPoints.value = emptyList()
+        totalLength.value = 0.0
+        parsingError.value = ""
+        isNearTrack.value = null
     }
 }
