@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.connection
+package com.ontrek.mobile.screens.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -17,7 +17,7 @@ data class UserProfile(
     val userId: String = ""
 )
 
-class ConnectionViewModel : ViewModel() {
+class ProfileViewModel : ViewModel() {
 
     private val _userProfile = MutableStateFlow(UserProfile())
     val userProfile: StateFlow<UserProfile> = _userProfile.asStateFlow()
@@ -46,6 +46,19 @@ class ConnectionViewModel : ViewModel() {
                 Log.e("ConnectionViewModel", "Error fetching user profile", e)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun fetchDeleteProfile() {
+        Log.d("rofileViewModel", "Deleting profile for user: ${userProfile.value.userId}")
+        viewModelScope.launch {
+            try {
+                // Simulazione di una chiamata API per eliminare il profilo
+                // Qui dovresti implementare la logica reale per eliminare il profilo
+                Log.d("ProfileViewModel", "Profile deleted successfully")
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error deleting profile", e)
             }
         }
     }

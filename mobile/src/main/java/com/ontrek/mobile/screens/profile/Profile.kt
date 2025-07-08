@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.connection
+package com.ontrek.mobile.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,14 +31,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Watch
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -46,12 +47,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConnectionToWear(navController: NavHostController) {
+fun Profile(navController: NavHostController) {
     val context = LocalContext.current
-    val viewModel: ConnectionViewModel = viewModel()
+    val viewModel: ProfileViewModel = viewModel()
+    val showDeleteDialog = remember { mutableStateOf(false) }
 
     // Osserva i dati del profilo utente
     val userProfile by viewModel.userProfile.collectAsState()
@@ -203,25 +207,76 @@ fun ConnectionToWear(navController: NavHostController) {
                         fontWeight = FontWeight.Medium
                     )
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Bottone per cancellare il profilo
+                Button(
+                    onClick = { showDeleteDialog.value = true },
+                    modifier = Modifier
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Elimina Profilo",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Dialog di conferma
+                if (showDeleteDialog.value) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteDialog.value = false },
+                        title = { Text("Conferma eliminazione") },
+                        text = { Text("Sei sicuro di voler eliminare il tuo profilo? Questa azione non può essere annullata.") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    viewModel.fetchDeleteProfile()
+                                    showDeleteDialog.value = false
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = null,
+                                )
+                                Spacer(modifier = Modifier.width(1.dp))
+                                Text("Elimina")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showDeleteDialog.value = false }
+                            ) {
+                                Text("Annulla")
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
-    )
-}
-
-
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun ProfilePreview() {
     OnTrekTheme {
-        Greeting("Android")
+        Profile(
+            navController = androidx.navigation.compose.rememberNavController()
+        )
     }
 }
