@@ -107,6 +107,7 @@ class TrackScreenViewModel : ViewModel() {
 
     // Elaborates the distance to the track based on the current location and the current track points
     fun elaboratePosition(currentLocation: Location) {
+        position.value = currentLocation
         Log.d("TRACK_SCREEN_VIEW_MODEL", "Elaborating distance")
         val neighbouringTrackPoints = getNeighbouringTrackPoints(currentLocation)
         if (neighbouringTrackPoints?.nextPoint == null) {
@@ -128,6 +129,7 @@ class TrackScreenViewModel : ViewModel() {
             Log.w("TRACK_SCREEN_VIEW_MODEL", "Position is null, cannot calculate direction")
             return
         }
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Calculating direction from position: $threadSafePosition to next point: $threadSafeNextPoint")
         val lat1Rad = Math.toRadians(threadSafePosition.latitude)
         val lat2Rad = Math.toRadians(threadSafeNextPoint.latitude)
         val deltaLonRad = Math.toRadians(threadSafeNextPoint.longitude - threadSafePosition.longitude)
@@ -140,6 +142,7 @@ class TrackScreenViewModel : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Compass direction: $compassDirection, Target bearing: $targetBearing, Angle: $angle")
         arrowDirection.value = angle.toFloat()
     }
 
