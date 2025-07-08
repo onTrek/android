@@ -9,13 +9,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.util.Log
+import com.ontrek.shared.api.profile.deleteProfile
 import com.ontrek.shared.api.profile.getProfile
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 
 data class UserProfile(
-    val username: String = "",
-    val email: String = "",
-    val userId: String = ""
+    val username: String = "Update...",
+    val email: String = "Update...",
+    val userId: String = "Update...",
 )
 
 class ProfileViewModel : ViewModel() {
@@ -26,8 +28,8 @@ class ProfileViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _isLoadingCollection = MutableStateFlow(false)
-    val isLoadingCollection = _isLoadingCollection.asStateFlow()
+    private val _isLoadingConnection = MutableStateFlow(false)
+    val isLoadingConnection = _isLoadingConnection.asStateFlow()
 
     private val _isLoadingDeleteProfile = MutableStateFlow(false)
     val isLoadingDeleteProfile = _isLoadingDeleteProfile.asStateFlow()
@@ -38,17 +40,13 @@ class ProfileViewModel : ViewModel() {
     private val _msgToast = MutableStateFlow("")
     val msgToastFlow: StateFlow<String> = _msgToast.asStateFlow()
 
-    init {
-        fetchUserProfile()
-    }
-
-    fun fetchUserProfile() {
+    fun fetchUserProfile(token: String) {
         viewModelScope.launch {
             _isLoading.value = true
 
             try {
                 getProfile(
-                    token = "3a8d8bb7-cb4b-4494-b6d5-93ca7b5cc5ca",
+                    token = token,
                     onSuccess = { response ->
                         _userProfile.update {
                             UserProfile(
@@ -77,31 +75,42 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun fetchDeleteProfile(navigateToLogin: () -> Unit) {
+    fun fetchDeleteProfile(navigateToLogin: () -> Unit, token: String) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isLoadingDeleteProfile.value = true
 
             try {
-                _userProfile.update { UserProfile(
-                    username = "",
-                    email = "",
-                    userId = ""
-                ) } // Reset profile after deletion
-                _msgToast.value = "Profile deleted successfully"
-                navigateToLogin()
+                 deleteProfile(
+                     token = token,
+                     onSuccess = {
+                         _userProfile.update { UserProfile(
+                             username = "",
+                             email = "",
+                             userId = ""
+                         ) } // Reset profile after deletion
+                         _msgToast.value = "Profile deleted successfully"
+                         navigateToLogin()
+                     },
+                     onError = { error ->
+                         Log.e("ProfileViewModel", "Error deleting profile: $error")
+                         _msgToast.value = "Impossible to delete profile: $error"
+                     }
+                 )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error deleting profile", e)
             } finally {
-                _isLoading.value = false
+                delay(500)
+                _isLoadingDeleteProfile.value = false
             }
         }
     }
 
-    fun sendAuthToWearable(context: Context) {
+    fun sendAuthToWearable(context: Context, token: String) {
         viewModelScope.launch {
+            _isLoadingConnection.value = true
             try {
                 val putDataMapReq = PutDataMapRequest.create("/auth").apply {
-                    dataMap.putString("token", "3a8d8bb7-cb4b-4494-b6d5-93ca7b5cc5ca")
+                    dataMap.putString("token", token)
                     dataMap.putLong("timestamp", System.currentTimeMillis())
                 }
                 val request = putDataMapReq.asPutDataRequest().setUrgent()
@@ -121,6 +130,9 @@ class ProfileViewModel : ViewModel() {
                 Log.e("WATCH_CONNECTION", "Errore durante la connessione al wearable", e)
                 _connectionStatus.value = false
                 _msgToast.value = "Error connecting to wearable: ${e.message}"
+            } finally {
+                delay(500)
+                _isLoadingConnection.value = false
             }
         }
     }

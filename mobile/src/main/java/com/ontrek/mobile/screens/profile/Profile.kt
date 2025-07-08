@@ -52,10 +52,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(navController: NavHostController) {
+fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     val showDeleteDialog = remember { mutableStateOf(false) }
@@ -63,12 +66,23 @@ fun Profile(navController: NavHostController) {
     // Osserva i dati del profilo utente
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isLoadingConnection by viewModel.isLoadingConnection.collectAsState()
+    val isLoadingDeleteProfile by viewModel.isLoadingDeleteProfile.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState(initial = false)
     val msgToast by viewModel.msgToastFlow.collectAsState()
+    val token by tokenState.collectAsStateWithLifecycle()
 
     // Flag per modalità sviluppo - in un'app reale questo verrebbe dal BuildConfig
     val isDevelopmentMode = true
 
+    // Effettua il fetch del profilo utente
+    LaunchedEffect(token) {
+        if (!token.isNullOrEmpty()) {
+            viewModel.fetchUserProfile(token!!)
+        } else {
+            Toast.makeText(context, "Token non valido", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
@@ -214,7 +228,7 @@ fun Profile(navController: NavHostController) {
 
                 // Bottone per connessione al wearable
                 Button(
-                    onClick = { viewModel.sendAuthToWearable(context) },
+                    onClick = { viewModel.sendAuthToWearable(context, token!!) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -223,18 +237,26 @@ fun Profile(navController: NavHostController) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
-                    enabled = !connectionStatus // Disabilita il pulsante se già connesso
+                    enabled = !connectionStatus && !isLoadingConnection
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Watch,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (connectionStatus) "Dispositivo Wear connesso" else "Connetti al dispositivo Wear",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    if (isLoadingConnection) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Rounded.Watch,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (connectionStatus) "Dispositivo Wear connesso" else "Connetti al dispositivo Wear",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -269,27 +291,38 @@ fun Profile(navController: NavHostController) {
                         title = { Text("Conferma eliminazione") },
                         text = { Text("Sei sicuro di voler eliminare il tuo profilo? Questa azione non può essere annullata.") },
                         confirmButton = {
-                            Button(
+                           Button(
                                 onClick = {
                                     viewModel.fetchDeleteProfile(
                                         navigateToLogin = {
-                                            navController.navigate("login") {
+                                            // Modifica qui: naviga verso una destinazione esistente (HikesScreen)
+                                            navController.navigate("HikesScreen") {
                                                 popUpTo("profile") { inclusive = true }
                                             }
-                                        }
+                                        },
+                                        token!!
                                     )
                                     showDeleteDialog.value = false
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.error
-                                )
+                                ),
+                                enabled = !isLoadingDeleteProfile
                             ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Delete,
-                                    contentDescription = null,
-                                )
-                                Spacer(modifier = Modifier.width(1.dp))
-                                Text("Elimina")
+                                if (isLoadingDeleteProfile) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onError,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Delete,
+                                        contentDescription = null,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Elimina")
+                                }
                             }
                         },
                         dismissButton = {
@@ -310,8 +343,11 @@ fun Profile(navController: NavHostController) {
 @Composable
 fun ProfilePreview() {
     OnTrekTheme {
+        // Simula un token per il preview
+        val token = "sample_token"
         Profile(
-            navController = androidx.navigation.compose.rememberNavController()
+            navController = androidx.navigation.compose.rememberNavController(),
+            tokenState = MutableStateFlow<String?>(token)
         )
     }
 }

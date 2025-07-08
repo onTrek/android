@@ -17,14 +17,13 @@ fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
-
     NavHost(
         navController = navController,
         startDestination = Screen.Hikes.route,
         modifier = modifier,
     ) {
         composable(route = Screen.Profile.route) {
-            Profile(navController)
+            Profile(navController, preferencesViewModel.tokenState)
         }
         composable(route = Screen.Tracks.route) {
             TrackScreen(navController)
