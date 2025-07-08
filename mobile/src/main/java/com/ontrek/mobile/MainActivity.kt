@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity(){
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
+                Log.d("MainActivity", "Token: $token")
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

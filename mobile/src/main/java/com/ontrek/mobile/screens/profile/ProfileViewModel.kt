@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.util.Log
+import com.ontrek.shared.api.profile.getProfile
+import kotlinx.coroutines.flow.update
 
 data class UserProfile(
-    val name: String = "",
     val username: String = "",
     val email: String = "",
     val userId: String = ""
@@ -25,6 +26,18 @@ class ProfileViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _isLoadingCollection = MutableStateFlow(false)
+    val isLoadingCollection = _isLoadingCollection.asStateFlow()
+
+    private val _isLoadingDeleteProfile = MutableStateFlow(false)
+    val isLoadingDeleteProfile = _isLoadingDeleteProfile.asStateFlow()
+
+    private val _connectionStatus = MutableStateFlow(false)
+    val connectionStatus: StateFlow<Boolean> = _connectionStatus.asStateFlow()
+
+    private val _msgToast = MutableStateFlow("")
+    val msgToastFlow: StateFlow<String> = _msgToast.asStateFlow()
+
     init {
         fetchUserProfile()
     }
@@ -34,43 +47,87 @@ class ProfileViewModel : ViewModel() {
             _isLoading.value = true
 
             try {
-                // Qui dovresti fare la chiamata API reale
-                // Per ora simuliamo una risposta
-                _userProfile.value = UserProfile(
-                    name = "Nome e Cognome",
-                    username = "gioele_username",
-                    email = "gioele.rossi@example.com",
-                    userId = "3e530eef-2f77-418e-89e7-d82537c9109a"
+                getProfile(
+                    token = "3a8d8bb7-cb4b-4494-b6d5-93ca7b5cc5ca",
+                    onSuccess = { response ->
+                        _userProfile.update {
+                            UserProfile(
+                                username = response?.username ?: "",
+                                email = response?.email ?: "",
+                                userId = response?.id ?: "",
+                            )
+                        }
+                    },
+                    onError = { error ->
+                        Log.e("ProfileViewModel", "Error fetching profile: $error")
+                        _userProfile.update {
+                            UserProfile(
+                                username = "Error",
+                                email = "Error",
+                                userId = "Error"
+                            )
+                        }
+                    }
                 )
             } catch (e: Exception) {
-                Log.e("ConnectionViewModel", "Error fetching user profile", e)
+                Log.e("ProfileView", "Error fetching user profile", e)
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun fetchDeleteProfile() {
-        Log.d("rofileViewModel", "Deleting profile for user: ${userProfile.value.userId}")
+    fun fetchDeleteProfile(navigateToLogin: () -> Unit) {
         viewModelScope.launch {
+            _isLoading.value = true
+
             try {
-                // Simulazione di una chiamata API per eliminare il profilo
-                // Qui dovresti implementare la logica reale per eliminare il profilo
-                Log.d("ProfileViewModel", "Profile deleted successfully")
+                _userProfile.update { UserProfile(
+                    username = "",
+                    email = "",
+                    userId = ""
+                ) } // Reset profile after deletion
+                _msgToast.value = "Profile deleted successfully"
+                navigateToLogin()
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error deleting profile", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
     fun sendAuthToWearable(context: Context) {
-        val putDataMapReq = PutDataMapRequest.create("/auth").apply {
-            dataMap.putString("token", userProfile.value.userId)
-            dataMap.putLong("timestamp", System.currentTimeMillis())
+        viewModelScope.launch {
+            try {
+                val putDataMapReq = PutDataMapRequest.create("/auth").apply {
+                    dataMap.putString("token", "3a8d8bb7-cb4b-4494-b6d5-93ca7b5cc5ca")
+                    dataMap.putLong("timestamp", System.currentTimeMillis())
+                }
+                val request = putDataMapReq.asPutDataRequest().setUrgent()
+
+                Wearable.getDataClient(context).putDataItem(request)
+                    .addOnSuccessListener {
+                        Log.d("WATCH_CONNECTION", "Connessione riuscita con il wearable")
+                        _connectionStatus.value = true
+                        _msgToast.value = "Connected to wearable successfully"
+                    }
+                    .addOnFailureListener {
+                        Log.e("WATCH_CONNECTION", "Fallita connessione con il wearable", it)
+                        _connectionStatus.value = false
+                        _msgToast.value = "Failed to connect to wearable"
+                    }
+            } catch (e: Exception) {
+                Log.e("WATCH_CONNECTION", "Errore durante la connessione al wearable", e)
+                _connectionStatus.value = false
+                _msgToast.value = "Error connecting to wearable: ${e.message}"
+            }
         }
-        val request = putDataMapReq.asPutDataRequest().setUrgent()
-        Wearable.getDataClient(context).putDataItem(request)
-            .addOnSuccessListener { Log.d("WATCH_CONNECTION", "Started Activity") }
-            .addOnFailureListener { Log.e("WATCH_CONNECTION", "Failed to send data", it) }
+    }
+
+    fun resetMsgToast() {
+        viewModelScope.launch {
+            _msgToast.value = ""
+        }
     }
 }

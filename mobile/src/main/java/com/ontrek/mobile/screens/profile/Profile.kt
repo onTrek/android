@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Email
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,9 +63,19 @@ fun Profile(navController: NavHostController) {
     // Osserva i dati del profilo utente
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val connectionStatus by viewModel.connectionStatus.collectAsState(initial = false)
+    val msgToast by viewModel.msgToastFlow.collectAsState()
 
     // Flag per modalità sviluppo - in un'app reale questo verrebbe dal BuildConfig
     val isDevelopmentMode = true
+
+
+    LaunchedEffect(msgToast) {
+        if (msgToast.isNotEmpty()) {
+            Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.resetMsgToast()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,6 +83,21 @@ fun Profile(navController: NavHostController) {
             TopAppBar(
                 title = {
                     Text(text = "Profilo Utente")
+                },
+                actions = {
+                    androidx.compose.material3.IconButton(
+                        onClick = {
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             )
         },
@@ -128,12 +156,13 @@ fun Profile(navController: NavHostController) {
 
                             Column {
                                 Text(
-                                    text = userProfile.name,
-                                    style = MaterialTheme.typography.headlineSmall
+                                    text = "Username",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = "@${userProfile.username}",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.headlineSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -194,7 +223,8 @@ fun Profile(navController: NavHostController) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    ),
+                    enabled = !connectionStatus // Disabilita il pulsante se già connesso
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Watch,
@@ -202,7 +232,7 @@ fun Profile(navController: NavHostController) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Connetti al dispositivo Wear",
+                        text = if (connectionStatus) "Dispositivo Wear connesso" else "Connetti al dispositivo Wear",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -242,7 +272,13 @@ fun Profile(navController: NavHostController) {
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    viewModel.fetchDeleteProfile()
+                                    viewModel.fetchDeleteProfile(
+                                        navigateToLogin = {
+                                            navController.navigate("login") {
+                                                popUpTo("profile") { inclusive = true }
+                                            }
+                                        }
+                                    )
                                     showDeleteDialog.value = false
                                 },
                                 colors = ButtonDefaults.buttonColors(
