@@ -1,5 +1,6 @@
 package com.ontrek.wear.utils.functions
 
+import android.location.Location
 import com.ontrek.shared.data.SimplePoint
 import io.ticofab.androidgpxparser.parser.domain.TrackPoint
 import kotlin.math.atan2
@@ -26,7 +27,8 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     val surfaceDistance = earthRadiusKm * c * 1000 // in meters
 
     // Elevation difference in meters
-    val elevationDiff = (point2.elevation ?: 0.0) - (point1.elevation ?: 0.0)
+    val elevationAvailable = point1.elevation != null && point2.elevation != null
+    val elevationDiff = if (elevationAvailable) (point2.elevation!!) - (point1.elevation!!) else 0.0
 
     // Total 3D distance using Pythagorean theorem
     val totalDistance = sqrt(surfaceDistance.pow(2.0) + elevationDiff.pow(2.0))
@@ -42,16 +44,15 @@ fun getDistanceTo(point1: TrackPoint, point2: TrackPoint): Double {
 }
 
 fun distanceToTrack(
-    latitude: Double,
-    longitude: Double,
+    gpsLocation: Location,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
 ): Double {
     if (trackPoints.isEmpty()) return Double.MAX_VALUE
 
     return trackPoints.minOfOrNull { point ->
         getDistanceTo(
-            SimplePoint(latitude, longitude, 0.0),
-            SimplePoint(point.latitude, point.longitude, point.elevation ?: 0.0)
+            SimplePoint(gpsLocation.latitude, gpsLocation.longitude, if (gpsLocation.hasAltitude()) gpsLocation.altitude else null),
+            SimplePoint(point.latitude, point.longitude, point.elevation)
         )
     } ?: Double.MAX_VALUE
 }

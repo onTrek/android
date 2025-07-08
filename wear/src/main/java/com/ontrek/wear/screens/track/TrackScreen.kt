@@ -83,9 +83,14 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val parsingError by gpxViewModel.parsingErrorState.collectAsState()
     // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
     val isNearTrack by gpxViewModel.isNearTrackState.collectAsState()
-
+    // Raccoglie l'indice del punto più vicino al tracciato come stato osservabile
+    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsState()
+    // Raccoglie l'angolo della freccia come stato osservabile
+    val arrowDirection by gpxViewModel.arrowDirectionState.collectAsState()
     // Raccoglie la posizione corrente come stato osservabile
     val currentLocation by gpsSensor.location.collectAsState()
+    // Raccoglie se l'utente è sul tracciato come stato osservabile
+    val onTrak by gpxViewModel.onTrakState.collectAsState()
 
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
@@ -103,13 +108,37 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         }
     }
 
+    LaunchedEffect(onTrak) {
+        Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
+    }
+
+    LaunchedEffect(direction) {
+        if (accuracy < 2) return@LaunchedEffect
+        gpxViewModel.elaborateDirection(direction)
+    }
+
     LaunchedEffect(currentLocation) {
         val threadSafeCurrentLocation = currentLocation
-        if (threadSafeCurrentLocation == null) return@LaunchedEffect
-        if (isNearTrack == null) {
-            gpxViewModel.checkDistance(threadSafeCurrentLocation)
+
+        if (threadSafeCurrentLocation == null) {
+            Log.d("GPS_LOCATION", "Location not available")
+            return@LaunchedEffect
         }
-        Log.d("TrackScreen", "Current Location: ${currentLocation?.latitude}, ${currentLocation?.longitude}")
+
+        Log.d("GPS_LOCATION_POSITION", "Current Location: ${threadSafeCurrentLocation.latitude}, ${threadSafeCurrentLocation.longitude}; accuracy: ${threadSafeCurrentLocation.accuracy}")
+        if (threadSafeCurrentLocation.hasAltitude()) {
+            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: ${threadSafeCurrentLocation.altitude}")
+        } else {
+            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: Not available")
+        }
+
+        if (isNearTrack == null || isNearTrack == false) {
+            // Startup function
+            gpxViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
+        } else if (isNearTrack == true) {
+            // If we are near the track, we can proceed to elaborate the position
+            gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
+        }
     }
 
     val progress = 0.75f
@@ -172,8 +201,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                     )
 
                     Arrow(
-                        direction = direction,  // Angolo di rotazione basato sui dati del sensore
-//                    color = MaterialTheme.colorScheme.primaryContainer,
+                        direction = arrowDirection,
+//                      color = MaterialTheme.colorScheme.primaryContainer,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
