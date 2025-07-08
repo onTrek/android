@@ -1,5 +1,6 @@
 package com.ontrek.wear.screens.trackselection
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
@@ -55,12 +57,15 @@ fun TrackSelectionScreen(
     loadingState: StateFlow<Boolean>,
     errorState: StateFlow<String?>,
     tokenState: StateFlow<String?>,
+    downloadButtonStates: StateFlow<List<DownloadState>>,
+    downloadTrack: (String, Int, Int, Context) -> Unit,
 ) {
     val trackList by trackListState.collectAsStateWithLifecycle()
     val isLoading by loadingState.collectAsStateWithLifecycle()
     val error by errorState.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
+    val downloadButtonStates by downloadButtonStates.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -109,25 +114,25 @@ fun TrackSelectionScreen(
                     text = "My tracks"
                 )
             }
-            items(trackList) {
-                val file = File(context.filesDir, "${it.id}.gpx")
+            itemsIndexed(trackList) { index, track ->
+                val file = File(context.filesDir, "${track.id}.gpx")
                 if (file.exists()) {
                     // If the file exists, navigate to the track screen
                     TrackButton(
-                        trackName = it.title,
-                        trackID = it.id,
+                        trackName = track.title,
+                        trackID = track.id,
                         navController = navController,
+//                        index = index,
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
                 } else {
-                    val trackButtonViewModel = viewModel<DownloadTrackButtonViewModel>()
                     DownloadTrackButton(
-                        trackName = it.title,
-                        trackID = it.id,
+                        trackName = track.title,
+                        trackID = track.id,
                         token = token ?: "",
-                        isDownloadingState = trackButtonViewModel.isLoading,
-                        errorMessageState = trackButtonViewModel.error,
-                        onDownloadClick = trackButtonViewModel::downloadTrack,
+                        state = downloadButtonStates[index],
+                        onDownloadClick = downloadTrack,
+                        index = index,
                         modifier = Modifier.fillMaxWidth(0.95f),
                     )
                 }
@@ -195,20 +200,20 @@ fun EmptyList() {
     }
 }
 
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    OnTrekTheme {
-        val empty = false
-        val isLoading = false
-        val token = "sample_token"
-        val error = ""
-
-        TrackSelectionScreen(
-            trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
-            loadingState = MutableStateFlow<Boolean>(isLoading),
-            tokenState = MutableStateFlow<String?>(token),
-            errorState = MutableStateFlow<String?>(error)
-        )
-    }
-}
+//@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+//@Composable
+//fun DefaultPreview() {
+//    OnTrekTheme {
+//        val empty = false
+//        val isLoading = false
+//        val token = "sample_token"
+//        val error = ""
+//
+//        TrackSelectionScreen(
+//            trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
+//            loadingState = MutableStateFlow<Boolean>(isLoading),
+//            tokenState = MutableStateFlow<String?>(token),
+//            errorState = MutableStateFlow<String?>(error)
+//        )
+//    }
+//}

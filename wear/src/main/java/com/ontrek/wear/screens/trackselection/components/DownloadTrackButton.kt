@@ -19,6 +19,7 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.Text
+import com.ontrek.wear.screens.trackselection.DownloadState
 import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
 
@@ -27,50 +28,49 @@ fun DownloadTrackButton(
     modifier: Modifier = Modifier,
     trackName: String,
     trackID: Int,
+    index: Int,
     token: String,
-    isDownloadingState: StateFlow<Boolean>,
-    errorMessageState: StateFlow<String?>,
-    onDownloadClick: (String, Int, Context) -> Unit = { _, _, _ -> },
+    state: DownloadState,
+    onDownloadClick: (String, Int, Int, Context) -> Unit,
 ) {
 
     val context = LocalContext.current
 
-    val isDownloading by isDownloadingState.collectAsStateWithLifecycle()
-    val errorMessage by errorMessageState.collectAsStateWithLifecycle()
-
     OutlinedButton(
         onClick = {
-            onDownloadClick(token, trackID, context)
-//            composableScope.launch {
-//                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}")
-//            }
-
+            onDownloadClick(token, index, trackID, context)
         },
         modifier = modifier
     ) {
-        if (isDownloading) {
-            Loading(Modifier.fillMaxWidth())
-        } else if (errorMessage != null) {
-            LaunchedEffect(errorMessage) {
-                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+        when (state) {
+            is DownloadState.InProgress -> {
+                Loading(Modifier.fillMaxWidth())
             }
-        } else {
-            Text(
-                text = trackName,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Left,
-                modifier = Modifier
-                    .weight(0.85f)
-                    .padding(8.dp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Icon(
-                imageVector = Icons.Default.Download,
-                contentDescription = "Download track",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(0.15f)
-            )
+
+            is DownloadState.Error -> {
+                LaunchedEffect(state.message) {
+                    Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                }
+            }
+
+            else -> {
+                Text(
+                    text = trackName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Left,
+                    modifier = Modifier
+                        .weight(0.85f)
+                        .padding(8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Icon(
+                    imageVector = Icons.Default.Download,
+                    contentDescription = "Download track",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(0.15f)
+                )
+            }
         }
     }
 }
