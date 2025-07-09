@@ -68,7 +68,7 @@ class TrackSelectionViewModel : ViewModel() {
     }
 
     fun downloadTrack(token: String, index: Int, trackID: Int, context: Context) {
-        Log.d("DownloadTrack", "Dowloading GPX")
+        Log.d("DownloadTrack", "Downloading GPX")
 
         updateButtonState(index, DownloadState.InProgress)
 
@@ -78,19 +78,19 @@ class TrackSelectionViewModel : ViewModel() {
                 updateButtonState(index, DownloadState.Error(it.ifEmpty { "Unknown error" }))
             }, onSuccess = { fileContent, filename ->
                 Log.d("DownloadTrack", "File downloaded successfully: $filename")
-                saveFile(index, fileContent, filename, context)
+                saveFile(fileContent, filename, context)
+                updateButtonState(index, DownloadState.Completed)
             })
         }
     }
 
-    fun saveFile(index: Int, fileContent: ByteArray, filename: String, context: Context) {
+    fun saveFile(fileContent: ByteArray, filename: String, context: Context) {
         context.openFileOutput(filename, Context.MODE_PRIVATE).use {
             it.write(fileContent)
         }
-        updateButtonState(index, DownloadState.Completed)
     }
 
-    fun unSetDownloadError(index: Int) {
+    fun resetDownloadState(index: Int) {
         updateButtonState(index, DownloadState.NotStarted)
     }
 }

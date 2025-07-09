@@ -1,6 +1,5 @@
 package com.ontrek.wear.screens.trackselection
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,7 +24,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
-import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
@@ -36,16 +33,10 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
-import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
-import com.ontrek.wear.screens.trackselection.components.DownloadTrackButtonViewModel
 import com.ontrek.wear.screens.trackselection.components.TrackButton
-import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
-import com.ontrek.wear.utils.samples.sampleTrackList
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
@@ -117,7 +108,8 @@ fun TrackSelectionScreen(
                         trackName = track.title,
                         trackID = track.id,
                         navController = navController,
-//                        index = index,
+                        index = index,
+                        resetDownloadState = trackSelectionViewModel::resetDownloadState,
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
                 } else {
@@ -127,7 +119,7 @@ fun TrackSelectionScreen(
                         token = token ?: "",
                         state = downloadButtonStates[index],
                         onDownloadClick = trackSelectionViewModel::downloadTrack,
-                        unSetError = trackSelectionViewModel::unSetDownloadError,
+                        unSetError = trackSelectionViewModel::resetDownloadState,
                         index = index,
                         modifier = Modifier.fillMaxWidth(0.95f),
                     )
