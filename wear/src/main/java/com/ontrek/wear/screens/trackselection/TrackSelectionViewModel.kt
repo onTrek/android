@@ -32,7 +32,7 @@ class TrackSelectionViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun fetchData(token: String) {
+    fun fetchTrackList(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
@@ -88,5 +88,9 @@ class TrackSelectionViewModel : ViewModel() {
             it.write(fileContent)
         }
         updateButtonState(index, DownloadState.Completed)
+    }
+
+    fun unSetDownloadError(index: Int) {
+        updateButtonState(index, DownloadState.NotStarted)
     }
 }

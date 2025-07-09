@@ -52,25 +52,20 @@ import java.io.File
 @Composable
 fun TrackSelectionScreen(
     navController: NavHostController = rememberNavController(),
-    trackListState: StateFlow<List<Track>>,
-    fetchTrackList: (String) -> (Unit) = { _ -> },
-    loadingState: StateFlow<Boolean>,
-    errorState: StateFlow<String?>,
     tokenState: StateFlow<String?>,
-    downloadButtonStates: StateFlow<List<DownloadState>>,
-    downloadTrack: (String, Int, Int, Context) -> Unit,
 ) {
-    val trackList by trackListState.collectAsStateWithLifecycle()
-    val isLoading by loadingState.collectAsStateWithLifecycle()
-    val error by errorState.collectAsStateWithLifecycle()
+    val trackSelectionViewModel = viewModel<TrackSelectionViewModel>()
+    val trackList by trackSelectionViewModel.trackListState.collectAsStateWithLifecycle()
+    val isLoading by trackSelectionViewModel.isLoading.collectAsStateWithLifecycle()
+    val error by trackSelectionViewModel.error.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
-    val downloadButtonStates by downloadButtonStates.collectAsStateWithLifecycle()
+    val downloadButtonStates by trackSelectionViewModel.downloadButtonStates.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
     }
 
     // Scroll to top when track list updates
@@ -99,7 +94,7 @@ fun TrackSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (trackList.isEmpty()) {
+        } else if (trackList.isEmpty() && error.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -131,7 +126,8 @@ fun TrackSelectionScreen(
                         trackID = track.id,
                         token = token ?: "",
                         state = downloadButtonStates[index],
-                        onDownloadClick = downloadTrack,
+                        onDownloadClick = trackSelectionViewModel::downloadTrack,
+                        unSetError = trackSelectionViewModel::unSetDownloadError,
                         index = index,
                         modifier = Modifier.fillMaxWidth(0.95f),
                     )
@@ -145,13 +141,13 @@ fun TrackSelectionScreen(
                             .fillMaxWidth()
                             .padding(8.dp),
                         token,
-                        fetchTrackList
+                        trackSelectionViewModel::fetchTrackList
                     )
                 } else {
                     IconButton(
                         onClick = {
                             Log.d("TrackSelectionScreen", "Refresh tracks")
-                            if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

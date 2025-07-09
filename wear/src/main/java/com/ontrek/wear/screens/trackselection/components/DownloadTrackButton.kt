@@ -32,6 +32,7 @@ fun DownloadTrackButton(
     token: String,
     state: DownloadState,
     onDownloadClick: (String, Int, Int, Context) -> Unit,
+    unSetError: (Int) -> Unit,
 ) {
 
     val context = LocalContext.current
@@ -46,13 +47,12 @@ fun DownloadTrackButton(
             is DownloadState.InProgress -> {
                 Loading(Modifier.fillMaxWidth())
             }
-
             is DownloadState.Error -> {
                 LaunchedEffect(state.message) {
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                 }
+                unSetError(index)
             }
-
             else -> {
                 Text(
                     text = trackName,

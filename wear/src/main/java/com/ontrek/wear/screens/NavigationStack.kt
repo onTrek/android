@@ -23,15 +23,8 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
         composable(route = Screen.MainScreen.route) {
-            val trackSelectionViewModel = viewModel<TrackSelectionViewModel>()
             TrackSelectionScreen(
                 navController = navController,
-                trackListState = trackSelectionViewModel.trackListState,
-                fetchTrackList = trackSelectionViewModel::fetchData,
-                downloadButtonStates = trackSelectionViewModel.downloadButtonStates,
-                downloadTrack = trackSelectionViewModel::downloadTrack,
-                loadingState = trackSelectionViewModel.isLoading,
-                errorState = trackSelectionViewModel.error,
                 tokenState = preferencesViewModel.tokenState
             )
         }
