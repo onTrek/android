@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.data.TrackPoint
+import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.distanceToTrack
 import com.ontrek.wear.utils.functions.getDistanceTo
 import com.ontrek.wear.utils.objects.NeighbouringTrackPoints
@@ -28,18 +29,19 @@ class TrackScreenViewModel : ViewModel() {
     val trackPointListState: StateFlow<List<TrackPoint>> = trackPoints
     private val parsingError = MutableStateFlow<String>("")
     val parsingErrorState: StateFlow<String> = parsingError
-    private val totalLength = MutableStateFlow(0.0)
-    val totalLengthState: StateFlow<Double> = totalLength
     private val isNearTrack = MutableStateFlow<Boolean?>(null)
     val isNearTrackState: StateFlow<Boolean?> = isNearTrack
     private val arrowDirection = MutableStateFlow<Float>(0F)
     val arrowDirectionState: StateFlow<Float> = arrowDirection
     private val onTrak = MutableStateFlow<Boolean>(false) //fa ride scrive Trak
     val onTrakState: StateFlow<Boolean> = onTrak
+    private val progress = MutableStateFlow(0F) // Progress along the track
+    val progressState: StateFlow<Float> = progress
 
     // States only used inside the viewModel functions
     private val directionTrackPoint = MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
+    private val totalLength = MutableStateFlow(0F)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -53,7 +55,7 @@ class TrackScreenViewModel : ViewModel() {
                             track.trackSegments.flatMap { segment ->
                                 segment.trackPoints.mapIndexed { index, point ->
                                     val distance = if (index > 0) {
-                                        getDistanceTo(point, segment.trackPoints[index - 1])
+                                        getDistanceTo(point.toSimplePoint(), segment.trackPoints[index - 1].toSimplePoint())
                                     } else {
                                         0.0
                                     }
@@ -66,8 +68,7 @@ class TrackScreenViewModel : ViewModel() {
                                 }
                             }
                         }
-                    totalLength.value = trackPoints.value.sumOf { it.distance }
-                    Log.d("TrackScreenViewModel", "Track Lenght $totalLengthState")
+                    totalLength.value = (trackPoints.value.sumOf { it.distance }).toFloat()
                 } ?: {
                     Log.e("TrackScreenViewModel", "Generic GPX parsing error")
                     parsingError.value = "Error parsing GPX file: No data found"
@@ -82,19 +83,41 @@ class TrackScreenViewModel : ViewModel() {
         }
     }
 
-    // Controlla se la posizione corrente è vicina al tracciato
+    // Checks the distance to the track and initializes the direction track point
     fun checkTrackDistanceAndInitialize(currentLocation: Location, direction: Float) {
         position.value = currentLocation
         if (trackPoints.value.isNotEmpty()) {
-            val distance = distanceToTrack(
+            val nearestPoint = distanceToTrack(
                 currentLocation,
                 trackPoints.value
             )
-            val isNearTrackValue = distance < (trackPoints.value.maxOfOrNull { it.distance } ?: Double.MIN_VALUE)
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Distance to track: $distance, isNearTrack: $isNearTrackValue")
+            val isNearTrackValue = nearestPoint.distance < (trackPoints.value.maxOfOrNull { it.distance } ?: Double.MIN_VALUE)
+            var firstPointIndex = nearestPoint.index
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Distance to track: ${nearestPoint.distance}, isNearTrack: $isNearTrackValue")
             if (isNearTrackValue) {
-                // Find the nearest track point
-                //TODO()
+                if (firstPointIndex+1 >= trackPoints.value.size) {
+                    // Circular track check
+                    val distanceToFirstPoint = getDistanceTo(
+                        trackPoints.value[0].toSimplePoint(),
+                        trackPoints.value[firstPointIndex].toSimplePoint()
+                    )
+                    Log.d("TRACK_SCREEN_VIEW_MODEL", "Circular track detected, $distanceToFirstPoint")
+                    if (distanceToFirstPoint < 50) {
+                        // This is a circular track, starting from the first point (50m tolerance)
+                        firstPointIndex = 1
+                        directionTrackPoint.value = trackPoints.value[firstPointIndex]
+                    } else {
+                        //We set the last point as the direction track point
+                        //Basically we are saying that the user is already at the end of the track...
+                        directionTrackPoint.value = trackPoints.value[firstPointIndex]
+                    }
+                } else {
+                    //In all other cases, we can safely get the next point as the first point
+                    //Check IRL if this is the best way to do it
+                    directionTrackPoint.value = trackPoints.value[firstPointIndex+1]
+                }
+                Log.d("TRACK_SCREEN_VIEW_MODEL", "Starting from $firstPointIndex")
+                progress.value = (trackPoints.value.filterIndexed { index, _ -> index <= firstPointIndex }.sumOf { it.distance } / totalLength.value).toFloat()
                 getNeighbouringTrackPoints(currentLocation)
                 //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
                 //but this is a first approximation, more accurate results will be obtained when accuracy improves
@@ -108,7 +131,6 @@ class TrackScreenViewModel : ViewModel() {
     // Elaborates the distance to the track based on the current location and the current track points
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Elaborating distance")
         val neighbouringTrackPoints = getNeighbouringTrackPoints(currentLocation)
         if (neighbouringTrackPoints?.nextPoint == null) {
             //currentTrackPoint is the last point of the track
@@ -129,7 +151,10 @@ class TrackScreenViewModel : ViewModel() {
             Log.w("TRACK_SCREEN_VIEW_MODEL", "Position is null, cannot calculate direction")
             return
         }
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Calculating direction from position: $threadSafePosition to next point: $threadSafeNextPoint")
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Calculating direction from position: " +
+                "${threadSafePosition.latitude}  ${threadSafePosition.longitude} to next point: " +
+                "${threadSafeNextPoint.latitude}  ${threadSafeNextPoint.longitude}")
+
         val lat1Rad = Math.toRadians(threadSafePosition.latitude)
         val lat2Rad = Math.toRadians(threadSafeNextPoint.latitude)
         val deltaLonRad = Math.toRadians(threadSafeNextPoint.longitude - threadSafePosition.longitude)
@@ -142,14 +167,14 @@ class TrackScreenViewModel : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Compass direction: $compassDirection, Target bearing: $targetBearing, Angle: $angle")
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Angle: $angle")
         arrowDirection.value = angle.toFloat()
     }
 
     fun reset() {
         Log.d("TRACK_SCREEN_VIEW_MODEL", "Resetting track data")
         trackPoints.value = emptyList()
-        totalLength.value = 0.0
+        totalLength.value = 0F
         parsingError.value = ""
         isNearTrack.value = null
         directionTrackPoint.value = null

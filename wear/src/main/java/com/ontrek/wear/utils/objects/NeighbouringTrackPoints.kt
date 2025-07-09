@@ -6,3 +6,8 @@ data class NeighbouringTrackPoints(
     val nearestPoint: TrackPoint,
     val nextPoint: TrackPoint?,
 )
+
+data class NearestPoint(
+    val index: Int,
+    val distance: Double,
+)

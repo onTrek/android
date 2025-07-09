@@ -91,6 +91,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val currentLocation by gpsSensor.location.collectAsState()
     // Raccoglie se l'utente è sul tracciato come stato osservabile
     val onTrak by gpxViewModel.onTrakState.collectAsState()
+    // Raccoglie il progresso lungo il tracciato come stato osservabile
+    val progress by gpxViewModel.progressState.collectAsState()
 
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
@@ -140,8 +142,6 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
         }
     }
-
-    val progress = 0.75f
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle

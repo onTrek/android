@@ -2,7 +2,8 @@ package com.ontrek.wear.utils.functions
 
 import android.location.Location
 import com.ontrek.shared.data.SimplePoint
-import io.ticofab.androidgpxparser.parser.domain.TrackPoint
+import com.ontrek.shared.data.toSimplePoint
+import com.ontrek.wear.utils.objects.NearestPoint
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -36,23 +37,31 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     return totalDistance
 }
 
-fun getDistanceTo(point1: TrackPoint, point2: TrackPoint): Double {
-    return getDistanceTo(
-        SimplePoint(point1.latitude, point1.longitude, point1.elevation ?: 0.0),
-        SimplePoint(point2.latitude, point2.longitude, point2.elevation ?: 0.0)
-    )
-}
-
 fun distanceToTrack(
     gpsLocation: Location,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
-): Double {
-    if (trackPoints.isEmpty()) return Double.MAX_VALUE
+): NearestPoint {
+    if (trackPoints.isEmpty()) return NearestPoint(-1,Double.MAX_VALUE)
 
-    return trackPoints.minOfOrNull { point ->
+    val nearestPointIndex = getNearestPointIndex(gpsLocation, trackPoints)
+    if (nearestPointIndex == -1) return NearestPoint(-1,Double.MAX_VALUE)
+    val distance = getDistanceTo(
+        gpsLocation.toSimplePoint(),
+        trackPoints[nearestPointIndex].toSimplePoint()
+    )
+    return NearestPoint(nearestPointIndex, distance)
+}
+
+fun getNearestPointIndex(
+    gpsLocation: Location,
+    trackPoints: List<com.ontrek.shared.data.TrackPoint>
+): Int {
+    if (trackPoints.isEmpty()) return -1
+
+    return trackPoints.indices.minByOrNull { index ->
         getDistanceTo(
             SimplePoint(gpsLocation.latitude, gpsLocation.longitude, if (gpsLocation.hasAltitude()) gpsLocation.altitude else null),
-            SimplePoint(point.latitude, point.longitude, point.elevation)
+            trackPoints[index].toSimplePoint()
         )
-    } ?: Double.MAX_VALUE
+    } ?: -1
 }
