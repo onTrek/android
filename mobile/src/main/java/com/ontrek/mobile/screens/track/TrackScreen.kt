@@ -2,15 +2,16 @@ package com.ontrek.mobile.screens.track
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
@@ -94,19 +96,38 @@ fun TrackScreen(navController: NavHostController, token: String) {
                     )
                 }
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(tracks) { track ->
-                            TrackItem(
-                                track = track,
-                                onDelete = {
-                                    viewModel.deleteTrack(track.id.toString(), token)
-                                },
-                                onItemClick = {
-                                   // navController.navigate("track/${track.id}")
-                                    Toast.makeText(context, "Track clicked: ${track.title}", Toast.LENGTH_SHORT).show()
-                                }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            items(tracks) { track ->
+                                TrackItem(
+                                    track = track,
+                                    onDelete = {
+                                        viewModel.deleteTrack(track.id.toString(), token)
+                                    },
+                                    onItemClick = {
+                                        // navController.navigate("track/${track.id}")
+                                        Toast.makeText(context, "Track clicked: ${track.title}", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            }
+                        }
+
+                       FloatingActionButton(
+                            onClick = {
+                                //navController.navigate("add_track")
+                                Toast.makeText(context, "Add Track clicked", Toast.LENGTH_SHORT).show()
+                                      },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Aggiungi traccia"
                             )
                         }
                     }
