@@ -22,4 +22,10 @@ class PreferencesStore(private val dataStore: DataStore<Preferences>) {
             preferences[TOKEN] = token
         }
     }
+
+    suspend fun clearToken() {
+        dataStore.edit { preferences ->
+            preferences.remove(TOKEN)
+        }
+    }
 }
