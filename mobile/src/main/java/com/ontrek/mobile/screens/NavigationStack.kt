@@ -27,7 +27,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             ConnectionToWear(navController) { }
         }
         composable(route = Screen.Tracks.route) {
-            TrackScreen(navController)
+            TrackScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
         }
         composable(route = Screen.Hikes.route) {
             GroupScreen(navController)
@@ -37,3 +37,16 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         }
     }
 }
+
+//navigation(
+//startDestination = "${Screen.Tracks.route}/list",
+//route = Screen.Tracks.route
+//) {
+//    composable("${Screen.Tracks.route}/list") {
+//        TrackScreen(navController)
+//    }
+//    composable("${Screen.Tracks.route}/detail/{trackId}") { backStackEntry ->
+//        val trackId = backStackEntry.arguments?.getString("trackId")
+//        // Qui inserisci lo screen di dettaglio che usa trackId
+//    }
+//}
