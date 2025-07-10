@@ -2,20 +2,26 @@ package com.ontrek.shared.api.track
 
 import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
+import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Track
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 
-fun fetchData(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, token: String) {
-    RetrofitClient.api.getData(token).enqueue(object : Callback<List<Track>> {
+fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, token: String) {
+    RetrofitClient.api.getTracks(token).enqueue(object : Callback<List<Track>> {
         override fun onResponse(call: Call<List<Track>>, response: Response<List<Track>>) {
             if (response.isSuccessful) {
                 val data = response.body()
-                Log.d("WearOS", "API Success: $data")
+                Log.d("API Track", "API Success: $data")
                 onSuccess(data)
             } else {
-                Log.e("WearOS", "API Error: ${response.code()}")
+                Log.e("API Track", "API Error: ${response.code()}")
                 onError("API Error: ${response.code()}")
             }
         }
@@ -24,8 +30,110 @@ fun fetchData(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, toke
             call: Call<List<Track>?>,
             t: Throwable
         ) {
-            Log.e("WearOS", "API Error: ${t.toString()}")
+            Log.e("API Track", "API Error: ${t.toString()}")
             onError("API Error: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
+fun uploadTrack(
+    title: String,
+    gpxFilePath: String,
+    onSuccess: (MessageResponse?) -> Unit,
+    onError: (String) -> Unit,
+    token: String
+) {
+    val titlePart = RequestBody.create(MultipartBody.FORM, title)
+    val file = File(gpxFilePath)
+    val requestFile = RequestBody.create(MediaType.parse("application/gpx+xml"), file)
+    val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+    RetrofitClient.api.uploadTrack("Bearer $token", titlePart, filePart).enqueue(object : Callback<MessageResponse> {
+        override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
+            if (response.isSuccessful) {
+                Log.d("API Track", "Upload Success: ${response.body()}")
+                onSuccess(response.body())
+            } else {
+                Log.e("API Track", "Upload Error: ${response.code()}")
+                onError("Upload Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<MessageResponse>, t: Throwable) {
+            Log.e("API Track", "Upload Error: ${t.toString()}")
+            onError("Upload Error: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
+fun deleteTrack(
+    id: String,
+    onSuccess: (MessageResponse?) -> Unit,
+    onError: (String) -> Unit,
+    token: String
+) {
+    RetrofitClient.api.deleteTrack(id, "Bearer $token").enqueue(object : Callback<MessageResponse> {
+        override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
+            if (response.isSuccessful) {
+                Log.d("API Track", "Delete Success: ${response.body()}")
+                onSuccess(response.body())
+            } else {
+                Log.e("API Track", "Delete Error: ${response.code()}")
+                onError("Delete Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<MessageResponse>, t: Throwable) {
+            Log.e("API Track", "Delete Error: ${t.toString()}")
+            onError("Delete Error: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
+fun downloadTrack(
+    id: String,
+    onSuccess: (ResponseBody?) -> Unit,
+    onError: (String) -> Unit,
+    token: String
+) {
+    RetrofitClient.api.downloadTrack(id, "Bearer $token").enqueue(object : Callback<ResponseBody> {
+        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            if (response.isSuccessful) {
+                Log.d("API Track", "Download Success")
+                onSuccess(response.body())
+            } else {
+                Log.e("API Track", "Download Error: ${response.code()}")
+                onError("Download Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            Log.e("API Track", "Download Error: ${t.toString()}")
+            onError("Download Error: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
+fun getMapTrack(
+    id: String,
+    onSuccess: (ResponseBody?) -> Unit,
+    onError: (String) -> Unit,
+    token: String
+) {
+    RetrofitClient.api.getMapTrack(id, "Bearer $token").enqueue(object : Callback<ResponseBody> {
+        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            if (response.isSuccessful) {
+                Log.d("API Track", "Map Download Success")
+                onSuccess(response.body())
+            } else {
+                Log.e("API Track", "Map Download Error: ${response.code()}")
+                onError("Map Download Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            Log.e("API Track", "Map Download Error: ${t.toString()}")
+            onError("Map Download Error: ${t.message ?: "Unknown error"}")
         }
     })
 }
