@@ -1,6 +1,7 @@
 package com.ontrek.shared.api.track
 
 import android.util.Log
+import androidx.compose.ui.platform.LocalDensity
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Track
@@ -37,18 +38,17 @@ fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, toke
 }
 
 fun uploadTrack(
-    title: String,
-    gpxFilePath: String,
+    gpxFileBytes: ByteArray,
+    titleTrack: String,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
     token: String
 ) {
-    val titlePart = RequestBody.create(MultipartBody.FORM, title)
-    val file = File(gpxFilePath)
-    val requestFile = RequestBody.create(MediaType.parse("application/gpx+xml"), file)
-    val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
-
-    RetrofitClient.api.uploadTrack("Bearer $token", titlePart, filePart).enqueue(object : Callback<MessageResponse> {
+    val titlePart = RequestBody.create(MultipartBody.FORM, titleTrack)
+    val requestFile = RequestBody.create(MediaType.parse("application/gpx+xml"), gpxFileBytes)
+    val filePart = MultipartBody.Part.createFormData("file", titleTrack, requestFile)
+    Log.d("API Track", "Uploading track: $titleTrack with token: $token")
+    RetrofitClient.api.uploadTrack(token, titlePart, filePart).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Upload Success: ${response.body()}")

@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -28,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.utils.components.AddTrackDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.TrackItem
 
@@ -42,6 +46,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
+    var showAddTrackDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
@@ -118,8 +123,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
 
                        FloatingActionButton(
                             onClick = {
-                                //navController.navigate("add_track")
-                                Toast.makeText(context, "Add Track clicked", Toast.LENGTH_SHORT).show()
+                                showAddTrackDialog = true
                                       },
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
@@ -133,6 +137,19 @@ fun TrackScreen(navController: NavHostController, token: String) {
                     }
                 }
             }
+        }
+
+        // Mostra il dialog quando richiesto
+        if (showAddTrackDialog) {
+            AddTrackDialog(
+                onDismissRequest = { showAddTrackDialog = false },
+                onTrackAdded = {
+                    showAddTrackDialog = false
+                    viewModel.loadTracks(token)  // Ricarica le tracce
+                    Toast.makeText(context, "Traccia aggiunta con successo", Toast.LENGTH_SHORT).show()
+                },
+                token = token
+            )
         }
     }
 }

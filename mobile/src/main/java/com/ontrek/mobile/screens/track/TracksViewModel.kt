@@ -50,6 +50,11 @@ class TrackViewModel : ViewModel() {
         )
     }
 
+    fun addTrack(track: Track) {
+        _tracks.value = _tracks.value + track
+        _msgToast.value = "Track added successfully"
+    }
+
     fun resetMsgToast() {
         _msgToast.value = ""
     }
