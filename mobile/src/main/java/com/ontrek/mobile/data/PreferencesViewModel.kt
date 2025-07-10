@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.ontrek.mobile.StoreApplication
+import com.ontrek.mobile.MobileApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -19,7 +19,7 @@ class PreferencesViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application = (this[APPLICATION_KEY] as StoreApplication)
+                val application = (this[APPLICATION_KEY] as MobileApplication)
                 PreferencesViewModel(application.preferencesStore)
             }
         }
