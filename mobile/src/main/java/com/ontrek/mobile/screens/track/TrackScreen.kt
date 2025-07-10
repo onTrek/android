@@ -11,10 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.shared.api.getDataProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +40,11 @@ fun TrackScreen(navController: NavHostController) {
     ) { innerPadding ->
 
         // TODO: Implement the content of the Track screen
+
+        LaunchedEffect(Unit) {
+            getDataProfile()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

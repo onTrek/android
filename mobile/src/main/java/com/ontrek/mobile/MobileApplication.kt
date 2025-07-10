@@ -14,6 +14,12 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
 
 class MobileApplication : Application() {
     lateinit var preferencesStore: PreferencesStore
+
+    companion object {
+        lateinit var instance: MobileApplication
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
         preferencesStore = PreferencesStore(dataStore)
@@ -21,15 +27,5 @@ class MobileApplication : Application() {
         // Inizializza RetrofitClient con il tokenManager per gestire l'interceptor
         val tokenManager = SharedTokenManager(preferencesStore)
         RetrofitClient.init(tokenManager)
-    }
-
-    // Per accedere a preferencesStore da altre parti dell'app
-    companion object {
-        lateinit var instance: MobileApplication
-            private set
-    }
-
-    init {
-        instance = this
     }
 }

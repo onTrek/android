@@ -1,5 +1,6 @@
 package com.ontrek.mobile
 
+import android.util.Log
 import com.ontrek.mobile.data.PreferencesStore
 import com.ontrek.shared.api.TokenManager
 import kotlinx.coroutines.flow.first
