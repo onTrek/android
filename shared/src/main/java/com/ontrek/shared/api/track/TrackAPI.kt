@@ -54,8 +54,17 @@ fun uploadTrack(
                 Log.d("API Track", "Upload Success: ${response.body()}")
                 onSuccess(response.body())
             } else {
-                Log.e("API Track", "Upload Error: ${response.code()}")
-                onError("Upload Error: ${response.code()}")
+                Log.e("API Track", "Upload Error: ${response.message()}")
+                var msg = "Upload Error: ${response.code()}"
+                when (response.code()) {
+                    400 -> msg += "Bad Request: ${response.message()}"
+                    401 -> msg += "Unauthorized: ${response.message()}"
+                    403 -> msg += "Forbidden: ${response.message()}"
+                    404 -> msg += "Not Found: ${response.message()}"
+                    500 -> msg += "Internal Server Error: ${response.message()}"
+                    else -> msg += "Unexpected Error: ${response.message()}"
+                }
+                onError("Upload Error: ${response.message()}")
             }
         }
 
@@ -96,7 +105,7 @@ fun downloadTrack(
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.downloadTrack(id, "Bearer $token").enqueue(object : Callback<ResponseBody> {
+    RetrofitClient.api.downloadTrack(id, token).enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Download Success")
@@ -120,7 +129,7 @@ fun getMapTrack(
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.getMapTrack(id, "Bearer $token").enqueue(object : Callback<ResponseBody> {
+    RetrofitClient.api.getMapTrack(id,  token).enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Map Download Success")
