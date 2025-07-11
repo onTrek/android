@@ -94,6 +94,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     // Raccoglie il progresso lungo il tracciato come stato osservabile
     val progress by gpxViewModel.progressState.collectAsState()
 
+    //TODO()
+    val trackName = "NOT IMPLEMENTED"
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor, gpsSensor) {
@@ -113,8 +115,10 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     LaunchedEffect(progress) {
         if (progress == 100f) {
             Log.d("GPS_TRACK", "Track completed")
-            navController.navigate(Screen.MainScreen.route)
-            // Optionally, navigate to a completion screen or show a message
+            navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
+                // Clear the back stack to prevent going back to the track screen
+                popUpTo(Screen.TrackScreen.route) { inclusive = true }
+            }
         }
     }
 

@@ -1,11 +1,9 @@
 package com.ontrek.wear.screens.trackselection.components
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Dangerous
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,7 +23,6 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.screens.Screen
-import com.ontrek.wear.screens.sos.closeScreen
 import java.io.File
 
 @Composable

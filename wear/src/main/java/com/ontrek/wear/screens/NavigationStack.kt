@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
+import com.ontrek.wear.screens.endtrack.EndTrack
 import com.ontrek.wear.screens.trackselection.TrackSelectionViewModel
 import com.ontrek.wear.screens.trackselection.TrackSelectionScreen
 import com.ontrek.wear.screens.sos.SOSScreen
@@ -58,6 +59,13 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         composable(route = Screen.SOSScreen.route) {
             SOSScreen(
                 navController = navController,
+            )
+        }
+        composable(route = Screen.EndTrackScreen.route + "?trackName={trackName}") {
+            EndTrack(
+                modifier,
+                navController,
+                trackName = it.arguments?.getString("trackName") ?: ""
             )
         }
     }
