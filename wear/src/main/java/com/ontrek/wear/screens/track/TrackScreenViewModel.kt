@@ -43,6 +43,7 @@ class TrackScreenViewModel : ViewModel() {
     private val nextTrackPoint = MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
+    private val trackPointThreshold = 10
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -133,6 +134,7 @@ class TrackScreenViewModel : ViewModel() {
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
         nextTrackPoint.value = findNextTrackPoint(currentLocation)
+        progress.value = (trackPoints.value.filterIndexed { index, _ -> index <= trackPoints.value.indexOf(nextTrackPoint.value) }.sumOf { it.distanceToPrevious } / totalLength.value).toFloat()
 
         //TODO()
         // If the user is getting out of the track, return false
@@ -191,16 +193,21 @@ class TrackScreenViewModel : ViewModel() {
         if (probableNextPointIndex == 0) {
             return trackPoints.value[1]
         }
+        if (probableNextPointIndex == trackPoints.value.size - 1) {
+            // If we are at the last point, we can stop
+            progress.value = 100.0F
+            return trackPoints.value[trackPoints.value.size - 1]
+        }
 
         // If we hit the threshold, the next point is the next that does not hit the threshold
-        while (probableNextPointDistance <= 5) {
+        while (probableNextPointDistance <= trackPointThreshold) {
             probableNextPointIndex++
             if (trackPoints.value.size <= probableNextPointIndex) {
                 // If we are at the last point, we can stop
                 return trackPoints.value[probableNextPointIndex-1]
             }
             probableNextPointDistance = getDistanceTo(threadSafePosition.toSimplePoint(), trackPoints.value[probableNextPointIndex].toSimplePoint())
-            if (probableNextPointDistance > 5) {
+            if (probableNextPointDistance > trackPointThreshold) {
                 return trackPoints.value[probableNextPointIndex]
             }
         }

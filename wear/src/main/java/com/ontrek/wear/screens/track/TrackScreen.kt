@@ -110,6 +110,14 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         }
     }
 
+    LaunchedEffect(progress) {
+        if (progress == 100f) {
+            Log.d("GPS_TRACK", "Track completed")
+            navController.navigate(Screen.MainScreen.route)
+            // Optionally, navigate to a completion screen or show a message
+        }
+    }
+
     LaunchedEffect(onTrak) {
         Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
     }
