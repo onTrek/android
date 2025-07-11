@@ -69,7 +69,7 @@ fun TrackItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Elimina traccia",
+                    contentDescription = "Delete Track",
                     tint = MaterialTheme.colorScheme.error
                 )
             }

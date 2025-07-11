@@ -87,8 +87,10 @@ fun TrackScreen(navController: NavHostController, token: String) {
                     )
                 }
                 tracks.isEmpty() -> {
+                    // Mostra un messaggio quando non ci sono tracce
                     Text(
-                        text = "Nessuna traccia disponibile",
+                        text = "No tracks available",
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -123,7 +125,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Aggiungi traccia"
+                                contentDescription = "Add Track",
                             )
                         }
                     }
@@ -138,7 +140,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 onTrackAdded = {
                     showAddTrackDialog = false
                     viewModel.loadTracks(token)  // Ricarica le tracce
-                    Toast.makeText(context, "Traccia aggiunta con successo", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Track added successfully",Toast.LENGTH_SHORT).show()
                 },
                 token = token
             )

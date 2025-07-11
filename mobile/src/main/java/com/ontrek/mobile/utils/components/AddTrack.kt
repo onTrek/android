@@ -42,16 +42,16 @@ fun AddTrackDialog(
                         if (content.contains("<?xml") && content.contains("<gpx")) {
                             selectedFileUri = uri
                         } else {
-                            errorMessage = "Seleziona un file GPX valido"
+                            errorMessage = "Select a valid GPX file"
                         }
                     } else {
-                        errorMessage = "File vuoto o non leggibile"
+                        errorMessage = "Empty file selected or not a valid GPX file"
                     }
                 } ?: run {
-                    errorMessage = "Impossibile leggere il file"
+                    errorMessage = "Impossible to read the file"
                 }
             } catch (e: Exception) {
-                errorMessage = "Errore nella lettura del file: ${e.message}"
+                errorMessage = "Error to read the file: ${e.message}"
                 Log.e("AddTrack", "Errore nella lettura del file", e)
             }
         }
@@ -143,10 +143,10 @@ fun AddTrackDialog(
                                         )
                                     } ?: run {
                                         isUploading = false
-                                        errorMessage = "Impossibile leggere il file selezionato"
+                                        errorMessage = "Impossibile to read the file"
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = "Errore: ${e.message}"
+                                    errorMessage = "Error: ${e.message}"
                                 }
                             }
                         },
