@@ -5,11 +5,12 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
-import com.ontrek.wear.utils.functions.distanceToTrack
+import com.ontrek.wear.utils.functions.getNearestPoint
 import com.ontrek.wear.utils.functions.getDistanceTo
-import com.ontrek.wear.utils.objects.NeighbouringTrackPoints
+import com.ontrek.wear.utils.objects.SectionDistances
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ class TrackScreenViewModel : ViewModel() {
     val progressState: StateFlow<Float> = progress
 
     // States only used inside the viewModel functions
-    private val directionTrackPoint = MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
+    private val nextTrackPoint = MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
 
@@ -63,12 +64,12 @@ class TrackScreenViewModel : ViewModel() {
                                         latitude = point.latitude,
                                         longitude = point.longitude,
                                         elevation = point.elevation,
-                                        distance = distance
+                                        distanceToPrevious = distance
                                     )
                                 }
                             }
                         }
-                    totalLength.value = (trackPoints.value.sumOf { it.distance }).toFloat()
+                    totalLength.value = (trackPoints.value.sumOf { it.distanceToPrevious }).toFloat()
                 } ?: {
                     Log.e("TrackScreenViewModel", "Generic GPX parsing error")
                     parsingError.value = "Error parsing GPX file: No data found"
@@ -87,11 +88,11 @@ class TrackScreenViewModel : ViewModel() {
     fun checkTrackDistanceAndInitialize(currentLocation: Location, direction: Float) {
         position.value = currentLocation
         if (trackPoints.value.isNotEmpty()) {
-            val nearestPoint = distanceToTrack(
+            val nearestPoint = getNearestPoint(
                 currentLocation,
                 trackPoints.value
             )
-            val isNearTrackValue = nearestPoint.distance < (trackPoints.value.maxOfOrNull { it.distance } ?: Double.MIN_VALUE)
+            val isNearTrackValue = nearestPoint.distance < (trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE)
             var firstPointIndex = nearestPoint.index
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Distance to track: ${nearestPoint.distance}, isNearTrack: $isNearTrackValue")
             if (isNearTrackValue) {
@@ -105,20 +106,20 @@ class TrackScreenViewModel : ViewModel() {
                     if (distanceToFirstPoint < 50) {
                         // This is a circular track, starting from the first point (50m tolerance)
                         firstPointIndex = 1
-                        directionTrackPoint.value = trackPoints.value[firstPointIndex]
+                        nextTrackPoint.value = trackPoints.value[firstPointIndex]
                     } else {
                         //We set the last point as the direction track point
                         //Basically we are saying that the user is already at the end of the track...
-                        directionTrackPoint.value = trackPoints.value[firstPointIndex]
+                        nextTrackPoint.value = trackPoints.value[firstPointIndex]
                     }
                 } else {
                     //In all other cases, we can safely get the next point as the first point
                     //Check IRL if this is the best way to do it
-                    directionTrackPoint.value = trackPoints.value[firstPointIndex+1]
+                    nextTrackPoint.value = trackPoints.value[firstPointIndex+1]
                 }
                 Log.d("TRACK_SCREEN_VIEW_MODEL", "Starting from $firstPointIndex")
-                progress.value = (trackPoints.value.filterIndexed { index, _ -> index <= firstPointIndex }.sumOf { it.distance } / totalLength.value).toFloat()
-                getNeighbouringTrackPoints(currentLocation)
+                progress.value = (trackPoints.value.filterIndexed { index, _ -> index <= firstPointIndex }.sumOf { it.distanceToPrevious } / totalLength.value).toFloat()
+                //getNeighbouringTrackPoints(currentLocation)
                 //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
                 //but this is a first approximation, more accurate results will be obtained when accuracy improves
                 elaborateDirection(direction)
@@ -131,14 +132,9 @@ class TrackScreenViewModel : ViewModel() {
     // Elaborates the distance to the track based on the current location and the current track points
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
-        val neighbouringTrackPoints = getNeighbouringTrackPoints(currentLocation)
-        if (neighbouringTrackPoints?.nextPoint == null) {
-            //currentTrackPoint is the last point of the track
-            //TODO()
-        }
-        //
-        //TODO()
+        nextTrackPoint.value = findNextTrackPoint(currentLocation)
 
+        //TODO()
         // If the user is getting out of the track, return false
         onTrak.value = true
     }
@@ -146,7 +142,7 @@ class TrackScreenViewModel : ViewModel() {
 
     fun elaborateDirection(compassDirection: Float) {
         val threadSafePosition = position.value
-        val threadSafeNextPoint = directionTrackPoint.value
+        val threadSafeNextPoint = nextTrackPoint.value
         if (threadSafePosition == null || threadSafeNextPoint == null) {
             Log.w("TRACK_SCREEN_VIEW_MODEL", "Position is null, cannot calculate direction")
             return
@@ -177,15 +173,67 @@ class TrackScreenViewModel : ViewModel() {
         totalLength.value = 0F
         parsingError.value = ""
         isNearTrack.value = null
-        directionTrackPoint.value = null
+        nextTrackPoint.value = null
         arrowDirection.value = 0F
         position.value = null
     }
 
+    fun findNextTrackPoint(currentLocation: Location) : TrackPoint? {
+        val threadSafePosition = currentLocation
+        if (trackPoints.value.isEmpty()) throw IllegalStateException("Track points list is empty, cannot find next track point")
 
-    private fun getNeighbouringTrackPoints(currentLocation: Location): NeighbouringTrackPoints? {
-        //TODO()
-        directionTrackPoint.value = trackPoints.value[0]
-        return NeighbouringTrackPoints(trackPoints.value[0], trackPoints.value[1])
+        // Find the nearest track point to the current position
+        val nearestPoint = getNearestPoint(threadSafePosition, trackPoints.value)
+        var probableNextPointIndex = nearestPoint.index
+        var probableNextPointDistance = nearestPoint.distance
+
+        // Simplify the case where the user is at the first point
+        if (probableNextPointIndex == 0) {
+            return trackPoints.value[1]
+        }
+
+        // If we hit the threshold, the next point is the next that does not hit the threshold
+        while (probableNextPointDistance <= 5) {
+            probableNextPointIndex++
+            if (trackPoints.value.size <= probableNextPointIndex) {
+                // If we are at the last point, we can stop
+                return trackPoints.value[probableNextPointIndex-1]
+            }
+            probableNextPointDistance = getDistanceTo(threadSafePosition.toSimplePoint(), trackPoints.value[probableNextPointIndex].toSimplePoint())
+            if (probableNextPointDistance > 5) {
+                return trackPoints.value[probableNextPointIndex]
+            }
+        }
+        // else, we need to understand which is the next one we need to "point to"
+        // For variable naming, please refer to: https://github.com/onTrek/android/issues/40
+        val W = probableNextPointIndex
+
+        val otherPoints = calculateSectionDistances(trackPoints.value[W - 1].toSimplePoint(),
+            threadSafePosition.toSimplePoint(),
+            trackPoints.value[W + 1].toSimplePoint()
+        )
+
+        val A = probableNextPointDistance
+        val B = otherPoints.firstToMe
+        val C = otherPoints.lastToMe
+        val X = trackPoints.value[W].distanceToPrevious
+        val Y = trackPoints.value[W + 1].distanceToPrevious
+
+        val offset1 = (A + B) - X
+        val offset2 = (A + C) - Y
+
+        if (offset1 < offset2) {
+            // We are closer to the first point, so we can return it
+            return trackPoints.value[W]
+        }
+        // We are closer to the second point, so we can return it
+        return trackPoints.value[W + 1]
+    }
+
+    fun calculateSectionDistances(firstPoint: SimplePoint, location: SimplePoint, lastPoint: SimplePoint) : SectionDistances {
+        val firstToMe = getDistanceTo(firstPoint, location)
+        val lastToMe = getDistanceTo(lastPoint, location)
+
+        return SectionDistances(firstToMe, lastToMe)
     }
 }

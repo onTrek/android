@@ -37,7 +37,7 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     return totalDistance
 }
 
-fun distanceToTrack(
+fun getNearestPoint(
     gpsLocation: Location,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
 ): NearestPoint {
@@ -52,7 +52,7 @@ fun distanceToTrack(
     return NearestPoint(nearestPointIndex, distance)
 }
 
-fun getNearestPointIndex(
+private fun getNearestPointIndex(
     gpsLocation: Location,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
 ): Int {

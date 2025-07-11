@@ -6,7 +6,7 @@ data class TrackPoint(
     val latitude: Double,
     val longitude: Double,
     val elevation: Double?,
-    val distance: Double
+    val distanceToPrevious: Double
 )
 
 fun TrackPoint.toSimplePoint(): SimplePoint {
