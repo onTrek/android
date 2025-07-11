@@ -44,7 +44,6 @@ fun TrackScreen(navController: NavHostController, token: String) {
 
     val tracks by viewModel.tracks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
     var showAddTrackDialog by remember { mutableStateOf(false) }
 
@@ -84,13 +83,6 @@ fun TrackScreen(navController: NavHostController, token: String) {
             when {
                 isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                error != null -> {
-                    Text(
-                        text = "Errore: $error",
-                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }

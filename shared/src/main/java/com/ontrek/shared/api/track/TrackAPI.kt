@@ -72,7 +72,7 @@ fun deleteTrack(
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.deleteTrack(id, "Bearer $token").enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.deleteTrack(id, token).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Delete Success: ${response.body()}")
