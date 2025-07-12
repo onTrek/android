@@ -41,6 +41,7 @@ import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
+import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
@@ -80,10 +81,21 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     //val totalLength by gpxViewModel.totalLengthState.collectAsState()
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
     val parsingError by gpxViewModel.parsingErrorState.collectAsState()
-
+    // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
+    val isNearTrack by gpxViewModel.isNearTrackState.collectAsState()
+    // Raccoglie l'indice del punto più vicino al tracciato come stato osservabile
+    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsState()
+    // Raccoglie l'angolo della freccia come stato osservabile
+    val arrowDirection by gpxViewModel.arrowDirectionState.collectAsState()
     // Raccoglie la posizione corrente come stato osservabile
     val currentLocation by gpsSensor.location.collectAsState()
+    // Raccoglie se l'utente è sul tracciato come stato osservabile
+    val onTrak by gpxViewModel.onTrakState.collectAsState()
+    // Raccoglie il progresso lungo il tracciato come stato osservabile
+    val progress by gpxViewModel.progressState.collectAsState()
 
+    //TODO()
+    val trackName = "NOT IMPLEMENTED"
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor, gpsSensor) {
@@ -96,14 +108,52 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         onDispose {
             compassSensor.stop()
             gpsSensor.stop()
+            gpxViewModel.reset()
         }
     }
 
-    LaunchedEffect(currentLocation) {
-        Log.d("TrackScreen", "Current Location: ${currentLocation?.latitude}, ${currentLocation?.longitude}")
+    LaunchedEffect(progress) {
+        if (progress == 100f) {
+            Log.d("GPS_TRACK", "Track completed")
+            navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
+                // Clear the back stack to prevent going back to the track screen
+                popUpTo(Screen.TrackScreen.route) { inclusive = true }
+            }
+        }
     }
 
-    val progress = 0.75f
+    LaunchedEffect(onTrak) {
+        Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
+    }
+
+    LaunchedEffect(direction) {
+        if (accuracy < 2) return@LaunchedEffect
+        gpxViewModel.elaborateDirection(direction)
+    }
+
+    LaunchedEffect(currentLocation) {
+        val threadSafeCurrentLocation = currentLocation
+
+        if (threadSafeCurrentLocation == null) {
+            Log.d("GPS_LOCATION", "Location not available")
+            return@LaunchedEffect
+        }
+
+        Log.d("GPS_LOCATION_POSITION", "Current Location: ${threadSafeCurrentLocation.latitude}, ${threadSafeCurrentLocation.longitude}; accuracy: ${threadSafeCurrentLocation.accuracy}")
+        if (threadSafeCurrentLocation.hasAltitude()) {
+            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: ${threadSafeCurrentLocation.altitude}")
+        } else {
+            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: Not available")
+        }
+
+        if (isNearTrack == null || isNearTrack == false) {
+            // Startup function
+            gpxViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
+        } else if (isNearTrack == true) {
+            // If we are near the track, we can proceed to elaborate the position
+            gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
+        }
+    }
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
@@ -115,76 +165,73 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     if (!parsingError.isEmpty()) {
         ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
-    }
-    AnimatedVisibility(
-        visible = trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
+    } else if (isNearTrack != null && isNearTrack != true) {
+        WarningScreen("You are too distant from the selected track", Modifier.fillMaxSize(),null, null)
+    } else if (trackPoints.isEmpty() || isNearTrack == null) {
         Loading(Modifier.fillMaxSize())
-    }
-    AnimatedVisibility(
-        visible = accuracy < 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier.fillMaxSize()
+    } else {
+        AnimatedVisibility(
+            visible = accuracy < 2,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
-            CompassCalibrationNotice(modifier)
-        }
-    }
-    AnimatedVisibility(
-        visible = accuracy >= 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
-        ScreenScaffold(
-        timeText = {
-            TimeText(
-                backgroundColor = infobackgroundColor,
-                modifier = Modifier.padding(10.dp)
-            ) { time ->
-                curvedText(
-                    text = if (info.isNullOrBlank()) time else info,
-                    overflow = TextOverflow.Ellipsis,
-                    color = infotextColor,
-                )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
+                CompassCalibrationNotice(modifier)
             }
-        },
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier.fillMaxSize()
+        }
+        AnimatedVisibility(
+            visible = accuracy >= 2,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
-
-            CircularProgressIndicator(
-                progress = { progress },
-                startAngle = 90f + buttonWidth / 2,
-                endAngle = 90f - buttonWidth / 2,
-            )
-
-
-            Arrow(
-                direction = direction,  // Angolo di rotazione basato sui dati del sensore
-//                    color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-            )
-
-            if (!alone) {
-                SosButton(
-                    sweepAngle = buttonSweepAngle,
-                    onSosTriggered = {
-                        navController.navigate(route = Screen.SOSScreen.route)
+            ScreenScaffold(
+                timeText = {
+                    TimeText(
+                        backgroundColor = infobackgroundColor,
+                        modifier = Modifier.padding(10.dp)
+                    ) { time ->
+                        curvedText(
+                            text = if (info.isNullOrBlank()) time else info,
+                            overflow = TextOverflow.Ellipsis,
+                            color = infotextColor,
+                        )
                     }
-                )
+                },
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = modifier.fillMaxSize()
+                ) {
+
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        startAngle = 90f + buttonWidth / 2,
+                        endAngle = 90f - buttonWidth / 2,
+                    )
+
+                    Arrow(
+                        direction = arrowDirection,
+//                      color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+                    )
+
+                    if (!alone) {
+                        SosButton(
+                            sweepAngle = buttonSweepAngle,
+                            onSosTriggered = {
+                                navController.navigate(route = Screen.SOSScreen.route)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
-}
 }
 
 @Composable

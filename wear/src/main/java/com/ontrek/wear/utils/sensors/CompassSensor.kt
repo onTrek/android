@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.abs
 
-class CompassSensor(context: Context, val degreesThreshold: Float = 3f) {
+class CompassSensor(context: Context, val degreesThreshold: Float = 5f) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
@@ -55,10 +55,10 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 3f) {
 
     fun start() {
         accelerometer?.let {
-            sensorManager.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
         }
         magnetometer?.let {
-            sensorManager.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
         }
     }
 
