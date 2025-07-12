@@ -8,9 +8,8 @@ import android.hardware.SensorManager
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.math.abs
 
-class CompassSensor(context: Context, val degreesThreshold: Float = 5f) {
+class CompassSensor(context: Context) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
@@ -24,8 +23,6 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 5f) {
     private val gravity = FloatArray(3)
     private val geomagnetic = FloatArray(3)
 
-    private var lastPublishedDirection: Float? = null
-
     private val sensorListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
             when (event.sensor.type) {
@@ -38,10 +35,7 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 5f) {
                 val orientation = FloatArray(3)
                 SensorManager.getOrientation(rotation, orientation)
                 val azimuth = (Math.toDegrees(orientation[0].toDouble()).toFloat() + 360) % 360
-                if(shouldUpdateDirection(azimuth, lastPublishedDirection)) {
-                    _direction.value = azimuth
-                    lastPublishedDirection = azimuth
-                }
+                _direction.value = azimuth
             }
         }
 
@@ -64,15 +58,5 @@ class CompassSensor(context: Context, val degreesThreshold: Float = 5f) {
 
     fun stop() {
         sensorManager.unregisterListener(sensorListener)
-    }
-
-    private fun shouldUpdateDirection(newDirection: Float, oldDirection: Float?): Boolean {
-        if (oldDirection == null) {
-            return true
-        }
-        val diff = abs(newDirection - oldDirection)
-        val wrappedDiff = diff.coerceAtMost(360 - diff)
-
-        return wrappedDiff >= degreesThreshold
     }
 }

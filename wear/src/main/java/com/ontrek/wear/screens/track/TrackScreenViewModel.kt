@@ -20,9 +20,13 @@ import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import kotlin.collections.isNotEmpty
 import kotlin.collections.maxOfOrNull
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+
+const val trackPointThreshold = 10
+const val degreesThreshold: Double = 3.0
 
 class TrackScreenViewModel : ViewModel() {
 
@@ -43,7 +47,7 @@ class TrackScreenViewModel : ViewModel() {
     private val nextTrackPoint = MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
-    private val trackPointThreshold = 10
+    private val lastPublishedDirection = MutableStateFlow<Double?>(null)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -165,8 +169,10 @@ class TrackScreenViewModel : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Angle: $angle")
-        arrowDirection.value = angle.toFloat()
+        if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Angle: $angle")
+            arrowDirection.value = angle.toFloat()
+        }
     }
 
     fun reset() {
@@ -242,5 +248,15 @@ class TrackScreenViewModel : ViewModel() {
         val lastToMe = getDistanceTo(lastPoint, location)
 
         return SectionDistances(firstToMe, lastToMe)
+    }
+
+    private fun shouldUpdateDirection(newDirection: Double, oldDirection: Double?): Boolean {
+        if (oldDirection == null) {
+            return true
+        }
+        val diff = abs(newDirection - oldDirection)
+        val wrappedDiff = diff.coerceAtMost(360 - diff)
+
+        return wrappedDiff >= degreesThreshold
     }
 }
