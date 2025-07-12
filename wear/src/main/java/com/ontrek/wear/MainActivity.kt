@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material3.AppScaffold
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -73,10 +74,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                         PermissionRequester(context)
                     }
                     token!!.isEmpty() -> Login()
-                    else -> NavigationStack()
-//                    else -> AppScaffold {
-//                        NavigationStack()
-//                    }
+                    else -> AppScaffold {
+                        NavigationStack()
+                    }
                 }
             }
         }

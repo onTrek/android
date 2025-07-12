@@ -26,7 +26,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 const val trackPointThreshold = 10
-const val degreesThreshold: Double = 3.0
+const val degreesThreshold: Double = 5.0
 
 class TrackScreenViewModel : ViewModel() {
 
@@ -170,7 +170,9 @@ class TrackScreenViewModel : ViewModel() {
 
         val angle = (compassDirection - targetBearing + 360) % 360
         if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
+            // TODO: To test
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Angle: $angle")
+            lastPublishedDirection .value = angle
             arrowDirection.value = angle.toFloat()
         }
     }

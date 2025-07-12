@@ -17,7 +17,7 @@ class GpsSensor(val context: Context) {
     private val fusedLocationClient: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
-    private val LOCATION_REFRESH_TIME = 5000L // Update interval in milliseconds
+    private val LOCATION_REFRESH_TIME = 1000L // Update interval in milliseconds
     private val LOCATION_REFRESH_DISTANCE = 1f // Update distance in meters
 
     private val _location = MutableStateFlow<Location?>(null)
@@ -38,7 +38,7 @@ class GpsSensor(val context: Context) {
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_REFRESH_TIME)
                 .setWaitForAccurateLocation(true)
                 .setMinUpdateIntervalMillis(LOCATION_REFRESH_TIME)
-                .setMinUpdateDistanceMeters(LOCATION_REFRESH_DISTANCE)
+//                .setMinUpdateDistanceMeters(LOCATION_REFRESH_DISTANCE)
                 .build()
 
         fusedLocationClient.requestLocationUpdates(
