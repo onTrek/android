@@ -57,7 +57,7 @@ fun TrackButton(
             showDialog = showDialog,
             onConfirm = {
                 File(context.filesDir, "${trackID}.gpx").delete()
-                resetDownloadState(index)
+                resetDownloadState(index)  // TODO: It does not trigger recomposition
 
                 showDialog = false
             },

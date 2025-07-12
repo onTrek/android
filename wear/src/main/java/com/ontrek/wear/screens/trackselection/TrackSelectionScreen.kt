@@ -33,6 +33,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
+import com.ontrek.shared.api.track.fetchData
 import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
 import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.utils.components.ErrorScreen
@@ -51,12 +52,11 @@ fun TrackSelectionScreen(
     val error by trackSelectionViewModel.error.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
-    val downloadButtonStates by trackSelectionViewModel.downloadButtonStates.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
+        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
     }
 
     // Scroll to top when track list updates
@@ -117,7 +117,7 @@ fun TrackSelectionScreen(
                         trackName = track.title,
                         trackID = track.id,
                         token = token ?: "",
-                        state = downloadButtonStates[index],
+                        state = track.state,
                         onDownloadClick = trackSelectionViewModel::downloadTrack,
                         unSetError = trackSelectionViewModel::resetDownloadState,
                         index = index,
@@ -133,13 +133,15 @@ fun TrackSelectionScreen(
                             .fillMaxWidth()
                             .padding(8.dp),
                         token,
-                        trackSelectionViewModel::fetchTrackList
+                        refresh = { token ->
+                            trackSelectionViewModel.fetchTrackList(token, context)
+                        }
                     )
                 } else {
                     IconButton(
                         onClick = {
                             Log.d("TrackSelectionScreen", "Refresh tracks")
-                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
+                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

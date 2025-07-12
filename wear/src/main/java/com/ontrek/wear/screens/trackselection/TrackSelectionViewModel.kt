@@ -10,6 +10,8 @@ import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import kotlin.collections.sortedWith
 
 sealed class DownloadState {
     object NotStarted : DownloadState()
@@ -18,13 +20,18 @@ sealed class DownloadState {
     data class Error(val message: String) : DownloadState()
 }
 
+data class TrackButtonUI (
+    val id: Int,
+    val title: String,
+    val filename: String = "$id.gpx",
+    val uploadedAt: Long,
+    var state: DownloadState,
+)
+
 class TrackSelectionViewModel : ViewModel() {
 
-    private val _data = MutableStateFlow<List<Track>>(listOf())
-    val trackListState: StateFlow<List<Track>> = _data
-
-    private val _downloadButtonStates = MutableStateFlow<List<DownloadState>>(listOf())
-    val downloadButtonStates: StateFlow<List<DownloadState>> = _downloadButtonStates
+    private val _trackListState = MutableStateFlow<List<TrackButtonUI>>(listOf())
+    val trackListState: StateFlow<List<TrackButtonUI>> = _trackListState
 
     private val _isLoading = MutableStateFlow<Boolean>(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -32,27 +39,50 @@ class TrackSelectionViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun fetchTrackList(token: String) {
+    fun fetchTrackList(token: String, context: Context) {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
         fetchData(
-            onSuccess = ::updateData,
+            onSuccess = { data ->
+                updateTracks(data, context)
+            },
             onError = ::setError,
             token = token,
         )
     }
 
-    fun updateData(data: List<Track>?) {
+    fun updateTracks(data: List<Track>?, context: Context) {
         Log.d("WearOS", "Data updated: $data")
         if (data != null) {
-            _data.value = data
+            _trackListState.value = data.map { track ->
+                val file = File(context.filesDir, "${track.id}.gpx")
+                TrackButtonUI(
+                    id = track.id,
+                    title = track.title,
+                    uploadedAt = java.time.OffsetDateTime.parse(track.upload_date).toInstant().toEpochMilli(),
+                    state = if (file.exists()) DownloadState.Completed else DownloadState.NotStarted,
+                )
+            }.sorted()
             _error.value = null
-            _downloadButtonStates.value = List(data.size) { DownloadState.NotStarted }
         } else {
             Log.e("WearOS", "Data is null")
         }
         _isLoading.value = false
+    }
+
+    private fun List<TrackButtonUI>.sorted(): List<TrackButtonUI> {
+        return this.sortedWith { a, b ->
+            when {
+                a.state is DownloadState.Completed && b.state !is DownloadState.Completed -> -1
+                a.state !is DownloadState.Completed && b.state is DownloadState.Completed -> 1
+                else -> when {
+                    a.uploadedAt > b.uploadedAt -> -1
+                    a.uploadedAt < b.uploadedAt -> 1
+                    else -> 0
+                }
+            }
+        }
     }
 
     fun setError(error: String?) {
@@ -62,8 +92,8 @@ class TrackSelectionViewModel : ViewModel() {
     }
 
     private fun updateButtonState(index: Int, newState: DownloadState) {
-        _downloadButtonStates.value = _downloadButtonStates.value.toMutableList().also {
-            it[index] = newState
+        _trackListState.value = _trackListState.value.toMutableList().also {
+            it[index].state = newState
         }
     }
 
