@@ -70,6 +70,13 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     // Contiene il file GPX caricato
     val gpxViewModel = remember { TrackScreenViewModel() }
 
+    // Raccoglie l'accuratezza del sensore GPS come stato osservabile
+    val gpsAccuracy by gpsSensor.accuracy.collectAsState()
+    val isGpsAccuracyLow = {
+        gpsAccuracy > trackPointThreshold
+    }
+    val gpsAccuracyText = "Accuracy low"
+
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
     // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
@@ -157,7 +164,6 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    var info: String? = null
     var infobackgroundColor: androidx.compose.ui.graphics.Color =
         MaterialTheme.colorScheme.primaryContainer
     var infotextColor: androidx.compose.ui.graphics.Color =
@@ -194,7 +200,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                         modifier = Modifier.padding(10.dp)
                     ) { time ->
                         curvedText(
-                            text = if (info.isNullOrBlank()) time else info,
+                            text = if (isGpsAccuracyLow()) gpsAccuracyText else time,
                             overflow = TextOverflow.Ellipsis,
                             color = infotextColor,
                         )

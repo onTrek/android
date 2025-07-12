@@ -29,7 +29,7 @@ class GpsSensor(val context: Context) {
     private val locationCallback = LocationListener { locationResult ->
         locationResult.let { location ->
             _location.value = location
-            _accuracy.value = location.accuracy
+            if (location.hasAccuracy()) _accuracy.value = location.accuracy
         }
     }
 
