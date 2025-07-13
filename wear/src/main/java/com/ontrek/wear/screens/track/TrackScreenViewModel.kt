@@ -144,8 +144,6 @@ class TrackScreenViewModel : ViewModel() {
 
     fun elaborateDirection(compassDirection: Float) {
 
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Elaborating direction with compass direction: $compassDirection")
-
         val threadSafePosition = position.value
         val threadSafeNextPoint = nextTrackPoint.value
         if (threadSafePosition == null || threadSafeNextPoint == null) {
@@ -203,11 +201,21 @@ class TrackScreenViewModel : ViewModel() {
 
             // If the nearest points are close to each other, we can use the probable next point index
             // (probably the GPS fucked up at some point or lost the signal)...
-            if (nearestPoints.maxBy { it.index }.index - nearestPoints.minBy { it.index }.index >= 5) {
-                // ...but if the nearest points are too far from the actual point index,
+            if (nearestPoints.maxBy { it.index }.index - nearestPoints.minBy { it.index }.index >= 8) {
+
+                // But if they arent, we see if there is some point that is "close enough" to the actual point index
+                newProbableNextPoint = nearestPoints.find { it.index <= actualPointIndex + 3 && it.index >= actualPointIndex - 3 }
+
+                // ...but if all the nearest points are too far from the actual point index,
                 // we also need to find the one that is "closest in the array" to the last point
-                newProbableNextPoint =
-                    nearestPoints.minBy { abs(it.index - actualPointIndex) }
+                if (newProbableNextPoint == null) {
+                    Log.w(
+                        "TRACK_SCREEN_VIEW_MODEL",
+                        "No nearest point found close to the actual point index: $actualPointIndex"
+                    )
+                    newProbableNextPoint =
+                        nearestPoints.minBy { abs(it.index - actualPointIndex) }
+                }
             }
 
             Log.w(
