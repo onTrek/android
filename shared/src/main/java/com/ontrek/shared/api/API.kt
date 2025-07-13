@@ -1,5 +1,6 @@
 package com.ontrek.shared.api
 
+import com.ontrek.shared.data.Friends
 import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.http.GET
@@ -13,6 +14,10 @@ import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Signup
 import com.ontrek.shared.data.TokenResponse
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 object RetrofitClient {
     private val retrofit = Retrofit.Builder()
@@ -39,4 +44,30 @@ interface ApiService {
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/")
     fun getData(@Header("Bearer") token: String): Call<List<Track>>
+
+
+    // ------- FRIENDS ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("friends/")
+    fun getFriends(@Header("Bearer") token: String, @Query("search") search: String? = null): Call<List<Friends>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("friends/request/")
+    fun getFriendRequests(@Header("Bearer") token: String): Call<List<Friends>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PUT("friends/request/{id}")
+    fun acceptFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @POST("friends/request/{id}")
+    fun sendFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("friends/request/{id}")
+    fun deleteFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("friends/{id}")
+    fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
 }
