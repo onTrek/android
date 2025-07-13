@@ -6,6 +6,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,10 +42,10 @@ fun TrackDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dettaglio Traccia") },
+                title = { Text("Track Details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -60,7 +63,7 @@ fun TrackDetailScreen(
                 is TrackDetailViewModel.TrackDetailState.Error -> {
                     val errorState = trackDetailState as TrackDetailViewModel.TrackDetailState.Error
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Errore: ${errorState.message}", color = MaterialTheme.colorScheme.error)
+                        Text("Error: ${errorState.message}", color = MaterialTheme.colorScheme.error)
                     }
                 }
                 is TrackDetailViewModel.TrackDetailState.Success -> {
@@ -95,7 +98,7 @@ fun TrackDetailScreen(
                             ) {
                                 // Sezione Informazioni Generali
                                 Text(
-                                    text = "Informazioni Traccia",
+                                    text = "Track Information",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -105,59 +108,63 @@ fun TrackDetailScreen(
                                 // Data
                                 TrackInfoRow(
                                     icon = Icons.Default.DateRange,
-                                    label = "Data",
+                                    label = "Date of Upload",
                                     value = viewModel.formatDate(track.upload_date)
                                 )
 
                                 // Distanza
                                 TrackInfoRow(
                                     icon = Icons.Default.Straighten,
-                                    label = "Distanza",
+                                    label = "Distance",
                                     value = "${track.stats.km} km"
                                 )
 
                                 // Durata
                                 TrackInfoRow(
                                     icon = Icons.Default.Timer,
-                                    label = "Durata",
+                                    label = "Duration",
                                     value = viewModel.formatDuration(track.stats.duration)
                                 )
 
                                 // Sezione Elevazione
                                 Text(
-                                    text = "Elevazione",
+                                    text = "Elevation Stats",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.padding(top = 16.dp)
                                 )
 
-                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    thickness = DividerDefaults.Thickness,
+                                    color = DividerDefaults.color
+                                )
 
                                 // Salita
                                 TrackInfoRow(
-                                    icon = Icons.Default.TrendingUp,
-                                    label = "Salita",
+                                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                    label = "Ascent",
                                     value = "${track.stats.ascent} m"
                                 )
 
                                 // Discesa
                                 TrackInfoRow(
-                                    icon = Icons.Default.TrendingDown,
-                                    label = "Discesa",
+                                    icon = Icons.AutoMirrored.Filled.TrendingDown,
+                                    label = "Descent",
                                     value = "${track.stats.descent} m"
                                 )
 
                                 // Altitudine Massima
                                 TrackInfoRow(
                                     icon = Icons.Default.Terrain,
-                                    label = "Alt. Max",
+                                    label = "Max Height",
                                     value = "${track.stats.max_altitude} m"
                                 )
 
                                 // Altitudine Minima
                                 TrackInfoRow(
                                     icon = Icons.Default.Terrain,
-                                    label = "Alt. Min",
+                                    label = "Min Height",
                                     value = "${track.stats.min_altitude} m"
                                 )
                             }
@@ -167,7 +174,7 @@ fun TrackDetailScreen(
 
                         // Sezione Immagine Traccia
                         Text(
-                            text = "Immagine del Percorso",
+                            text = "Image",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
@@ -189,11 +196,11 @@ fun TrackDetailScreen(
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Icon(
                                             Icons.Default.BrokenImage,
-                                            contentDescription = "Errore",
+                                            contentDescription = "Error",
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                         Text(
-                                            text = "Impossibile caricare l'immagine: ${errorState.message}",
+                                            text = "Impossible to upload the image: ${errorState.message}",
                                             color = MaterialTheme.colorScheme.error,
                                             style = MaterialTheme.typography.bodyMedium
                                         )
@@ -207,7 +214,7 @@ fun TrackDetailScreen(
                                             .data(imageUrl)
                                             .crossfade(true)
                                             .build(),
-                                        contentDescription = "Immagine della traccia",
+                                        contentDescription = "Track Image",
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize()
                                     )
