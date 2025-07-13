@@ -79,10 +79,57 @@ fun TrackDetailScreen(
                         Text(
                             text = track.title,
                             style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (imageState) {
+                                is TrackDetailViewModel.ImageState.Loading -> {
+                                    CircularProgressIndicator()
+                                }
+                                is TrackDetailViewModel.ImageState.Error -> {
+                                    val errorState = imageState as TrackDetailViewModel.ImageState.Error
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            Icons.Default.BrokenImage,
+                                            contentDescription = "Error",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                        Text(
+                                            text = "Impossible to upload the image: ${errorState.message}",
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                                is TrackDetailViewModel.ImageState.Success -> {
+                                    val imageUrl = (imageState as TrackDetailViewModel.ImageState.Success).imageUrl
+
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(imageUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Track Image",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         // Card con informazioni della traccia
                         Card(
@@ -174,58 +221,6 @@ fun TrackDetailScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Sezione Immagine Traccia
-                        Text(
-                            text = "Map",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            when (imageState) {
-                                is TrackDetailViewModel.ImageState.Loading -> {
-                                    CircularProgressIndicator()
-                                }
-                                is TrackDetailViewModel.ImageState.Error -> {
-                                    val errorState = imageState as TrackDetailViewModel.ImageState.Error
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(
-                                            Icons.Default.BrokenImage,
-                                            contentDescription = "Error",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                        Text(
-                                            text = "Impossible to upload the image: ${errorState.message}",
-                                            color = MaterialTheme.colorScheme.error,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                }
-                                is TrackDetailViewModel.ImageState.Success -> {
-                                    val imageUrl = (imageState as TrackDetailViewModel.ImageState.Success).imageUrl
-
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(imageUrl)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = "Track Image",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
@@ -261,6 +256,8 @@ fun TrackInfoRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(80.dp)
         )
+
+        Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text = value,
