@@ -33,7 +33,10 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             GroupScreen(navController)
         }
         composable(route = Screen.Friends.route) {
-            FriendsScreen(navController)
+            FriendsScreen(
+                token = preferencesViewModel.tokenState.value ?: "",
+                navController = navController
+            )
         }
     }
 }
