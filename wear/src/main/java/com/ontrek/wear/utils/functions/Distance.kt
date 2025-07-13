@@ -3,7 +3,7 @@ package com.ontrek.wear.utils.functions
 import android.location.Location
 import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.toSimplePoint
-import com.ontrek.wear.utils.objects.NearestPoint
+import com.ontrek.wear.utils.objects.NearPoint
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -28,8 +28,9 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     val surfaceDistance = earthRadiusKm * c * 1000 // in meters
 
     // Elevation difference in meters
-    val elevationAvailable = point1.elevation != null && point2.elevation != null
-    val elevationDiff = if (elevationAvailable) (point2.elevation!!) - (point1.elevation!!) else 0.0
+    //TODO() Disabled for now
+    //val elevationAvailable = point1.elevation != null && point2.elevation != null
+    val elevationDiff = /*if (elevationAvailable) (point2.elevation!!) - (point1.elevation!!) else*/ 0.0
 
     // Total 3D distance using Pythagorean theorem
     val totalDistance = sqrt(surfaceDistance.pow(2.0) + elevationDiff.pow(2.0))
@@ -37,31 +38,31 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
     return totalDistance
 }
 
-fun getNearestPoint(
+fun getNearestPoints(
     gpsLocation: Location,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
-): NearestPoint {
-    if (trackPoints.isEmpty()) return NearestPoint(-1,Double.MAX_VALUE)
+): List<NearPoint> {
+    if (trackPoints.isEmpty()) throw IllegalArgumentException("Track points list cannot be empty")
 
-    val nearestPointIndex = getNearestPointIndex(gpsLocation, trackPoints)
-    if (nearestPointIndex == -1) return NearestPoint(-1,Double.MAX_VALUE)
-    val distance = getDistanceTo(
-        gpsLocation.toSimplePoint(),
-        trackPoints[nearestPointIndex].toSimplePoint()
-    )
-    return NearestPoint(nearestPointIndex, distance)
-}
-
-private fun getNearestPointIndex(
-    gpsLocation: Location,
-    trackPoints: List<com.ontrek.shared.data.TrackPoint>
-): Int {
-    if (trackPoints.isEmpty()) return -1
-
-    return trackPoints.indices.minByOrNull { index ->
-        getDistanceTo(
-            SimplePoint(gpsLocation.latitude, gpsLocation.longitude, if (gpsLocation.hasAltitude()) gpsLocation.altitude else null),
+    return getNearestPointsIndexes(gpsLocation, trackPoints).map { index ->
+        val distance = getDistanceTo(
+            gpsLocation.toSimplePoint(),
             trackPoints[index].toSimplePoint()
         )
-    } ?: -1
+        NearPoint(index, distance)
+    }
+}
+
+private fun getNearestPointsIndexes(
+    gpsLocation: Location,
+    trackPoints: List<com.ontrek.shared.data.TrackPoint>
+): List<Int> {
+    if (trackPoints.isEmpty()) throw IllegalArgumentException("Track points list cannot be empty")
+
+    return trackPoints.indices.sortedBy { index ->
+        getDistanceTo(
+            gpsLocation.toSimplePoint(),
+            trackPoints[index].toSimplePoint()
+        )
+    }.take(5)
 }

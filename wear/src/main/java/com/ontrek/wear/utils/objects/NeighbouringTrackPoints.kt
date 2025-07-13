@@ -1,8 +1,8 @@
 package com.ontrek.wear.utils.objects
 
-data class NearestPoint(
+data class NearPoint(
     val index: Int,
-    val distance: Double,
+    val distanceToUser: Double,
 )
 
 data class SectionDistances(

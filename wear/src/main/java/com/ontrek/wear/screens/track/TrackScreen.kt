@@ -120,7 +120,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     }
 
     LaunchedEffect(progress) {
-        if (progress == 100f) {
+        if (progress == 1f) {
             Log.d("GPS_TRACK", "Track completed")
             navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
                 // Clear the back stack to prevent going back to the track screen
@@ -144,13 +144,6 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         if (threadSafeCurrentLocation == null) {
             Log.d("GPS_LOCATION", "Location not available")
             return@LaunchedEffect
-        }
-
-        Log.d("GPS_LOCATION_POSITION", "Current Location: ${threadSafeCurrentLocation.latitude}, ${threadSafeCurrentLocation.longitude}; accuracy: ${threadSafeCurrentLocation.accuracy}")
-        if (threadSafeCurrentLocation.hasAltitude()) {
-            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: ${threadSafeCurrentLocation.altitude}")
-        } else {
-            Log.d("GPS_LOCATION_ALTITUDE", "Current Altitude: Not available")
         }
 
         if (isNearTrack == null || isNearTrack == false) {
