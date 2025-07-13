@@ -103,7 +103,11 @@ fun TrackDetailScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
 
-                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    thickness = DividerDefaults.Thickness,
+                                    color = DividerDefaults.color
+                                )
 
                                 // Data
                                 TrackInfoRow(

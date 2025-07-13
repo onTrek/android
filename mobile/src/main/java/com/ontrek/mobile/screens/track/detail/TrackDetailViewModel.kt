@@ -59,7 +59,7 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
-    // Stati per i dettagli della traccia
+    // Stati per i dettagli della traccia (carino, così mi consigliava chatGPT e funziona... godo)
     sealed class TrackDetailState {
         object Loading : TrackDetailState()
         data class Success(val track: Track) : TrackDetailState()
