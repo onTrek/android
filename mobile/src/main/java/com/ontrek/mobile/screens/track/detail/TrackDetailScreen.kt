@@ -108,7 +108,7 @@ fun TrackDetailScreen(
                                 // Data
                                 TrackInfoRow(
                                     icon = Icons.Default.DateRange,
-                                    label = "Date of Upload",
+                                    label = "Upload Date",
                                     value = viewModel.formatDate(track.upload_date)
                                 )
 
@@ -174,7 +174,7 @@ fun TrackDetailScreen(
 
                         // Sezione Immagine Traccia
                         Text(
-                            text = "Image",
+                            text = "Map",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
