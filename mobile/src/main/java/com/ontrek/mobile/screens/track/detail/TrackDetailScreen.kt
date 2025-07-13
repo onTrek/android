@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.ontrek.mobile.utils.components.BottomNavBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +50,8 @@ fun TrackDetailScreen(
                     }
                 }
             )
-        }
+        },
+        bottomBar = { BottomNavBar(navController) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
