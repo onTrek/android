@@ -1,13 +1,17 @@
 package com.ontrek.mobile.screens.track.detail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ontrek.shared.api.track.getMapTrack
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.data.TrackStats
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -54,8 +58,37 @@ class TrackDetailViewModel : ViewModel() {
             // Simulazione di una chiamata API
             delay(2000)
 
+            getMapTrack(
+                id = trackId,
+                token = token,
+                onSuccess = { responseBody ->
+                    // Usa un thread IO per leggere la risposta
+                    viewModelScope.launch(Dispatchers.IO) {
+                        try {
+                            Log.d("TrackDetailViewModel", "Image loaded successfully")
+                            val imageBytes = responseBody?.bytes()
+
+                            // Torna al main thread per aggiornare l'UI
+                            withContext(Dispatchers.Main) {
+                                if (imageBytes != null) {
+                                    _imageState.value = ImageState.SuccessBinary(imageBytes)
+                                } else {
+                                    _imageState.value = ImageState.Error("Error in image loading: response body is null")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                _imageState.value = ImageState.Error(e.message ?: "Errore sconosciuto")
+                            }
+                        }
+                    }
+                },
+                onError = { errorMessage ->
+                    _imageState.value = ImageState.Error(errorMessage)
+                }
+            )
             // URL di esempio di un'immagine
-            _imageState.value = ImageState.Success("https://images.unsplash.com/photo-1551632811-561732d1e306")
+            //_imageState.value = ImageState.Success("https://images.unsplash.com/photo-1551632811-561732d1e306")
         }
     }
 
@@ -69,7 +102,15 @@ class TrackDetailViewModel : ViewModel() {
     // Stati per l'immagine
     sealed class ImageState {
         object Loading : ImageState()
-        data class Success(val imageUrl: String) : ImageState()
+        data class SuccessBinary(val imageBytes: ByteArray) : ImageState() {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+                other as SuccessBinary
+                return imageBytes.contentEquals(other.imageBytes)
+            }
+            override fun hashCode(): Int = imageBytes.contentHashCode()
+        }
         data class Error(val message: String) : ImageState()
     }
 

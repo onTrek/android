@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,12 +116,11 @@ fun TrackDetailScreen(
                                         )
                                     }
                                 }
-                                is TrackDetailViewModel.ImageState.Success -> {
-                                    val imageUrl = (imageState as TrackDetailViewModel.ImageState.Success).imageUrl
-
+                                is TrackDetailViewModel.ImageState.SuccessBinary -> {
+                                    val imageBytes = (imageState as TrackDetailViewModel.ImageState.SuccessBinary).imageBytes
                                     AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(imageUrl)
+                                        model = Builder(LocalContext.current)
+                                            .data(imageBytes)
                                             .crossfade(true)
                                             .build(),
                                         contentDescription = "Track Image",
