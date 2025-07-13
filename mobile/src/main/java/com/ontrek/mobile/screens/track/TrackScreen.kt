@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.AddTrackDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.TrackItem
@@ -108,8 +109,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                                         viewModel.deleteTrack(track.id.toString(), token)
                                     },
                                     onItemClick = {
-                                        // navController.navigate("track/${track.id}")
-                                        Toast.makeText(context, "Track clicked: ${track.title}", Toast.LENGTH_SHORT).show()
+                                        navController.navigate(Screen.TrackDetail.createRoute(track.id.toString()))
                                     }
                                 )
                             }

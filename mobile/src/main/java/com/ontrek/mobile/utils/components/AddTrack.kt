@@ -81,9 +81,12 @@ fun AddTrackDialog(
 
                 OutlinedTextField(
                     value = title,
-                    onValueChange = { title = it },
+                    onValueChange = {
+                        if (it.length <= 50) title = it
+                    },
                     label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    supportingText = { Text("${title.length}/50") }
                 )
 
                 Button(
