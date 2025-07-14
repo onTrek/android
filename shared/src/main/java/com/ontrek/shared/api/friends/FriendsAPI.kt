@@ -123,3 +123,35 @@ fun deleteFriend(token: String, id: String, onSuccess: (String) -> Unit, onError
     })
 }
 
+fun searchUsers(token: String, query: String, onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.searchUser(token, query).enqueue(object : retrofit2.Callback<List<Friend>> {
+        override fun onResponse(call: retrofit2.Call<List<Friend>>, response: retrofit2.Response<List<Friend>>) {
+            if (response.isSuccessful) {
+                onSuccess(response.body())
+            } else {
+                onError("API Friends: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<List<Friend>>, t: Throwable) {
+            onError("API Friends: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
+
+fun searchOnlyFriends(token: String, query: String, onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.searchUser(token, query, true).enqueue(object : retrofit2.Callback<List<Friend>> {
+        override fun onResponse(call: retrofit2.Call<List<Friend>>, response: retrofit2.Response<List<Friend>>) {
+            if (response.isSuccessful) {
+                onSuccess(response.body())
+            } else {
+                onError("API Friends: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<List<Friend>>, t: Throwable) {
+            onError("API Friends: ${t.message ?: "Unknown error"}")
+        }
+    })
+}

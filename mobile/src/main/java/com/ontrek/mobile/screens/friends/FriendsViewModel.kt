@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.mobile.screens.friends.tabs.RequestItem
 import com.ontrek.shared.api.friends.getFriendRequests
+import com.ontrek.shared.api.friends.getFriendRequestsSend
 import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Friend
@@ -31,8 +32,10 @@ class FriendsViewModel : ViewModel() {
     val searchQuery: StateFlow<String> = _searchQuery
 
     private val _msgToast = MutableStateFlow("")
-
     val msgToast: StateFlow<String> = _msgToast
+
+    private val _sentFriendRequests = MutableStateFlow<SentRequestsState>(SentRequestsState.Loading)
+    val sentFriendRequests: StateFlow<SentRequestsState> = _sentFriendRequests
 
     // Carica la lista degli amici
     fun loadFriends(token: String) {
@@ -46,6 +49,22 @@ class FriendsViewModel : ViewModel() {
                 },
                 onError = { error ->
                     _friendsState.value = FriendsState.Error(error)
+                }
+            )
+        }
+    }
+
+    fun loadSentFriendRequests(token: String) {
+        viewModelScope.launch {
+            _sentFriendRequests.value = SentRequestsState.Loading
+            delay(500)
+            getFriendRequestsSend(
+                token = token,
+                onSuccess = { requests ->
+                    _sentFriendRequests.value = SentRequestsState.Success(requests ?: emptyList())
+                },
+                onError = { error ->
+                    _sentFriendRequests.value = SentRequestsState.Error(error)
                 }
             )
         }
@@ -80,31 +99,33 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Cerca utenti in base alla query
-    private fun searchUsers(query: String) {
-        viewModelScope.launch {
-            _searchState.value = SearchState.Loading
-            delay(500) // Simulazione chiamata API
+    private fun searchUsers(query: String, token: String) {
+    viewModelScope.launch {
+        _searchState.value = SearchState.Loading
 
-            // Dati di esempio
-            if (query.length < 2) {
-                _searchState.value = SearchState.Initial
-                return@launch
-            }
-
-            val usersList = listOf(
-                Friend(5, "Marco Rossi"),
-                Friend(6, "Sara Bianchi"),
-                Friend(7, "Elena Verdi")
-            ).filter { it.username.contains(query, ignoreCase = true) }
-
-            _searchState.value = if (usersList.isEmpty()) {
-                SearchState.Empty
-            } else {
-                SearchState.Success(usersList)
-            }
+        // Se la query è troppo corta, ritorna subito
+        if (query.length < 2) {
+            _searchState.value = SearchState.Initial
+            return@launch
         }
-    }
 
+        // Chiamata all'API reale
+        searchUsers(
+            query = query,
+            token = token,
+            onSuccess = { users ->
+                _searchState.value = if (users.isNullOrEmpty()) {
+                    SearchState.Empty
+                } else {
+                    SearchState.Success(users)
+                }
+            },
+            onError = { error ->
+                _searchState.value = SearchState.Error(error)
+            }
+        )
+    }
+}
     // Invia richiesta di amicizia
     fun sendFriendRequest(userId: Int, token: String) {
         viewModelScope.launch {
@@ -167,6 +188,12 @@ class FriendsViewModel : ViewModel() {
         object Loading : RequestsState()
         data class Success(val requests: List<FriendRequest>) : RequestsState()
         data class Error(val message: String) : RequestsState()
+    }
+
+    sealed class SentRequestsState {
+        object Loading : SentRequestsState()
+        data class Success(val requests: List<FriendRequest>) : SentRequestsState()
+        data class Error(val message: String) : SentRequestsState()
     }
 
     // Stati della ricerca

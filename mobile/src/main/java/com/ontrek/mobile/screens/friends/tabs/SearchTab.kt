@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.mobile.utils.components.Username
 import com.ontrek.shared.data.Friend
 
 @Composable
@@ -46,6 +48,12 @@ fun SearchTab(
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchState by viewModel.searchState.collectAsState()
+    val sentRequests by viewModel.sentFriendRequests.collectAsState()
+
+    // Carica le richieste inviate quando la schermata viene visualizzata
+    LaunchedEffect(Unit) {
+        viewModel.loadSentFriendRequests(token)
+    }
 
     Column(
         modifier = Modifier
@@ -104,7 +112,7 @@ fun SearchTab(
                                 user = user,
                                 onSendRequest = {
                                     viewModel.sendFriendRequest(user.id, token)
-                                    }
+                                }
                             )
                         }
                     }
@@ -148,10 +156,9 @@ fun UserItem(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = "@${user.username}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Username(
+                    username = user.username,
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -159,12 +166,10 @@ fun UserItem(
                 onClick = {
                     if (!requestSent) {
                         onSendRequest()
-                        requestSent = true
                     }
                 },
-                enabled = !requestSent
             ) {
-                Text(if (requestSent) "Richiesta inviata" else "Aggiungi")
+                Text(if (requestSent) "Request Sent" else "Add Friend")
             }
         }
     }

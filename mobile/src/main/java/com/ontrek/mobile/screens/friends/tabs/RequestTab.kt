@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.mobile.utils.components.Username
 import com.ontrek.shared.data.FriendRequest
 import java.sql.Timestamp
 
@@ -24,6 +25,10 @@ fun RequestsTab(
     token: String
 ) {
     val requestsState by viewModel.requestsState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadFriendRequests(token)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (requestsState) {
@@ -100,10 +105,9 @@ fun RequestItem(
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column {
-                    Text(
-                        text = "@${request.username}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Username(
+                        username = request.username,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Text(
                         text = formatTimeAgo(request.timestamp),

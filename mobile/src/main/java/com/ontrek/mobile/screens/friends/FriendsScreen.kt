@@ -40,12 +40,6 @@ fun FriendsScreen(
         viewModel.loadFriendRequests(token)
     }
 
-    LaunchedEffect(tabIndex.intValue) {
-        if (tabIndex.intValue == 2) {
-            viewModel.loadFriendRequests(token)
-        }
-    }
-
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()

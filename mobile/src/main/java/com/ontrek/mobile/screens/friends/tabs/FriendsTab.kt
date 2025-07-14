@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.mobile.utils.components.Username
 import com.ontrek.shared.data.Friend
 
 @Composable
@@ -115,10 +116,9 @@ fun FriendItem(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = "@${friend.username}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Username(
+                    username = friend.username,
+                    modifier = Modifier.weight(1f)
                 )
             }
 
