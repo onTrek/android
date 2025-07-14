@@ -1,6 +1,7 @@
 package com.ontrek.shared.api
 
-import com.ontrek.shared.data.Friends
+import com.ontrek.shared.data.Friend
+import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.http.GET
@@ -49,18 +50,22 @@ interface ApiService {
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/")
-    fun getFriends(@Header("Bearer") token: String, @Query("search") search: String? = null): Call<List<Friends>>
+    fun getFriends(@Header("Bearer") token: String, @Query("search") search: String? = null): Call<List<Friend>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("friends/request/")
-    fun getFriendRequests(@Header("Bearer") token: String): Call<List<Friends>>
+    @GET("friends/requests/received/")
+    fun getFriendRequests(@Header("Bearer") token: String): Call<List<FriendRequest>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
-    @PUT("friends/request/{id}")
+    @GET("friends/requests/sent/")
+    fun getFriendRequestsSend(@Header("Bearer") token: String): Call<List<FriendRequest>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PUT("friends/requests/{id}")
     fun acceptFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
-    @POST("friends/request/{id}")
+    @POST("friends/requests/{id}")
     fun sendFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")

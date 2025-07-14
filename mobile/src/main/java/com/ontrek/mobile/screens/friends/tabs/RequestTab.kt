@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.friends
+package com.ontrek.mobile.screens.friends.tabs
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -6,16 +6,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
+import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.shared.data.FriendRequest
+import java.sql.Timestamp
 
 @Composable
 fun RequestsTab(
@@ -28,7 +29,7 @@ fun RequestsTab(
         when (requestsState) {
             is FriendsViewModel.RequestsState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             is FriendsViewModel.RequestsState.Error -> {
@@ -36,7 +37,7 @@ fun RequestsTab(
                 Text(
                     text = errorState.message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             is FriendsViewModel.RequestsState.Success -> {
@@ -44,8 +45,8 @@ fun RequestsTab(
 
                 if (requests.isEmpty()) {
                     Text(
-                        text = "Non hai richieste di amicizia in sospeso",
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                        text = "Don't have any friend requests",
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
                     LazyColumn(
@@ -69,7 +70,7 @@ fun RequestsTab(
 
 @Composable
 fun RequestItem(
-    request: FriendsViewModel.FriendRequest,
+    request: FriendRequest,
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -83,7 +84,7 @@ fun RequestItem(
                 .padding(16.dp)
         ) {
             Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -142,9 +143,10 @@ fun RequestItem(
 }
 
 // Funzione per formattare il tempo passato
-fun formatTimeAgo(timestamp: Long): String {
+// Funzione per formattare il tempo passato
+fun formatTimeAgo(timestamp: Timestamp): String {
     val now = System.currentTimeMillis()
-    val diff = now - timestamp
+    val diff = now - timestamp.time
 
     return when {
         diff < 60_000 -> "Adesso"

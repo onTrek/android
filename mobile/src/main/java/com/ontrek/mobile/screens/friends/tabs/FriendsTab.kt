@@ -1,9 +1,8 @@
-package com.ontrek.mobile.screens.friends
+package com.ontrek.mobile.screens.friends.tabs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -27,9 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.shared.data.Friend
 
 @Composable
 fun FriendsTab(
@@ -42,7 +45,7 @@ fun FriendsTab(
         when (friendsState) {
             is FriendsViewModel.FriendsState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             is FriendsViewModel.FriendsState.Error -> {
@@ -50,7 +53,7 @@ fun FriendsTab(
                 Text(
                     text = errorState.message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             is FriendsViewModel.FriendsState.Success -> {
@@ -59,13 +62,13 @@ fun FriendsTab(
                 if (friends.isEmpty()) {
                     Text(
                         text = "There are no friends to display",
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
                         items(friends) { friend ->
                             FriendItem(
@@ -82,7 +85,7 @@ fun FriendsTab(
 
 @Composable
 fun FriendItem(
-    friend: FriendsViewModel.Friend,
+    friend: Friend,
     onRemoveFriend: () -> Unit
 ) {
     Card(
@@ -93,14 +96,14 @@ fun FriendItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                    imageVector = Icons.Default.Person,
                     contentDescription = "Profile ${friend.id}",
                     modifier = Modifier
                         .size(50.dp)
@@ -121,7 +124,7 @@ fun FriendItem(
 
             IconButton(onClick = onRemoveFriend) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.Delete,
+                    imageVector = Icons.Default.Delete,
                     contentDescription = "Delete Friend",
                     tint = MaterialTheme.colorScheme.error
                 )

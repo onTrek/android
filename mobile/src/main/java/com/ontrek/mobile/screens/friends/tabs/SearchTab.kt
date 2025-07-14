@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.friends
+package com.ontrek.mobile.screens.friends.tabs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -31,9 +32,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.shared.data.Friend
 
 @Composable
 fun SearchTab(
@@ -52,8 +56,8 @@ fun SearchTab(
             value = searchQuery,
             onValueChange = { viewModel.onSearchQueryChange(it) },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Cerca utenti") },
-            leadingIcon = { Icon(androidx.compose.material.icons.Icons.Default.Search, contentDescription = null) },
+            label = { Text("Search users") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true
         )
 
@@ -63,20 +67,20 @@ fun SearchTab(
             when (searchState) {
                 is FriendsViewModel.SearchState.Initial -> {
                     Text(
-                        text = "Cerca utenti da aggiungere come amici",
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center),
+                        text = "Search for users to add as friends",
+                        modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 is FriendsViewModel.SearchState.Loading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 is FriendsViewModel.SearchState.Empty -> {
                     Text(
-                        text = "Nessun utente trovato",
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center),
+                        text = "No results found",
+                        modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -85,7 +89,7 @@ fun SearchTab(
                     Text(
                         text = errorState.message,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 is FriendsViewModel.SearchState.Success -> {
@@ -93,16 +97,14 @@ fun SearchTab(
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
                         items(users) { user ->
                             UserItem(
                                 user = user,
                                 onSendRequest = {
-                                    viewModel.sendFriendRequest(user.id, token) {
-                                        // Feedback di successo con Snackbar o Toast
+                                    viewModel.sendFriendRequest(user.id, token)
                                     }
-                                }
                             )
                         }
                     }
@@ -114,7 +116,7 @@ fun SearchTab(
 
 @Composable
 fun UserItem(
-    user: FriendsViewModel.Friend,
+    user: Friend,
     onSendRequest: () -> Unit
 ) {
     var requestSent by remember { mutableStateOf(false) }
@@ -127,17 +129,17 @@ fun UserItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                    imageVector = Icons.Default.Person,
                     contentDescription = "Profilo",
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(8.dp),

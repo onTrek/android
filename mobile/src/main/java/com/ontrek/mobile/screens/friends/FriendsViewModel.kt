@@ -2,6 +2,11 @@ package com.ontrek.mobile.screens.friends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ontrek.mobile.screens.friends.tabs.RequestItem
+import com.ontrek.shared.api.friends.getFriendRequests
+import com.ontrek.shared.api.friends.getFriends
+import com.ontrek.shared.data.FriendRequest
+import com.ontrek.shared.data.Friend
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,21 +30,24 @@ class FriendsViewModel : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _msgToast = MutableStateFlow("")
+
+    val msgToast: StateFlow<String> = _msgToast
+
     // Carica la lista degli amici
     fun loadFriends(token: String) {
         viewModelScope.launch {
             _friendsState.value = FriendsState.Loading
-            delay(1000) // Simulazione chiamata API
 
-            // Dati di esempio
-            val friendsList = listOf(
-                Friend(1, "Mario Rossi"),
-                Friend(2, "Luca Bianchi"),
-                Friend(3, "Giulia Verdi"),
-                Friend(4, "Anna Neri")
+            getFriends(
+                token = token,
+                onSuccess = { friends ->
+                    _friendsState.value = FriendsState.Success(friends ?: emptyList())
+                },
+                onError = { error ->
+                    _friendsState.value = FriendsState.Error(error)
+                }
             )
-
-            _friendsState.value = FriendsState.Success(friendsList)
         }
     }
 
@@ -47,15 +55,16 @@ class FriendsViewModel : ViewModel() {
     fun loadFriendRequests(token: String) {
         viewModelScope.launch {
             _requestsState.value = RequestsState.Loading
-            delay(800) // Simulazione chiamata API
-
-            // Dati di esempio
-            val requestsList = listOf(
-                FriendRequest(1, "Mario Rossi", System.currentTimeMillis()),
-                FriendRequest(2, "Luca Bianchi", System.currentTimeMillis() - 3600000),
-                FriendRequest(3, "Giulia Verdi", System.currentTimeMillis() - 7200000)
+            delay(500)
+            getFriendRequests(
+                token = token,
+                onSuccess = { requests ->
+                    _requestsState.value = RequestsState.Success(requests ?: emptyList())
+                },
+                onError = { error ->
+                    _requestsState.value = RequestsState.Error(error)
+                }
             )
-            _requestsState.value = RequestsState.Success(requestsList)
         }
     }
 
@@ -97,11 +106,10 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Invia richiesta di amicizia
-    fun sendFriendRequest(userId: Int, token: String, onSuccess: () -> Unit) {
+    fun sendFriendRequest(userId: Int, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(800)
-            onSuccess()
         }
     }
 
@@ -147,10 +155,6 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Modelli di dati
-    data class Friend(val id: Int, val username: String)
-    data class FriendRequest(val id: Int, val username: String, val timestamp: Long)
-
     // Stati delle amicizie
     sealed class FriendsState {
         object Loading : FriendsState()
@@ -172,5 +176,9 @@ class FriendsViewModel : ViewModel() {
         object Empty : SearchState()
         data class Success(val users: List<Friend>) : SearchState()
         data class Error(val message: String) : SearchState()
+    }
+
+    fun resetMsgToast() {
+        _msgToast.value = ""
     }
 }
