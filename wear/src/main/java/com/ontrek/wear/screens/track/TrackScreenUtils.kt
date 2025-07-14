@@ -11,51 +11,16 @@ import com.ontrek.wear.utils.objects.NearPoint
 import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs
 
-fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int): TrackPoint {
+fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int?): TrackPoint {
     val threadSafePosition = currentLocation
-
-    // Find the nearest track points to the current position
-    val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
-    var probableNextPointIndex = nearestPoints[0].index
-    var probableNextPointDistance = nearestPoints[0].distanceToUser
-
-
-    // If the nearest point is too far from the actual point index, we need to do a little bit of work
-    // to avoid the case where a user might by in a track where there are two tracks close to each other
-    // that go in different directions
-    if (probableNextPointIndex > actualPointIndex + 3 || probableNextPointIndex < actualPointIndex - 3) {
-        var newProbableNextPoint : NearPoint? = null
-
-        // If the nearest points are close to each other, we can use the probable next point index
-        // (probably the GPS fucked up at some point or lost the signal)...
-        if (nearestPoints.maxBy { it.index }.index - nearestPoints.minBy { it.index }.index >= 8) {
-
-            // But if they arent, we see if there is some point that is "close enough" to the actual point index
-            newProbableNextPoint = nearestPoints.find { it.index <= actualPointIndex + 3 && it.index >= actualPointIndex - 3 }
-
-            // ...but if all the nearest points are too far from the actual point index,
-            // we also need to find the one that is "closest in the array" to the last point
-            if (newProbableNextPoint == null) {
-                Log.w(
-                    "TRACK_SCREEN_VIEW_MODEL",
-                    "No nearest point found close to the actual point index: $actualPointIndex"
-                )
-                newProbableNextPoint =
-                    nearestPoints.minBy { abs(it.index - actualPointIndex) }
-            }
-        }
-
-        Log.w(
-            "TRACK_SCREEN_VIEW_MODEL",
-            "Probable next point index is too far from the actual point index: " +
-                    "actual=$actualPointIndex, probable=$probableNextPointIndex choosing=${newProbableNextPoint?.index ?: probableNextPointIndex}"
-        )
-
-        if (newProbableNextPoint != null) {
-            probableNextPointIndex = newProbableNextPoint.index
-            probableNextPointDistance = newProbableNextPoint.distanceToUser
-        }
+    var probableNextPoint: NearPoint?
+    if (actualPointIndex == null) {
+        probableNextPoint = getNearestPoints(threadSafePosition, trackPoints)[0]
+    } else {
+        probableNextPoint = extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
     }
+    var probableNextPointIndex = probableNextPoint.index
+    var probableNextPointDistance = probableNextPoint.distanceToUser
 
     // --- Checks to skip entirely the next steps ---
 
@@ -112,6 +77,38 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
     }
     // We are closer to the second point, so we can return it
     return trackPoints[W + 1]
+}
+
+fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int) : NearPoint {
+    val threadSafePosition = position
+
+    // Find the nearest track points to the current position
+    val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
+    val probableNextPoint = nearestPoints[0]
+
+    // If the nearest point is too far from the actual point index, we need to do a little bit of work
+    // to avoid the case where a user might by in a track where there are two tracks close to each other
+    // that go in different directions
+    if (probableNextPoint.index <= actualPointIndex + 3 && probableNextPoint.index >= actualPointIndex - 3) return probableNextPoint
+
+    // If the nearest points are close to each other, we can use the probable next point index
+    // (probably the GPS fucked up at some point or lost the signal)...
+    if (nearestPoints.maxBy { it.index }.index - nearestPoints.minBy { it.index }.index < 7) return probableNextPoint
+
+    // But if they arent, we see if there is some point that is "close enough" to the actual point index
+    val newProbableNextPoint = nearestPoints.find { it.index <= actualPointIndex + 3 && it.index >= actualPointIndex - 3 }
+
+    // ...but if all the nearest points are too far from the actual point index,
+    // we fallback the one that is "closest in the array" to the last point
+    if (newProbableNextPoint == null) {
+        Log.w(
+            "TRACK_SCREEN_VIEW_MODEL",
+            "No nearest point found close to the actual point index"
+        )
+        return nearestPoints.minBy { abs(it.index - actualPointIndex) }
+    }
+
+    return newProbableNextPoint
 }
 
 

@@ -107,7 +107,7 @@ class TrackScreenViewModel : ViewModel() {
                 (trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE)
             val isNearTrackValue = nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
             if (isNearTrackValue) {
-                nextTrackPoint.value = findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index ?: 0)
+                nextTrackPoint.value = findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index)
                 Log.d("TRACK_SCREEN_VIEW_MODEL", "Starting from ${nextTrackPoint.value?.index ?: "unknown"}")
                 progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
                 //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
@@ -122,8 +122,8 @@ class TrackScreenViewModel : ViewModel() {
     // Elaborates the distance to the track based on the current location and the current track points
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
-        val oldIndex = nextTrackPoint.value?.index ?: 0
-        nextTrackPoint.value = findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index ?: 0)
+        val oldIndex = nextTrackPoint.value?.index
+        nextTrackPoint.value = findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index)
         val newIndex = nextTrackPoint.value!!.index
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
