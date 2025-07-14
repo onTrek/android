@@ -62,7 +62,7 @@ fun SearchTab(
     ) {
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { viewModel.onSearchQueryChange(it) },
+            onValueChange = { viewModel.onSearchQueryChange(it, token) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Search users") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },

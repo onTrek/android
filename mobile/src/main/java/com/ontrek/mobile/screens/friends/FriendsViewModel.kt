@@ -6,6 +6,7 @@ import com.ontrek.mobile.screens.friends.tabs.RequestItem
 import com.ontrek.shared.api.friends.getFriendRequests
 import com.ontrek.shared.api.friends.getFriendRequestsSend
 import com.ontrek.shared.api.friends.getFriends
+import com.ontrek.shared.api.friends.searchUsers
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Friend
 import kotlinx.coroutines.delay
@@ -88,18 +89,18 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Aggiorna la query di ricerca
-    fun onSearchQueryChange(query: String) {
+    fun onSearchQueryChange(query: String, token: String) {
         _searchQuery.value = query
         if (query.isEmpty()) {
             _searchState.value = SearchState.Initial
             return
         }
 
-        searchUsers(query)
+        search(query, token)
     }
 
     // Cerca utenti in base alla query
-    private fun searchUsers(query: String, token: String) {
+    private fun search(query: String, token: String) {
     viewModelScope.launch {
         _searchState.value = SearchState.Loading
 
