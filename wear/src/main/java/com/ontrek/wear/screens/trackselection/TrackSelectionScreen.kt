@@ -33,13 +33,10 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
-import com.ontrek.shared.api.track.fetchData
-import com.ontrek.wear.screens.trackselection.components.DownloadTrackButton
 import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 @Composable
 fun TrackSelectionScreen(
@@ -103,7 +100,7 @@ fun TrackSelectionScreen(
             itemsIndexed(trackList) { index, track ->
                 TrackButton(
                     track = track,
-                    token = token?: "",
+                    token = token ?: "",
                     navController = navController,
                     index = index,
                     resetDownloadState = trackSelectionViewModel::resetDownloadState,
@@ -126,7 +123,10 @@ fun TrackSelectionScreen(
                     IconButton(
                         onClick = {
                             Log.d("TrackSelectionScreen", "Refresh tracks")
-                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
+                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(
+                                token!!,
+                                context
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()

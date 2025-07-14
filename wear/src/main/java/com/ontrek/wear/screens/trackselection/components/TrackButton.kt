@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.OfflinePin
 import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material.icons.outlined.Route
-import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +72,7 @@ fun TrackButton(
             is DownloadState.InProgress -> {
                 Loading(Modifier.fillMaxWidth())
             }
+
             is DownloadState.NotStarted -> {
                 Icon(
                     imageVector = Icons.Outlined.DownloadForOffline,
@@ -93,6 +91,7 @@ fun TrackButton(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+
             is DownloadState.Completed -> {
                 Icon(
                     imageVector = Icons.Default.OfflinePin,
@@ -111,6 +110,7 @@ fun TrackButton(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+
             is DownloadState.Error -> {
                 val message = (track.state as DownloadState.Error).message
                 LaunchedEffect(message) {
@@ -136,7 +136,11 @@ fun TrackButton(
 
 @Composable
 fun DeleteTrackDialog(
-    trackName: String, trackSize: Double, showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit
+    trackName: String,
+    trackSize: Double,
+    showDialog: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(visible = showDialog, onDismissRequest = onDismiss, icon = {
         Icon(
