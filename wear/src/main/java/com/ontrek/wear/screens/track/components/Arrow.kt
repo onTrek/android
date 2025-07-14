@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -31,10 +33,26 @@ fun Arrow(
     val fraction = normalizedDirection / 180f
     val arrowColor = color ?: lerp(correctColor, wrongColor, fraction)
 
-    val move0ToTheBottom = if (direction > 180f) direction - 360f else direction
+    // Memorizza l'ultimo valore di direzione per calcolare il percorso più breve
+    val lastDirection = remember { mutableFloatStateOf(direction) }
+
+    // Calcola la rotazione più breve
+    val targetDirection = remember(direction) {
+        val currentAngle = ((lastDirection.floatValue % 360) + 360) % 360
+        val targetAngle = ((direction % 360) + 360) % 360
+
+        // Calcola la differenza più breve
+        var diff = targetAngle - currentAngle
+        if (diff > 180f) diff -= 360f
+        if (diff < -180f) diff += 360f
+
+        val result = lastDirection.floatValue + diff
+        lastDirection.floatValue = result
+        result
+    }
 
     val animatedDirection by animateFloatAsState(
-        targetValue = move0ToTheBottom,
+        targetValue = targetDirection,
         animationSpec = tween(durationMillis = 200),
         label = "DirectionAnimation"
     )
@@ -42,14 +60,9 @@ fun Arrow(
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2, size.height / 2)
         val radius = size.minDimension / 2f
-        var animatedArrow = animatedDirection
-
-        if (direction > 140 && direction < 180) {
-            animatedArrow = direction
-        }
 
         // Rotazione negativa per allineare correttamente con la direzione Nord
-        rotate(-animatedArrow) {
+        rotate(-animatedDirection) {
             // Disegna il corpo della freccia (linea principale)
             drawLine(
                 color = arrowColor,
