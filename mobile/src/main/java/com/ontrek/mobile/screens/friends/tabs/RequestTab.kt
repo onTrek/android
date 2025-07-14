@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
-import com.ontrek.mobile.utils.components.Username
+import com.ontrek.mobile.utils.components.friendsComponents.Username
 import com.ontrek.shared.data.FriendRequest
 import java.sql.Timestamp
 
