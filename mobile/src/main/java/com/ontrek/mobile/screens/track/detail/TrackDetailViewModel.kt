@@ -87,8 +87,6 @@ class TrackDetailViewModel : ViewModel() {
                     _imageState.value = ImageState.Error(errorMessage)
                 }
             )
-            // URL di esempio di un'immagine
-            //_imageState.value = ImageState.Success("https://images.unsplash.com/photo-1551632811-561732d1e306")
         }
     }
 
