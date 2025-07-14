@@ -45,6 +45,7 @@ import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
+import com.ontrek.wear.utils.functions.calculateFontSize
 
 
 private const val buttonSweepAngle = 60f
@@ -75,7 +76,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val isGpsAccuracyLow = {
         gpsAccuracy > trackPointThreshold
     }
-    val gpsAccuracyText = "Accuracy low"
+    val gpsAccuracyText = "Low GPS signal"
 
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
@@ -158,9 +159,9 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     var infobackgroundColor: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.primaryContainer
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
     var infotextColor: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.onPrimaryContainer
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
 
     if (!parsingError.isEmpty()) {
         ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
@@ -192,10 +193,13 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                         backgroundColor = infobackgroundColor,
                         modifier = Modifier.padding(10.dp)
                     ) { time ->
+                        val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                        val dynamicFontSize = calculateFontSize(displayText)
                         curvedText(
-                            text = if (isGpsAccuracyLow()) gpsAccuracyText else time,
+                            text = displayText,
                             overflow = TextOverflow.Ellipsis,
                             color = infotextColor,
+                            fontSize = dynamicFontSize
                         )
                     }
                 },
