@@ -130,7 +130,7 @@ class TrackScreenViewModel : ViewModel() {
             progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
 
             //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
-            elaborateDirection(0.0F)
+            //elaborateDirection(0.0F)
         }
 
         //TODO()
