@@ -26,6 +26,7 @@ data class TrackButtonUI (
     val filename: String = "$id.gpx",
     val uploadedAt: Long,
     val size: Double,  // TODO: Change to Long if size is always in bytes
+    var downloadedAt: Long? = null,
     var state: DownloadState,
 )
 
@@ -79,9 +80,14 @@ class TrackSelectionViewModel : ViewModel() {
                 a.state is DownloadState.Completed && b.state !is DownloadState.Completed -> -1
                 a.state !is DownloadState.Completed && b.state is DownloadState.Completed -> 1
                 else -> when {
-                    a.uploadedAt > b.uploadedAt -> -1
-                    a.uploadedAt < b.uploadedAt -> 1
-                    else -> 0
+                    a.downloadedAt == null && b.downloadedAt != null -> 1
+                    a.downloadedAt != null && b.downloadedAt == null -> -1
+                    a.downloadedAt != null && b.downloadedAt != null -> {
+                        if (a.downloadedAt!! > b.downloadedAt!!) -1 else 1
+                    }
+                    else -> {
+                        if (a.uploadedAt > b.uploadedAt) -1 else 1
+                    }
                 }
             }
         }
@@ -111,7 +117,9 @@ class TrackSelectionViewModel : ViewModel() {
             }, onSuccess = { fileContent, filename ->
                 Log.d("DownloadTrack", "File downloaded successfully: $filename")
                 saveFile(fileContent, filename, context)
+                _trackListState.value[index].downloadedAt = System.currentTimeMillis()
                 updateButtonState(index, DownloadState.Completed)
+                _trackListState.value = _trackListState.value.sorted() // Re-sort the list after download
             })
         }
     }
