@@ -33,10 +33,10 @@ class FriendsViewModel : ViewModel() {
 
             // Dati di esempio
             val friendsList = listOf(
-                Friend(1, "Marco Rossi", "marco.rossi", "https://randomuser.me/api/portraits/men/1.jpg"),
-                Friend(2, "Giulia Bianchi", "giulia.b", "https://randomuser.me/api/portraits/women/2.jpg"),
-                Friend(3, "Luca Verdi", "luca.verdi", "https://randomuser.me/api/portraits/men/3.jpg"),
-                Friend(4, "Anna Neri", "anna_neri", "https://randomuser.me/api/portraits/women/4.jpg")
+                Friend(1, "Mario Rossi"),
+                Friend(2, "Luca Bianchi"),
+                Friend(3, "Giulia Verdi"),
+                Friend(4, "Anna Neri")
             )
 
             _friendsState.value = FriendsState.Success(friendsList)
@@ -51,10 +51,10 @@ class FriendsViewModel : ViewModel() {
 
             // Dati di esempio
             val requestsList = listOf(
-                FriendRequest(5, "Paolo Bruno", "paolo.bruno", "https://randomuser.me/api/portraits/men/5.jpg", System.currentTimeMillis() - 3600000),
-                FriendRequest(6, "Sofia Gialli", "sofia.gialli", "https://randomuser.me/api/portraits/women/6.jpg", System.currentTimeMillis() - 86400000)
+                FriendRequest(1, "Mario Rossi", System.currentTimeMillis()),
+                FriendRequest(2, "Luca Bianchi", System.currentTimeMillis() - 3600000),
+                FriendRequest(3, "Giulia Verdi", System.currentTimeMillis() - 7200000)
             )
-
             _requestsState.value = RequestsState.Success(requestsList)
         }
     }
@@ -83,9 +83,10 @@ class FriendsViewModel : ViewModel() {
             }
 
             val usersList = listOf(
-                User(7, "Mario $query", "mario.$query", "https://randomuser.me/api/portraits/men/7.jpg"),
-                User(8, "Laura $query", "laura.$query", "https://randomuser.me/api/portraits/women/8.jpg")
-            )
+                Friend(5, "Marco Rossi"),
+                Friend(6, "Sara Bianchi"),
+                Friend(7, "Elena Verdi")
+            ).filter { it.username.contains(query, ignoreCase = true) }
 
             _searchState.value = if (usersList.isEmpty()) {
                 SearchState.Empty
@@ -147,9 +148,8 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Modelli di dati
-    data class Friend(val id: Int, val name: String, val username: String, val avatarUrl: String)
-    data class User(val id: Int, val name: String, val username: String, val avatarUrl: String)
-    data class FriendRequest(val id: Int, val name: String, val username: String, val avatarUrl: String, val timestamp: Long)
+    data class Friend(val id: Int, val username: String)
+    data class FriendRequest(val id: Int, val username: String, val timestamp: Long)
 
     // Stati delle amicizie
     sealed class FriendsState {
@@ -170,7 +170,7 @@ class FriendsViewModel : ViewModel() {
         object Initial : SearchState()
         object Loading : SearchState()
         object Empty : SearchState()
-        data class Success(val users: List<User>) : SearchState()
+        data class Success(val users: List<Friend>) : SearchState()
         data class Error(val message: String) : SearchState()
     }
 }

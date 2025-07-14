@@ -24,7 +24,7 @@ fun FriendsScreen(
 ) {
     val viewModel: FriendsViewModel = viewModel()
     val tabIndex = remember { mutableIntStateOf(0) }
-    val tabs = listOf("Amici", "Cerca", "Richieste")
+    val tabs = listOf("Friends", "Search", "Requests")
 
     LaunchedEffect(Unit) {
         viewModel.loadFriends(token)
