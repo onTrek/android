@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.track.detail
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +24,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,10 +37,21 @@ fun TrackDetailScreen(
     val viewModel: TrackDetailViewModel = viewModel()
     val trackDetailState by viewModel.trackDetailState.collectAsState()
     val imageState by viewModel.imageState.collectAsState()
+    val msgToast by viewModel.msgToast.collectAsState()
+    val current = LocalContext.current
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(trackId) {
         viewModel.loadTrackDetails(trackId, token)
         viewModel.loadTrackImage(trackId, token)
+    }
+
+    LaunchedEffect(msgToast) {
+        if (msgToast.isNotEmpty()) {
+            Toast.makeText(current, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.resetMsgToast() // Reset the message after showing it
+        }
     }
 
     Scaffold(
@@ -87,13 +100,28 @@ fun TrackDetailScreen(
                             .padding(16.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
+                        if (showDeleteConfirmation) {
+                            DeleteConfirmationDialog(
+                                title = "Delete Track",
+                                onDismiss = { showDeleteConfirmation = false },
+                                onConfirm = {
+                                    viewModel.deleteTrack(track.id.toString(),
+                                        token,
+                                        onSuccess = {
+                                            navController.navigateUp()
+                                        },
+                                    )
+                                }
+                            )
+                        }
+
                         // Titolo
                         Text(
                             text = track.title,
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Start
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -233,6 +261,18 @@ fun TrackDetailScreen(
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // Bottone per eliminazione traccia
+                        Button(
+                            onClick = { showDeleteConfirmation = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text(
+                                text = "Delete Track",
+                                color = MaterialTheme.colorScheme.onError
+                            )
+                        }
                     }
                 }
             }

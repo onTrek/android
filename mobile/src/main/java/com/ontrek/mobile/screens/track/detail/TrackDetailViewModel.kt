@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.track.getMapTrack
 import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
-import com.ontrek.shared.data.TrackStats
+import com.ontrek.shared.api.track.deleteTrack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +22,13 @@ class TrackDetailViewModel : ViewModel() {
 
     private val _imageState = MutableStateFlow<ImageState>(ImageState.Loading)
     val imageState: StateFlow<ImageState> = _imageState
+
+    private val _isLoadingDelete = MutableStateFlow(false)
+    val isLoadingDelete: StateFlow<Boolean> = _isLoadingDelete
+
+    private val _msgToast = MutableStateFlow<String>("")
+    val msgToast: StateFlow<String> = _msgToast
+
 
     // Funzione per caricare i dettagli della traccia
     fun loadTrackDetails(trackId: String, token: String) {
@@ -90,6 +97,24 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
+    fun deleteTrack(trackId: String, token: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoadingDelete.value = true
+            deleteTrack(
+                id = trackId,
+                onSuccess = { _ ->
+                    _msgToast.value = "Track deleted successfully"
+                    onSuccess()
+                },
+                onError = { errorMsg ->
+                    _msgToast.value = errorMsg
+                },
+                token = token
+            )
+            _isLoadingDelete.value = false
+        }
+    }
+
     // Stati per i dettagli della traccia (carino, così mi consigliava chatGPT e funziona... godo)
     sealed class TrackDetailState {
         object Loading : TrackDetailState()
@@ -130,5 +155,9 @@ class TrackDetailViewModel : ViewModel() {
         } catch (e: Exception) {
             duration
         }
+    }
+
+    fun resetMsgToast() {
+        _msgToast.value = ""
     }
 }

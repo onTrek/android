@@ -34,21 +34,7 @@ class TrackViewModel : ViewModel() {
     }
 
     fun deleteTrack(trackId: String, token: String) {
-        Log.d("TrackViewModel", "Deleting track with ID: $trackId")
-        _isLoading.value = true
-        deleteTrack(
-            id = trackId,
-            onSuccess = { _ ->
-                _tracks.value = _tracks.value.filter { it.id.toString() != trackId }
-                _msgToast.value = "Track deleted successfully"
-            },
-            onError = { errorMsg ->
-                _msgToast.value = errorMsg
-                Log.e("TrackViewModel", "Error deleting track: $errorMsg")
-            },
-            token = token
-        )
-        _isLoading.value = false
+
     }
 
     fun addTrack(track: Track) {

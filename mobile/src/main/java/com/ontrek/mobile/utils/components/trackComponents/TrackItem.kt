@@ -25,7 +25,6 @@ import com.ontrek.shared.data.Track
 @Composable
 fun TrackItem(
     track: Track,
-    onDelete: () -> Unit,
     onItemClick: () -> Unit
 ) {
     Card(
@@ -73,17 +72,6 @@ fun TrackItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
-            }
-
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Track",
-                    tint = MaterialTheme.colorScheme.error
-                )
             }
         }
     }

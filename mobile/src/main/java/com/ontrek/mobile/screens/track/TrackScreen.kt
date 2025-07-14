@@ -105,9 +105,6 @@ fun TrackScreen(navController: NavHostController, token: String) {
                             items(tracks) { track ->
                                 TrackItem(
                                     track = track,
-                                    onDelete = {
-                                        viewModel.deleteTrack(track.id.toString(), token)
-                                    },
                                     onItemClick = {
                                         navController.navigate(Screen.TrackDetail.createRoute(track.id.toString()))
                                     }
