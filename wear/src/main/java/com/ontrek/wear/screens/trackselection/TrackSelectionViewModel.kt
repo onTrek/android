@@ -25,6 +25,7 @@ data class TrackButtonUI (
     val title: String,
     val filename: String = "$id.gpx",
     val uploadedAt: Long,
+    val size: Double,  // TODO: Change to Long if size is always in bytes
     var state: DownloadState,
 )
 
@@ -61,6 +62,7 @@ class TrackSelectionViewModel : ViewModel() {
                     id = track.id,
                     title = track.title,
                     uploadedAt = java.time.OffsetDateTime.parse(track.upload_date).toInstant().toEpochMilli(),
+                    size = track.size,
                     state = if (file.exists()) DownloadState.Completed else DownloadState.NotStarted,
                 )
             }.sorted()

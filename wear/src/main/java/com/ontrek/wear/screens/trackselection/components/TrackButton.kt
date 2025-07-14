@@ -1,11 +1,20 @@
 package com.ontrek.wear.screens.trackselection.components
 
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.OfflinePin
+import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,52 +32,111 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.screens.Screen
+import com.ontrek.wear.screens.trackselection.DownloadState
+import com.ontrek.wear.screens.trackselection.TrackButtonUI
+import com.ontrek.wear.utils.components.Loading
 import java.io.File
 
 @Composable
 fun TrackButton(
     modifier: Modifier = Modifier,
-    trackName: String,
-    trackID: Int,
+    track: TrackButtonUI,
     index: Int,
-    resetDownloadState: (Int) -> Unit,
     navController: NavHostController,
+    token: String,
+    onDownloadClick: (String, Int, Int, Context) -> Unit,
+    resetDownloadState: (Int) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     Button(
-        onClick = { navController.navigate(route = Screen.TrackScreen.route + "?trackID=${trackID}") },
-        onLongClick = { showDialog = true },
-        modifier = modifier
+        onClick = {
+            if (track.state is DownloadState.NotStarted) {
+                onDownloadClick(token, index, track.id, context)
+            } else if (track.state is DownloadState.Completed) {
+                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${track.id}")
+            }
+        },
+        onLongClick = {
+            if (track.state is DownloadState.Completed) {
+                showDialog = true
+            } else {
+                Toast.makeText(context, "Track size: ${track.size}KB", Toast.LENGTH_SHORT).show()
+            }
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = modifier,
     ) {
-        Text(
-            text = trackName,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Left,
-            modifier = Modifier
-                .weight(0.85f)
-                .padding(8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        DeleteTrackDialog(
-            trackName = trackName,
-            showDialog = showDialog,
-            onConfirm = {
-                File(context.filesDir, "${trackID}.gpx").delete()
-                resetDownloadState(index)  // TODO: It does not trigger recomposition
-
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
+        when (track.state) {
+            is DownloadState.InProgress -> {
+                Loading(Modifier.fillMaxWidth())
+            }
+            is DownloadState.NotStarted -> {
+                Icon(
+                    imageVector = Icons.Outlined.DownloadForOffline,
+                    contentDescription = "Download track",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(0.15f)
+                )
+                Text(
+                    text = track.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Left,
+                    modifier = Modifier
+                        .weight(0.85f)
+                        .padding(8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            is DownloadState.Completed -> {
+                Icon(
+                    imageVector = Icons.Default.OfflinePin,
+                    contentDescription = "Download track",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(0.15f)
+                )
+                Text(
+                    text = track.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Left,
+                    modifier = Modifier
+                        .weight(0.9f)
+                        .padding(8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            is DownloadState.Error -> {
+                val message = (track.state as DownloadState.Error).message
+                LaunchedEffect(message) {
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                }
+                resetDownloadState(index)
+            }
+        }
     }
+    DeleteTrackDialog(
+        trackName = track.title,
+        trackSize = track.size,
+        showDialog = showDialog,
+        onConfirm = {
+            File(context.filesDir, "${track.id}.gpx").delete()
+            resetDownloadState(index)  // TODO: It does not trigger recomposition
+
+            showDialog = false
+        },
+        onDismiss = { showDialog = false }
+    )
 }
 
 @Composable
 fun DeleteTrackDialog(
-    trackName: String, showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit
+    trackName: String, trackSize: Double, showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
     AlertDialog(visible = showDialog, onDismissRequest = onDismiss, icon = {
         Icon(
@@ -113,7 +181,16 @@ fun DeleteTrackDialog(
     }) {
         item {
             Text(
-                text = "Are you sure you want to delete the track '$trackName'? You can re-download it later if needed.",
+                text = trackName,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(8.dp),
+            )
+        }
+        item {
+            Text(
+                text = "${trackSize}MB of storage will be freed. You can download it later if needed.",
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,

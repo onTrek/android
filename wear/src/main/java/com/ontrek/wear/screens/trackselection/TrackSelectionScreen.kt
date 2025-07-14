@@ -101,29 +101,14 @@ fun TrackSelectionScreen(
                 )
             }
             itemsIndexed(trackList) { index, track ->
-                val file = File(context.filesDir, "${track.id}.gpx")
-                if (file.exists()) {
-                    // If the file exists, navigate to the track screen
-                    TrackButton(
-                        trackName = track.title,
-                        trackID = track.id,
-                        navController = navController,
-                        index = index,
-                        resetDownloadState = trackSelectionViewModel::resetDownloadState,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-                } else {
-                    DownloadTrackButton(
-                        trackName = track.title,
-                        trackID = track.id,
-                        token = token ?: "",
-                        state = track.state,
-                        onDownloadClick = trackSelectionViewModel::downloadTrack,
-                        unSetError = trackSelectionViewModel::resetDownloadState,
-                        index = index,
-                        modifier = Modifier.fillMaxWidth(0.95f),
-                    )
-                }
+                TrackButton(
+                    track = track,
+                    token = token?: "",
+                    navController = navController,
+                    index = index,
+                    resetDownloadState = trackSelectionViewModel::resetDownloadState,
+                    onDownloadClick = trackSelectionViewModel::downloadTrack,
+                )
             }
             item {
                 if (!error.isNullOrEmpty()) {
