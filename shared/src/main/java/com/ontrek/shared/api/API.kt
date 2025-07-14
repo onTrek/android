@@ -48,6 +48,10 @@ interface ApiService {
     @GET("gpx/")
     fun getTracks(@Header("Bearer") token: String): Call<List<Track>>
 
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("gpx/{id}")
+    fun getTrack(@Header("Bearer") token: String, @Path("id") id: String): Call<Track>
+
     @Multipart
     @POST("gpx/")
     fun uploadTrack(@Header("Bearer") token: String, @Part("title") title: RequestBody, @Part gpxFile: MultipartBody.Part): Call<MessageResponse>

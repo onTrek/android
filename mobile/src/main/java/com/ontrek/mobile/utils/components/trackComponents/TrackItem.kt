@@ -1,7 +1,8 @@
-package com.ontrek.mobile.utils.components
+package com.ontrek.mobile.utils.components.trackComponents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -57,13 +58,12 @@ fun TrackItem(
                 )
 
                 // Colonna per titolo e distanza
-                androidx.compose.foundation.layout.Column(
+                Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = track.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    TitleTrack(
+                        title = track.title,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
 
                     // Distanza del percorso

@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,16 @@ fun TrackDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Track Details") },
+                title = {
+                    TitleTrack(
+                        title = when (trackDetailState) {
+                            is TrackDetailViewModel.TrackDetailState.Success ->
+                                (trackDetailState as TrackDetailViewModel.TrackDetailState.Success).track.title
+                            else -> "Track Details"
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

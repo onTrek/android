@@ -1,4 +1,4 @@
-package com.ontrek.mobile.utils.components
+package com.ontrek.mobile.utils.components.trackComponents
 
 import android.net.Uri
 import android.util.Log
@@ -82,11 +82,11 @@ fun AddTrackDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
-                        if (it.length <= 50) title = it
+                        if (it.length <= 64) title = it
                     },
                     label = { Text("Title") },
                     modifier = Modifier.fillMaxWidth(),
-                    supportingText = { Text("${title.length}/50") }
+                    supportingText = { Text("${title.length}/64") }
                 )
 
                 Button(

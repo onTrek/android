@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.track.getMapTrack
+import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.data.TrackStats
 import kotlinx.coroutines.Dispatchers
@@ -28,25 +29,24 @@ class TrackDetailViewModel : ViewModel() {
             _trackDetailState.value = TrackDetailState.Loading
 
             // Simulazione di una chiamata API
-            delay(1000)
+            delay(500)
 
             // Dati di esempio
-            val sampleTrack = Track(
-                id = trackId.toInt(),
-                title = "Monte Faggeto",
-                filename = "MonteBianco.gpx",
-                upload_date = "2025-05-11T08:00:00Z",
-                stats = TrackStats(
-                    ascent = 1000.0,
-                    descent = 1000.0,
-                    duration = "06:30:00",
-                    km = 15.0f,
-                    max_altitude = 2500,
-                    min_altitude = 1500
-                )
+            getTrack(
+                id = trackId,
+                onSuccess = { track ->
+                    if (track != null) {
+                        _trackDetailState.value = TrackDetailState.Success(track)
+                    } else {
+                        _trackDetailState.value = TrackDetailState.Error("Track not found")
+                    }
+                },
+                onError = { errorMessage ->
+                    Log.e("TrackDetailViewModel", "Error loading track: $errorMessage")
+                    _trackDetailState.value = TrackDetailState.Error(errorMessage)
+                },
+                token = token
             )
-
-            _trackDetailState.value = TrackDetailState.Success(sampleTrack)
         }
     }
 

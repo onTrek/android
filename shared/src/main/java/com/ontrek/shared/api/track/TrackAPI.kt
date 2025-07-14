@@ -37,6 +37,32 @@ fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, toke
     })
 }
 
+
+fun getTrack(
+    id: String,
+    onSuccess: (Track?) -> Unit,
+    onError: (String) -> Unit,
+    token: String
+) {
+    RetrofitClient.api.getTrack(token, id).enqueue(object : Callback<Track> {
+        override fun onResponse(call: Call<Track>, response: Response<Track>) {
+            if (response.isSuccessful) {
+                val data = response.body()
+                Log.d("API Track", "API Success: $data")
+                onSuccess(data)
+            } else {
+                Log.e("API Track", "API Error: ${response.code()}")
+                onError("API Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<Track>, t: Throwable) {
+            Log.e("API Track", "API Error: ${t.toString()}")
+            onError("API Error: ${t.message ?: "Unknown error"}")
+        }
+    })
+}
+
 fun uploadTrack(
     gpxFileBytes: ByteArray,
     titleTrack: String,

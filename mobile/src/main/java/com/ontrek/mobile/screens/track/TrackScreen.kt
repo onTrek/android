@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.mobile.utils.components.AddTrackDialog
+import com.ontrek.mobile.utils.components.trackComponents.AddTrackDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
-import com.ontrek.mobile.utils.components.TrackItem
+import com.ontrek.mobile.utils.components.trackComponents.TrackItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
