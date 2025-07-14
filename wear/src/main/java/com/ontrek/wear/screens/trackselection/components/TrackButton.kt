@@ -66,6 +66,7 @@ fun TrackButton(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
+        enabled = track.state is DownloadState.Completed || track.state is DownloadState.NotStarted,
         modifier = modifier,
     ) {
         when (track.state) {
@@ -77,11 +78,12 @@ fun TrackButton(
                 Icon(
                     imageVector = Icons.Outlined.DownloadForOffline,
                     contentDescription = "Download track",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.weight(0.15f)
                 )
                 Text(
                     text = track.title,
+                    color = MaterialTheme.colorScheme.outline,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Left,
                     modifier = Modifier
@@ -126,8 +128,7 @@ fun TrackButton(
         showDialog = showDialog,
         onConfirm = {
             File(context.filesDir, "${track.id}.gpx").delete()
-            resetDownloadState(index)  // TODO: It does not trigger recomposition
-
+            resetDownloadState(index)
             showDialog = false
         },
         onDismiss = { showDialog = false }

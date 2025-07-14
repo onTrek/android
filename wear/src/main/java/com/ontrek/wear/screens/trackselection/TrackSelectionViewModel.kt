@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.collections.sortedWith
 
 sealed class DownloadState {
     object NotStarted : DownloadState()
@@ -20,7 +19,7 @@ sealed class DownloadState {
     data class Error(val message: String) : DownloadState()
 }
 
-data class TrackButtonUI (
+data class TrackButtonUI(
     val id: Int,
     val title: String,
     val filename: String = "$id.gpx",
@@ -62,7 +61,8 @@ class TrackSelectionViewModel : ViewModel() {
                 TrackButtonUI(
                     id = track.id,
                     title = track.title,
-                    uploadedAt = java.time.OffsetDateTime.parse(track.upload_date).toInstant().toEpochMilli(),
+                    uploadedAt = java.time.OffsetDateTime.parse(track.upload_date).toInstant()
+                        .toEpochMilli(),
                     size = track.size,
                     state = if (file.exists()) DownloadState.Completed else DownloadState.NotStarted,
                 )
@@ -85,6 +85,7 @@ class TrackSelectionViewModel : ViewModel() {
                     a.downloadedAt != null && b.downloadedAt != null -> {
                         if (a.downloadedAt!! > b.downloadedAt!!) -1 else 1
                     }
+
                     else -> {
                         if (a.uploadedAt > b.uploadedAt) -1 else 1
                     }
@@ -101,7 +102,7 @@ class TrackSelectionViewModel : ViewModel() {
 
     private fun updateButtonState(index: Int, newState: DownloadState) {
         _trackListState.value = _trackListState.value.toMutableList().also {
-            it[index].state = newState
+            it[index] = it[index].copy(state = newState)
         }
     }
 
@@ -119,7 +120,8 @@ class TrackSelectionViewModel : ViewModel() {
                 saveFile(fileContent, filename, context)
                 _trackListState.value[index].downloadedAt = System.currentTimeMillis()
                 updateButtonState(index, DownloadState.Completed)
-                _trackListState.value = _trackListState.value.sorted() // Re-sort the list after download
+                _trackListState.value =
+                    _trackListState.value.sorted() // Re-sort the list after download
             })
         }
     }
@@ -131,6 +133,11 @@ class TrackSelectionViewModel : ViewModel() {
     }
 
     fun resetDownloadState(index: Int) {
-        updateButtonState(index, DownloadState.NotStarted)
+        _trackListState.value = _trackListState.value.toMutableList().also {
+            it[index] = it[index].copy(
+                state = DownloadState.NotStarted,
+                downloadedAt = null  // Reset the download timestamp
+            )
+        }.sorted()  // Re-sort after changing state
     }
 }

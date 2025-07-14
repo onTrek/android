@@ -56,12 +56,12 @@ fun TrackSelectionScreen(
         if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
     }
 
-    // Scroll to top when track list updates
-    LaunchedEffect(trackList) {
-        if (trackList.isNotEmpty()) {
-            listState.animateScrollToItem(0)
-        }
-    }
+    // TODO: scroll to top only when a track is downloaded
+//    LaunchedEffect(trackList) {
+//        if (trackList.isNotEmpty()) {
+//            listState.animateScrollToItem(0)
+//        }
+//    }
 
     ScreenScaffold(
         scrollState = listState,
@@ -105,6 +105,7 @@ fun TrackSelectionScreen(
                     index = index,
                     resetDownloadState = trackSelectionViewModel::resetDownloadState,
                     onDownloadClick = trackSelectionViewModel::downloadTrack,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             item {
