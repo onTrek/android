@@ -143,7 +143,7 @@ fun RequestItem(
                                 onReject()
                                 showDeleteConfirmation = false
                             },
-                            title = "Remove Friend",
+                            title = "Remove Request",
                         )
                     }
 
