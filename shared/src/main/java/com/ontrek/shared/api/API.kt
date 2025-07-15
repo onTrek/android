@@ -69,10 +69,6 @@ interface ApiService {
     fun deleteTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<MessageResponse>
 
     @Streaming
-    @GET("gpx/{id}/download")
-    fun downloadTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
-
-    @Streaming
     @GET("gpx/{id}/map")
     fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
 }
