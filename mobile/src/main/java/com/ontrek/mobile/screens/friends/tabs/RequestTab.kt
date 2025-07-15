@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.friendsComponents.Username
 import com.ontrek.shared.data.FriendRequest
 import java.time.Duration
@@ -82,6 +83,8 @@ fun RequestItem(
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -123,13 +126,24 @@ fun RequestItem(
                     horizontalArrangement = Arrangement.End
                 ) {
                     OutlinedButton(
-                        onClick = onReject,
+                        onClick = { showDeleteConfirmation = true },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.outline),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
                             modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    if (showDeleteConfirmation) {
+                        DeleteConfirmationDialog(
+                            onDismiss = { showDeleteConfirmation = false },
+                            onConfirm = {
+                                onReject()
+                                showDeleteConfirmation = false
+                            },
+                            title = "Remove Friend",
                         )
                     }
 
