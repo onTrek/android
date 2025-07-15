@@ -28,13 +28,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
+import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.friendsComponents.Username
 import com.ontrek.shared.data.Friend
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun FriendsTab(
@@ -90,6 +95,9 @@ fun FriendItem(
     friend: Friend,
     onRemoveFriend: () -> Unit
 ) {
+
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -122,11 +130,22 @@ fun FriendItem(
                 )
             }
 
-            IconButton(onClick = onRemoveFriend) {
+            IconButton(onClick = { showDeleteConfirmation = true }) {
                 Icon(
-                    imageVector = Icons.Default.PersonRemove,
+                    imageVector = Icons.Default.Delete,
                     contentDescription = "Delete Friend",
                     tint = MaterialTheme.colorScheme.error
+                )
+            }
+
+            if (showDeleteConfirmation) {
+                DeleteConfirmationDialog(
+                    onDismiss = { showDeleteConfirmation = false },
+                    onConfirm = {
+                        onRemoveFriend()
+                        showDeleteConfirmation = false
+                    },
+                    title = "Remove Friend",
                 )
             }
         }
