@@ -11,6 +11,7 @@ import com.ontrek.mobile.screens.profile.Profile
 import com.ontrek.mobile.screens.friends.FriendsScreen
 import com.ontrek.mobile.screens.hike.GroupScreen
 import com.ontrek.mobile.screens.track.TrackScreen
+import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
@@ -26,7 +27,15 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             Profile(navController, preferencesViewModel.tokenState)
         }
         composable(route = Screen.Tracks.route) {
-            TrackScreen(navController)
+            TrackScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
+        }
+        composable(route = Screen.TrackDetail.route) { backStackEntry ->
+            val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
+            TrackDetailScreen(
+                trackId = trackId,
+                navController = navController,
+                token = preferencesViewModel.tokenState.value ?: ""
+            )
         }
         composable(route = Screen.Hikes.route) {
             GroupScreen(navController)
