@@ -14,6 +14,6 @@ data class Track(
     val filename: String,
     val stats: TrackStats,
     val title: String,
-    val size: Double,
+    val size: Long,
     val upload_date: String
 )

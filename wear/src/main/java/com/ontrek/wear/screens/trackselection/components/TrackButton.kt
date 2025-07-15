@@ -28,6 +28,7 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.trackselection.DownloadState
 import com.ontrek.wear.screens.trackselection.TrackButtonUI
@@ -59,7 +60,7 @@ fun TrackButton(
             if (track.state is DownloadState.Completed) {
                 showDialog = true
             } else {
-                Toast.makeText(context, "Track size: ${track.size}KB", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Track size: ${track.getFormattedSize()}", Toast.LENGTH_SHORT).show()
             }
         },
         colors = ButtonDefaults.buttonColors(
@@ -123,8 +124,7 @@ fun TrackButton(
         }
     }
     DeleteTrackDialog(
-        trackName = track.title,
-        trackSize = track.size,
+        track = track,
         showDialog = showDialog,
         onConfirm = {
             File(context.filesDir, "${track.id}.gpx").delete()
@@ -137,8 +137,7 @@ fun TrackButton(
 
 @Composable
 fun DeleteTrackDialog(
-    trackName: String,
-    trackSize: Double,
+    track: TrackButtonUI,
     showDialog: Boolean,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
@@ -186,7 +185,7 @@ fun DeleteTrackDialog(
     }) {
         item {
             Text(
-                text = trackName,
+                text = track.title,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
@@ -195,7 +194,7 @@ fun DeleteTrackDialog(
         }
         item {
             Text(
-                text = "${trackSize}MB of storage will be freed. You can download it later if needed.",
+                text = "${track.getFormattedSize()} of storage will be freed. You can download it later if needed.",
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,

@@ -24,10 +24,24 @@ data class TrackButtonUI(
     val title: String,
     val filename: String = "$id.gpx",
     val uploadedAt: Long,
-    val size: Double,  // TODO: Change to Long if size is always in bytes
+    val size: Long,  // size in Bytes
     var downloadedAt: Long? = null,
     var state: DownloadState,
-)
+) {
+    val sizeInKB: Long
+        get() = size / 1024
+
+    val sizeInMB: Double
+        get() = size / (1024.0 * 1024.0)
+
+    fun getFormattedSize(): String {
+        return when {
+            sizeInMB >= 1 -> "$sizeInMB MB"
+            sizeInKB >= 1 -> "$sizeInKB KB"
+            else -> "$size Bytes"
+        }
+    }
+}
 
 class TrackSelectionViewModel : ViewModel() {
 
