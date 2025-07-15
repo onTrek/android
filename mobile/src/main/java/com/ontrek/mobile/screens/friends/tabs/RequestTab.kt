@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -92,7 +93,7 @@ fun RequestItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = Icons.Default.PersonAdd,
                     contentDescription = "Profilo",
                     modifier = Modifier
                         .size(40.dp)
@@ -126,7 +127,7 @@ fun RequestItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Rifiuta",
+                            contentDescription = "Close",
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -136,7 +137,7 @@ fun RequestItem(
                     Button(onClick = onAccept) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Accetta",
+                            contentDescription = "Acept",
                             modifier = Modifier.size(20.dp)
                         )
                     }

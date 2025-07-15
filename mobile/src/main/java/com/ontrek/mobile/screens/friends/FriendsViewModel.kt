@@ -2,10 +2,9 @@ package com.ontrek.mobile.screens.friends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ontrek.mobile.screens.friends.tabs.RequestItem
 import com.ontrek.shared.api.friends.getFriendRequests
-import com.ontrek.shared.api.friends.getFriendRequestsSend
 import com.ontrek.shared.api.friends.getFriends
+import com.ontrek.shared.api.friends.getSentFriendRequest
 import com.ontrek.shared.api.friends.searchUsers
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Friend
@@ -59,7 +58,7 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             _sentFriendRequests.value = SentRequestsState.Loading
             delay(500)
-            getFriendRequestsSend(
+            getSentFriendRequest(
                 token = token,
                 onSuccess = { requests ->
                     _sentFriendRequests.value = SentRequestsState.Success(requests ?: emptyList())
@@ -101,34 +100,34 @@ class FriendsViewModel : ViewModel() {
 
     // Cerca utenti in base alla query
     private fun search(query: String, token: String) {
-    viewModelScope.launch {
-        _searchState.value = SearchState.Loading
+        viewModelScope.launch {
+            _searchState.value = SearchState.Loading
 
-        // Se la query è troppo corta, ritorna subito
-        if (query.length < 2) {
-            _searchState.value = SearchState.Initial
-            return@launch
-        }
-
-        // Chiamata all'API reale
-        searchUsers(
-            query = query,
-            token = token,
-            onSuccess = { users ->
-                _searchState.value = if (users.isNullOrEmpty()) {
-                    SearchState.Empty
-                } else {
-                    SearchState.Success(users)
-                }
-            },
-            onError = { error ->
-                _searchState.value = SearchState.Error(error)
+            // Se la query è troppo corta, ritorna subito
+            if (query.length < 2) {
+                _searchState.value = SearchState.Initial
+                return@launch
             }
-        )
+
+            // Chiamata all'API reale
+            searchUsers(
+                token = token,
+                query = query,
+                onSuccess = { users ->
+                    _searchState.value = if (users.isNullOrEmpty()) {
+                        SearchState.Empty
+                    } else {
+                        SearchState.Success(users)
+                    }
+                },
+                onError = { error ->
+                    _searchState.value = SearchState.Error(error)
+                }
+            )
+        }
     }
-}
     // Invia richiesta di amicizia
-    fun sendFriendRequest(userId: Int, token: String) {
+    fun sendFriendRequest(userId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(800)
@@ -136,7 +135,7 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Accetta richiesta di amicizia
-    fun acceptFriendRequest(requestId: Int, token: String) {
+    fun acceptFriendRequest(requestId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(500)
@@ -152,28 +151,18 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Rifiuta richiesta di amicizia
-    fun rejectFriendRequest(requestId: Int, token: String) {
+    fun rejectFriendRequest(requestId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(500)
-
-            // Aggiorna le richieste rimuovendo quella rifiutata
-            val currentRequests = (_requestsState.value as? RequestsState.Success)?.requests ?: return@launch
-            val updatedRequests = currentRequests.filterNot { it.id == requestId }
-            _requestsState.value = RequestsState.Success(updatedRequests)
         }
     }
 
     // Elimina amicizia
-    fun removeFriend(friendId: Int, token: String) {
+    fun removeFriend(friendId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(700)
-
-            // Aggiorna la lista degli amici
-            val currentFriends = (_friendsState.value as? FriendsState.Success)?.friends ?: return@launch
-            val updatedFriends = currentFriends.filterNot { it.id == friendId }
-            _friendsState.value = FriendsState.Success(updatedFriends)
         }
     }
 
