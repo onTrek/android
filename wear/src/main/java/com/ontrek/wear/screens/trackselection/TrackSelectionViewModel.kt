@@ -40,6 +40,13 @@ class TrackSelectionViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _updateSuccess = MutableStateFlow<Boolean>(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess
+
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
     fun fetchTrackList(token: String, context: Context) {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
@@ -68,6 +75,7 @@ class TrackSelectionViewModel : ViewModel() {
                 )
             }.sorted()
             _error.value = null
+            _updateSuccess.value = true
         } else {
             Log.e("WearOS", "Data is null")
         }
@@ -122,6 +130,7 @@ class TrackSelectionViewModel : ViewModel() {
                 updateButtonState(index, DownloadState.Completed)
                 _trackListState.value =
                     _trackListState.value.sorted() // Re-sort the list after download
+                _updateSuccess.value = true
             })
         }
     }

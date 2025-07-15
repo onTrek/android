@@ -47,6 +47,7 @@ fun TrackSelectionScreen(
     val trackList by trackSelectionViewModel.trackListState.collectAsStateWithLifecycle()
     val isLoading by trackSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val error by trackSelectionViewModel.error.collectAsStateWithLifecycle()
+    val updateSuccess by trackSelectionViewModel.updateSuccess.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
@@ -56,12 +57,13 @@ fun TrackSelectionScreen(
         if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
     }
 
-    // TODO: scroll to top only when a track is downloaded
-//    LaunchedEffect(trackList) {
-//        if (trackList.isNotEmpty()) {
-//            listState.animateScrollToItem(0)
-//        }
-//    }
+    // Reset scroll position when update (tracks fetching or track downloading) is successful
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            listState.animateScrollToItem(0)
+            trackSelectionViewModel.resetUpdateSuccess()
+        }
+    }
 
     ScreenScaffold(
         scrollState = listState,
