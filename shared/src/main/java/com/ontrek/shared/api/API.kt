@@ -11,6 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.MessageResponse
+import com.ontrek.shared.data.Profile
 import com.ontrek.shared.data.Signup
 import com.ontrek.shared.data.TokenResponse
 import okhttp3.MultipartBody
@@ -42,6 +43,14 @@ interface ApiService {
     @POST("/auth/register")
     fun signup(@Body loginBody: Signup): Call<MessageResponse>
 
+    // --------- PROFILE ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/profile")
+    fun getProfile(@Header("Bearer") token: String): Call<Profile>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE ("/profile")
+    fun deleteProfile(@Header("Bearer") token: String): Call<MessageResponse>
 
     // ------- GPX ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
