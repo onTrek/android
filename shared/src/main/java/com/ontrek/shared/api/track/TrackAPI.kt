@@ -1,7 +1,6 @@
 package com.ontrek.shared.api.track
 
 import android.util.Log
-import androidx.compose.ui.platform.LocalDensity
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Track
@@ -12,7 +11,6 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
 
 fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, token: String) {
     RetrofitClient.api.getTracks(token).enqueue(object : Callback<List<Track>> {
@@ -121,30 +119,6 @@ fun deleteTrack(
         override fun onFailure(call: Call<MessageResponse>, t: Throwable) {
             Log.e("API Track", "Delete Error: ${t.toString()}")
             onError("Delete Error: ${t.message ?: "Unknown error"}")
-        }
-    })
-}
-
-fun downloadTrack(
-    id: String,
-    onSuccess: (ResponseBody?) -> Unit,
-    onError: (String) -> Unit,
-    token: String
-) {
-    RetrofitClient.api.downloadTrack(id, token).enqueue(object : Callback<ResponseBody> {
-        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-            if (response.isSuccessful) {
-                Log.d("API Track", "Download Success")
-                onSuccess(response.body())
-            } else {
-                Log.e("API Track", "Download Error: ${response.code()}")
-                onError("Download Error: ${response.code()}")
-            }
-        }
-
-        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-            Log.e("API Track", "Download Error: ${t.toString()}")
-            onError("Download Error: ${t.message ?: "Unknown error"}")
         }
     })
 }
