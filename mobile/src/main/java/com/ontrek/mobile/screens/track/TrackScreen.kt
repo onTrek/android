@@ -111,22 +111,21 @@ fun TrackScreen(navController: NavHostController, token: String) {
                                 )
                             }
                         }
-
-                       FloatingActionButton(
-                            onClick = {
-                                showAddTrackDialog = true
-                                      },
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(16.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add Track",
-                            )
-                        }
                     }
                 }
+            }
+            FloatingActionButton(
+                onClick = {
+                    showAddTrackDialog = true
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Track",
+                )
             }
         }
 
