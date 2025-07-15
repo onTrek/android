@@ -119,7 +119,6 @@ fun FriendItem(
 
                 Username(
                     username = friend.username,
-                    modifier = Modifier.weight(1f)
                 )
             }
 
