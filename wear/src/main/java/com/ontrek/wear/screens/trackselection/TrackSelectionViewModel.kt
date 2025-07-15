@@ -2,7 +2,7 @@ package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.ontrek.shared.api.track.fetchData
+import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +22,7 @@ class TrackSelectionViewModel : ViewModel() {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
-        fetchData(
+        getTracks(
             onSuccess = ::updateData,
             onError = ::setError,
             token = token,
