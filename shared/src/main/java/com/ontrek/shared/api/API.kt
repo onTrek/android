@@ -50,15 +50,24 @@ interface ApiService {
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/")
-    fun getFriends(@Header("Bearer") token: String, @Query("search") search: String? = null): Call<List<Friend>>
+    fun getFriends(@Header("Bearer") token: String): Call<List<Friend>>
 
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("friends/{id}")
+    fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("search")
+    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
+
+    // ------- FRIEND REQUESTS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/requests/received/")
     fun getFriendRequests(@Header("Bearer") token: String): Call<List<FriendRequest>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/requests/sent/")
-    fun getFriendRequestsSend(@Header("Bearer") token: String): Call<List<FriendRequest>>
+    fun getSentFriendRequests(@Header("Bearer") token: String): Call<List<FriendRequest>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @PUT("friends/requests/{id}")
@@ -66,17 +75,9 @@ interface ApiService {
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("friends/requests/{id}")
-    fun sendFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+    fun postFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
-    @DELETE("friends/request/{id}")
+    @DELETE("friends/requests/{id}")
     fun deleteFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
-
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @DELETE("friends/{id}")
-    fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
-
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("search/")
-    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
 }
