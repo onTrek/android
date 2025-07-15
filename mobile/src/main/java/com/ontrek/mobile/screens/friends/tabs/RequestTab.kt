@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.friendsComponents.Username
 import com.ontrek.shared.data.FriendRequest
-import java.sql.Timestamp
+import java.time.Duration
+import java.time.Instant
+import java.time.format.DateTimeParseException
 
 @Composable
 fun RequestsTab(
@@ -63,7 +64,7 @@ fun RequestsTab(
                         items(requests) { request ->
                             RequestItem(
                                 request = request,
-                                onAccept = { viewModel.acceptFriendRequest(request.id, token) },
+                                onAccept = { viewModel.acceptRequest(request.id, token) },
                                 onReject = { viewModel.rejectFriendRequest(request.id, token) }
                             )
                         }
@@ -108,10 +109,9 @@ fun RequestItem(
                 Column {
                     Username(
                         username = request.username,
-                        modifier = Modifier.fillMaxWidth()
                     )
                     Text(
-                        text = formatTimeAgo(request.timestamp),
+                        text = formatTimeAgo(request.date),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -148,15 +148,19 @@ fun RequestItem(
 }
 
 // Funzione per formattare il tempo passato
-// Funzione per formattare il tempo passato
-fun formatTimeAgo(timestamp: Timestamp): String {
-    val now = System.currentTimeMillis()
-    val diff = now - timestamp.time
+fun formatTimeAgo(timestamp: String): String {
+    return try {
+        val time = Instant.parse(timestamp)
+        val now = Instant.now()
+        val diff =  Duration.between(time, now).toMillis()
 
-    return when {
-        diff < 60_000 -> "Adesso"
-        diff < 3_600_000 -> "${diff / 60_000} minuti fa"
-        diff < 86_400_000 -> "${diff / 3_600_000} ore fa"
-        else -> "${diff / 86_400_000} giorni fa"
+        when {
+            diff < 60_000 -> "Adesso"
+            diff < 3_600_000 -> "${diff / 60_000} minuti fa"
+            diff < 86_400_000 -> "${diff / 3_600_000} ore fa"
+            else -> "${diff / 86_400_000} giorni fa"
+        }
+    } catch (e: DateTimeParseException) {
+        ""
     }
 }

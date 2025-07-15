@@ -2,10 +2,14 @@ package com.ontrek.mobile.screens.friends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ontrek.shared.api.friends.acceptFriendRequest
+import com.ontrek.shared.api.friends.deleteFriend
+import com.ontrek.shared.api.friends.deleteFriendRequest
 import com.ontrek.shared.api.friends.getFriendRequests
 import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.api.friends.getSentFriendRequest
 import com.ontrek.shared.api.friends.searchUsers
+import com.ontrek.shared.api.friends.sendFriendRequest
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Friend
 import kotlinx.coroutines.delay
@@ -41,7 +45,7 @@ class FriendsViewModel : ViewModel() {
     fun loadFriends(token: String) {
         viewModelScope.launch {
             _friendsState.value = FriendsState.Loading
-
+            delay(500) // Simula un ritardo per il caricamento
             getFriends(
                 token = token,
                 onSuccess = { friends ->
@@ -130,23 +134,38 @@ class FriendsViewModel : ViewModel() {
     fun sendFriendRequest(userId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(800)
+            delay(400)
+            sendFriendRequest(
+                token = token,
+                id = userId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    loadSentFriendRequests(token)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
         }
     }
 
     // Accetta richiesta di amicizia
-    fun acceptFriendRequest(requestId: String, token: String) {
+    fun acceptRequest(requestId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(500)
-
-            // Aggiorna le richieste rimuovendo quella accettata
-            val currentRequests = (_requestsState.value as? RequestsState.Success)?.requests ?: return@launch
-            val updatedRequests = currentRequests.filterNot { it.id == requestId }
-            _requestsState.value = RequestsState.Success(updatedRequests)
-
-            // Ricarica la lista degli amici
-            loadFriends(token)
+            acceptFriendRequest(
+                token = token,
+                id = requestId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    loadFriendRequests(token)
+                    loadFriends(token)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
         }
     }
 
@@ -155,6 +174,17 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             // Simulazione chiamata API
             delay(500)
+            deleteFriendRequest(
+                token = token,
+                id = requestId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    loadFriendRequests(token)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
         }
     }
 
@@ -162,7 +192,18 @@ class FriendsViewModel : ViewModel() {
     fun removeFriend(friendId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(700)
+            delay(500)
+            deleteFriend(
+                token = token,
+                id = friendId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    loadFriends(token)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
         }
     }
 
