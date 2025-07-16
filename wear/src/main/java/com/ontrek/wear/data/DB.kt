@@ -1,5 +1,6 @@
 package com.ontrek.wear.data
 
+import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Delete
@@ -7,6 +8,7 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Entity(tableName = "tracks")
@@ -34,4 +36,20 @@ interface TrackDao {
 @Database(entities = [Track::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun trackDao(): TrackDao
+}
+
+object DatabaseProvider {
+    private var instance: AppDatabase? = null
+
+    fun getDatabase(context: Context): AppDatabase {
+        return instance ?: synchronized(this) {
+            val db = Room.databaseBuilder(
+                context,
+                AppDatabase::class.java,
+                "ontrek-database"
+            ).build()
+            instance = db
+            db
+        }
+    }
 }

@@ -3,10 +3,12 @@ package com.ontrek.wear.screens.trackselection
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.ontrek.shared.api.track.getTracks
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.gpx.downloadGpx
+import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.Track
+import com.ontrek.wear.data.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -43,7 +45,7 @@ data class TrackButtonUI(
     }
 }
 
-class TrackSelectionViewModel : ViewModel() {
+class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
     private val _trackListState = MutableStateFlow<List<TrackButtonUI>>(listOf())
     val trackListState: StateFlow<List<TrackButtonUI>> = _trackListState
@@ -162,5 +164,15 @@ class TrackSelectionViewModel : ViewModel() {
                 downloadedAt = null  // Reset the download timestamp
             )
         }.sorted()  // Re-sort after changing state
+    }
+
+    class Factory(private val db: AppDatabase) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(TrackSelectionViewModel::class.java)) {
+                return TrackSelectionViewModel(db) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

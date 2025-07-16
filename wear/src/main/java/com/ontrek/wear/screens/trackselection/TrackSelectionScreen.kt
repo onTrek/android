@@ -33,6 +33,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
+import com.ontrek.wear.data.DatabaseProvider
 import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
@@ -43,7 +44,9 @@ fun TrackSelectionScreen(
     navController: NavHostController = rememberNavController(),
     tokenState: StateFlow<String?>,
 ) {
-    val trackSelectionViewModel = viewModel<TrackSelectionViewModel>()
+    val trackSelectionViewModel = viewModel<TrackSelectionViewModel>(
+        factory = TrackSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
+    )
     val trackList by trackSelectionViewModel.trackListState.collectAsStateWithLifecycle()
     val isLoading by trackSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val error by trackSelectionViewModel.error.collectAsStateWithLifecycle()
