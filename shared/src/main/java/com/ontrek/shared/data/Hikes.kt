@@ -38,3 +38,23 @@ data class GroupInfoResponseDoc(
     val members: List<GroupMember>,
     val created_by: UserMinimal
 )
+
+data class MemberInfo(
+    val user: UserMinimal,
+    val accuracy: Double,
+    val altitude: Double,
+    val going_to: String,
+    val help_request: Boolean = false,
+    val latitude: Double,
+    val longitude: Double,
+    val time_stamp: String
+)
+
+data class MemberInfoUpdate(
+    val accuracy: Double,
+    val altitude: Double,
+    val going_to: String,
+    val help_request: Boolean,
+    val latitude: Double,
+    val longitude: Double
+)
