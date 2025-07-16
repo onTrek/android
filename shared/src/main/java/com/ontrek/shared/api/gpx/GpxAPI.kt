@@ -11,7 +11,7 @@ import retrofit2.Response
 fun downloadGpx(
     token: String,
     gpxID: Int,
-    onSuccess: (ByteArray, String) -> Unit,
+    onSuccess: (ByteArray) -> Unit,
     onError: (String) -> Unit
 ) {
     RetrofitClient.api.downloadGPX(token, gpxID).enqueue(object : Callback<ResponseBody> {
@@ -28,7 +28,7 @@ fun downloadGpx(
                 }
 
                 Log.d("DownloadTrack", "File found successfully")
-                onSuccess(body.bytes(), "$gpxID.gpx")
+                onSuccess(body.bytes())
             } else {
                 Log.e("DownloadTrack", "Server returned error")
                 onError("${response.code()} - ${response.message()}")

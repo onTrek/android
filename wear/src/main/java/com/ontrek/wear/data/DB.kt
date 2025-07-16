@@ -29,8 +29,8 @@ interface TrackDao {
      @Insert
      suspend fun insertTrack(track: Track)
 
-     @Delete
-     suspend fun deleteTrack(track: Track)
+     @Query("DELETE FROM tracks WHERE id = :id")
+        suspend fun deleteTrackById(id: Int)
 }
 
 @Database(entities = [Track::class], version = 1)

@@ -1,6 +1,7 @@
 package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -47,9 +48,11 @@ fun TrackSelectionScreen(
     val trackSelectionViewModel = viewModel<TrackSelectionViewModel>(
         factory = TrackSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
     )
-    val trackList by trackSelectionViewModel.trackListState.collectAsStateWithLifecycle()
+    val downloadedTracks by trackSelectionViewModel.downloadedTrackListState.collectAsStateWithLifecycle()
+    val availableTracks by trackSelectionViewModel.availableTrackListState.collectAsStateWithLifecycle()
     val isLoading by trackSelectionViewModel.isLoading.collectAsStateWithLifecycle()
-    val error by trackSelectionViewModel.error.collectAsStateWithLifecycle()
+    val fetchError by trackSelectionViewModel.fetchError.collectAsStateWithLifecycle()
+    val downloadError by trackSelectionViewModel.downloadError.collectAsStateWithLifecycle()
     val updateSuccess by trackSelectionViewModel.updateSuccess.collectAsStateWithLifecycle()
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
@@ -57,7 +60,7 @@ fun TrackSelectionScreen(
     val context = LocalContext.current
 
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!, context)
+        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
     }
 
     // Reset scroll position when update (tracks fetching or track downloading) is successful
@@ -65,6 +68,14 @@ fun TrackSelectionScreen(
         if (updateSuccess) {
             listState.animateScrollToItem(0)
             trackSelectionViewModel.resetUpdateSuccess()
+        }
+    }
+
+    // show toast message if there is a download error
+    LaunchedEffect(downloadError) {
+        if (!downloadError.isNullOrEmpty()) {
+            Toast.makeText(context, downloadError, Toast.LENGTH_LONG).show()
+            trackSelectionViewModel.resetDownloadError()
         }
     }
 
@@ -87,7 +98,7 @@ fun TrackSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (trackList.isEmpty() && error.isNullOrEmpty()) {
+        } else if (downloadedTracks.isEmpty() && availableTracks.isEmpty() && fetchError.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -102,19 +113,38 @@ fun TrackSelectionScreen(
                     text = "My tracks"
                 )
             }
-            itemsIndexed(trackList) { index, track ->
+            itemsIndexed(downloadedTracks) { index, track ->
                 TrackButton(
                     track = track,
                     token = token ?: "",
                     navController = navController,
                     index = index,
-                    resetDownloadState = trackSelectionViewModel::resetDownloadState,
+                    resetDownloadState = trackSelectionViewModel::deleteTrack,
                     onDownloadClick = trackSelectionViewModel::downloadTrack,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
             item {
-                if (!error.isNullOrEmpty()) {
+                Text(
+                    modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    text = "Available tracks"
+                )
+            }
+            itemsIndexed(availableTracks) { index, track ->
+                TrackButton(
+                    track = track,
+                    token = token ?: "",
+                    navController = navController,
+                    index = index,
+                    resetDownloadState = trackSelectionViewModel::deleteTrack,
+                    onDownloadClick = trackSelectionViewModel::downloadTrack,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item {
+                if (!fetchError.isNullOrEmpty()) {
                     ErrorScreen(
                         "Error loading tracks",
                         Modifier
@@ -122,7 +152,7 @@ fun TrackSelectionScreen(
                             .padding(8.dp),
                         token,
                         refresh = { token ->
-                            trackSelectionViewModel.fetchTrackList(token, context)
+                            trackSelectionViewModel.fetchTrackList(token)
                         }
                     )
                 } else {
@@ -131,7 +161,6 @@ fun TrackSelectionScreen(
                             Log.d("TrackSelectionScreen", "Refresh tracks")
                             if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(
                                 token!!,
-                                context
                             )
                         },
                         modifier = Modifier

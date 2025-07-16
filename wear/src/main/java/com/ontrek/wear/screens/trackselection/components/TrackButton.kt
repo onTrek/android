@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.OfflinePin
 import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +27,6 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
-import com.ontrek.shared.data.Track
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.trackselection.DownloadState
 import com.ontrek.wear.screens.trackselection.TrackButtonUI
@@ -60,7 +58,11 @@ fun TrackButton(
             if (track.state is DownloadState.Completed) {
                 showDialog = true
             } else {
-                Toast.makeText(context, "Track size: ${track.getFormattedSize()}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Track size: ${track.getFormattedSize()}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         },
         colors = ButtonDefaults.buttonColors(
@@ -88,7 +90,7 @@ fun TrackButton(
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Left,
                     modifier = Modifier
-                        .weight(0.85f)
+                        .weight(0.9f)
                         .padding(8.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -112,14 +114,6 @@ fun TrackButton(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-            }
-
-            is DownloadState.Error -> {
-                val message = (track.state as DownloadState.Error).message
-                LaunchedEffect(message) {
-                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-                }
-                resetDownloadState(index)
             }
         }
     }
