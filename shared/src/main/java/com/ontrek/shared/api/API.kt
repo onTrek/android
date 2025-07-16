@@ -1,5 +1,11 @@
 package com.ontrek.shared.api
 
+import com.ontrek.shared.data.File
+import com.ontrek.shared.data.FileID
+import com.ontrek.shared.data.GroupDoc
+import com.ontrek.shared.data.GroupID
+import com.ontrek.shared.data.GroupIDCreation
+import com.ontrek.shared.data.GroupInfoResponseDoc
 import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.http.GET
@@ -19,6 +25,7 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.DELETE
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Streaming
@@ -71,4 +78,25 @@ interface ApiService {
     @Streaming
     @GET("gpx/{id}/map")
     fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
+
+    // ------- GROUPS ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/groups/")
+    fun getGroups(@Header("Bearer") token: String): Call<List<GroupDoc>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/groups/{id}")
+    fun getGroupInfo(@Header("Bearer") token: String, @Path("id") id: Int): Call<GroupInfoResponseDoc>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("/groups/{id}")
+    fun deleteGroup(@Header("Bearer") token: String, @Path("id") id: Int): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PATCH("/groups/{id}/gpx")
+    fun changeGPXInGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Body trackId: FileID): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @POST("/groups/")
+    fun createGroup(@Header("Bearer") token: String, @Body group: GroupIDCreation): Call<GroupID>
 }
