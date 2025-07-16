@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
@@ -77,11 +78,14 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         gpsAccuracy > trackPointThreshold
     }
     val gpsAccuracyText = "Low GPS signal"
+    val vibrator = getSystemService(context, android.os.Vibrator::class.java)
 
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
     // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
     val accuracy by compassSensor.accuracy.collectAsState()
+    // Raccoglie la necessità di vibrare quando l'accuratezza torna alta
+    val vibrationNeeded by compassSensor.vibrationNeeded.collectAsState()
 
     // Raccoglie la lista dei punti del tracciato dal ViewModel
     val trackPoints by gpxViewModel.trackPointListState.collectAsState()
@@ -134,6 +138,15 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
     }
 
+    LaunchedEffect(accuracy) {
+        if (accuracy == 3 && vibrationNeeded) {
+            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(300, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+            compassSensor.setVibrationNeeded(false)
+        } else if (accuracy < 3) {
+            compassSensor.setVibrationNeeded(true)
+        }
+    }
+
     LaunchedEffect(direction) {
         if (accuracy < 2) return@LaunchedEffect
         gpxViewModel.elaborateDirection(direction)
@@ -158,9 +171,9 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    var infobackgroundColor: androidx.compose.ui.graphics.Color =
+    val infobackgroundColor: androidx.compose.ui.graphics.Color =
         if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
-    var infotextColor: androidx.compose.ui.graphics.Color =
+    val infotextColor: androidx.compose.ui.graphics.Color =
         if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
 
     if (!parsingError.isEmpty()) {
@@ -171,7 +184,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         Loading(Modifier.fillMaxSize())
     } else {
         AnimatedVisibility(
-            visible = accuracy < 2,
+            visible = accuracy < 3,
             enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
             exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
@@ -183,7 +196,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
             }
         }
         AnimatedVisibility(
-            visible = accuracy >= 2,
+            visible = accuracy == 3,
             enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
             exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
@@ -242,7 +255,7 @@ fun CompassCalibrationNotice(
     modifier: Modifier = Modifier,
 ) {
     val message = "Low accuracy"
-    val subMessage = "Tilt and move the device"
+    val subMessage = "Tilt and move the device until it vibrates"
 
     Column(
         modifier = modifier
@@ -253,16 +266,16 @@ fun CompassCalibrationNotice(
     ) {
         Text(
             text = message,
-            modifier = Modifier.padding(top = 15.dp),
+            modifier = Modifier.padding(top = 10.dp),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
             fontSize = MaterialTheme.typography.titleMedium.fontSize
         )
-        GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass, R.drawable.compassplaceholder)
+        GifRenderer(Modifier.fillMaxSize(0.5f), R.drawable.compass, R.drawable.compassplaceholder)
         Text(
             text = subMessage,
-            modifier = Modifier.padding(horizontal = 10.dp),
+            modifier = Modifier.padding(horizontal = 15.dp),
             textAlign = TextAlign.Center,
         )
     }

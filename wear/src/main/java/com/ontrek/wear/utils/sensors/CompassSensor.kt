@@ -19,6 +19,8 @@ class CompassSensor(context: Context) {
 
     private val _accuracy = MutableStateFlow(3)
     val accuracy: StateFlow<Int> = _accuracy
+    private val _vibrationNeeded = MutableStateFlow(false)
+    val vibrationNeeded: StateFlow<Boolean> = _vibrationNeeded
 
     private val gravity = FloatArray(3)
     private val geomagnetic = FloatArray(3)
@@ -56,7 +58,13 @@ class CompassSensor(context: Context) {
         }
     }
 
+    fun setVibrationNeeded(isNeeded: Boolean) {
+        Log.d("COMPASS", "Vibration needed: $isNeeded")
+        _vibrationNeeded.value = isNeeded
+    }
+
     fun stop() {
         sensorManager.unregisterListener(sensorListener)
+        _vibrationNeeded.value = false
     }
 }
