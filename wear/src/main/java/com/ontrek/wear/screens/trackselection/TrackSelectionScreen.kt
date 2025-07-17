@@ -119,7 +119,7 @@ fun TrackSelectionScreen(
                     token = token ?: "",
                     navController = navController,
                     index = index,
-                    resetDownloadState = trackSelectionViewModel::deleteTrack,
+                    deleteTrack = trackSelectionViewModel::deleteTrack,
                     onDownloadClick = trackSelectionViewModel::downloadTrack,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -138,7 +138,7 @@ fun TrackSelectionScreen(
                     token = token ?: "",
                     navController = navController,
                     index = index,
-                    resetDownloadState = trackSelectionViewModel::deleteTrack,
+                    deleteTrack = trackSelectionViewModel::deleteTrack,
                     onDownloadClick = trackSelectionViewModel::downloadTrack,
                     modifier = Modifier.fillMaxWidth(),
                 )

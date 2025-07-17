@@ -9,6 +9,7 @@ import com.ontrek.shared.api.gpx.downloadGpx
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.Track
 import com.ontrek.wear.data.AppDatabase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ sealed class DownloadState {
     object Completed : DownloadState()
 }
 
-data class TrackButtonUI(
+data class TrackUI(
     val id: Int,
     val title: String,
     val filename: String = "$id.gpx",
@@ -45,11 +46,11 @@ data class TrackButtonUI(
 
 class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
-    private val _downloadedTrackListState = MutableStateFlow<List<TrackButtonUI>>(listOf())
-    val downloadedTrackListState: StateFlow<List<TrackButtonUI>> = _downloadedTrackListState
+    private val _downloadedTrackListState = MutableStateFlow<List<TrackUI>>(listOf())
+    val downloadedTrackListState: StateFlow<List<TrackUI>> = _downloadedTrackListState
 
-    private val _availableTrackListState = MutableStateFlow<List<TrackButtonUI>>(listOf())
-    val availableTrackListState: StateFlow<List<TrackButtonUI>> = _availableTrackListState
+    private val _availableTrackListState = MutableStateFlow<List<TrackUI>>(listOf())
+    val availableTrackListState: StateFlow<List<TrackUI>> = _availableTrackListState
 
     private val _isLoading = MutableStateFlow<Boolean>(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -72,7 +73,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
             try {
                 val tracks = db.trackDao().getAllTracks()
                 _downloadedTrackListState.value = tracks.map { track ->
-                    TrackButtonUI(
+                    TrackUI(
                         id = track.id,
                         title = track.title,
                         uploadedAt = track.uploadedAt,
@@ -111,7 +112,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
             _availableTrackListState.value = data.filter { track ->
                 _downloadedTrackListState.value.none { it.id == track.id }  // Filter out already downloaded tracks
             }.map { track ->
-                TrackButtonUI(
+                TrackUI(
                     id = track.id,
                     title = track.title,
                     uploadedAt = java.time.OffsetDateTime.parse(track.upload_date).toInstant()
@@ -166,6 +167,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         updateButtonState(index, DownloadState.InProgress)
 
         viewModelScope.launch {
+            delay(500)  // TODO: Remove this delay, it's just for testing purposes
             downloadGpx(
                 token = token,
                 gpxID = trackID,

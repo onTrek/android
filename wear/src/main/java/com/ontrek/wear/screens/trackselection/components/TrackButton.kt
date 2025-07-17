@@ -29,19 +29,18 @@ import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.trackselection.DownloadState
-import com.ontrek.wear.screens.trackselection.TrackButtonUI
+import com.ontrek.wear.screens.trackselection.TrackUI
 import com.ontrek.wear.utils.components.Loading
-import java.io.File
 
 @Composable
 fun TrackButton(
     modifier: Modifier = Modifier,
-    track: TrackButtonUI,
+    track: TrackUI,
     index: Int,
     navController: NavHostController,
     token: String,
     onDownloadClick: (String, Int, Int, Context) -> Unit,
-    resetDownloadState: (Int) -> Unit,
+    deleteTrack: (Int, Context) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -121,8 +120,7 @@ fun TrackButton(
         track = track,
         showDialog = showDialog,
         onConfirm = {
-            File(context.filesDir, "${track.id}.gpx").delete()
-            resetDownloadState(index)
+            deleteTrack(index, context)
             showDialog = false
         },
         onDismiss = { showDialog = false }
@@ -131,7 +129,7 @@ fun TrackButton(
 
 @Composable
 fun DeleteTrackDialog(
-    track: TrackButtonUI,
+    track: TrackUI,
     showDialog: Boolean,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
