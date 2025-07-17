@@ -1,4 +1,4 @@
-package com.ontrek.shared.api.hikes.group
+package com.ontrek.shared.api.hikes
 
 import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
@@ -110,11 +110,6 @@ fun postGroup(
         }
     })
 }
-
-
-//@Headers("Content-Type: application/json;charset=UTF-8")
-//@PATCH("/groups/{id}/gpx")
-//fun changeGPXInGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Body trackId: FileID): Call<MessageResponse>
 
 fun patchGPXInGroup(
     id: Int,

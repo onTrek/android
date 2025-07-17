@@ -119,5 +119,5 @@ interface ApiService {
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("/groups/{id}/members/")
-    fun removeMemberFromGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Query("user_id") userId: String): Call<Void>
+    fun removeMemberFromGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Query("user_id") userId: String? = null): Call<Void>
 }
