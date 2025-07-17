@@ -14,6 +14,9 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,10 +53,13 @@ fun TrackSelectionScreen(
     )
     val downloadedTracks by trackSelectionViewModel.downloadedTrackListState.collectAsStateWithLifecycle()
     val availableTracks by trackSelectionViewModel.availableTrackListState.collectAsStateWithLifecycle()
-    val isLoading by trackSelectionViewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoadingTracks by trackSelectionViewModel.isLoadingTracks.collectAsStateWithLifecycle()
+    val isLoadingDownloads by trackSelectionViewModel.isLoadingDownloads.collectAsStateWithLifecycle()
     val fetchError by trackSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val downloadError by trackSelectionViewModel.downloadError.collectAsStateWithLifecycle()
     val updateSuccess by trackSelectionViewModel.updateSuccess.collectAsStateWithLifecycle()
+    val downloadSuccess by trackSelectionViewModel.downloadSuccess.collectAsStateWithLifecycle()
+    var refresh by remember { mutableStateOf(false) }
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
@@ -63,11 +69,22 @@ fun TrackSelectionScreen(
         if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
     }
 
-    // Reset scroll position when update (tracks fetching or track downloading) is successful
+    // Reset scroll position when download is successful
+    LaunchedEffect(downloadSuccess) {
+        if (downloadSuccess) {
+            listState.scrollToItem(0)
+            trackSelectionViewModel.resetDownloadSuccess()
+        }
+    }
+
+    // Reset scroll position when update is successful
     LaunchedEffect(updateSuccess) {
-        if (updateSuccess) {
-            listState.animateScrollToItem(0)
+        if (updateSuccess && refresh) {
+            listState.animateScrollToItem(downloadedTracks.size + 2)
             trackSelectionViewModel.resetUpdateSuccess()
+        } else if (updateSuccess) {
+            trackSelectionViewModel.resetUpdateSuccess()
+            refresh = true
         }
     }
 
@@ -96,33 +113,35 @@ fun TrackSelectionScreen(
     ) {
 
 
-        if (isLoading) {
+        if (isLoadingDownloads) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (downloadedTracks.isEmpty() && availableTracks.isEmpty() && fetchError.isNullOrEmpty()) {
+        } else if (downloadedTracks.isEmpty() && availableTracks.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
             flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState),
         ) {
-            item {
-                Text(
-                    modifier = Modifier.padding(bottom = 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium,
-                    text = "My tracks"
-                )
-            }
-            itemsIndexed(downloadedTracks) { index, track ->
-                TrackButton(
-                    track = track,
-                    token = token ?: "",
-                    navController = navController,
-                    index = index,
-                    deleteTrack = trackSelectionViewModel::deleteTrack,
-                    onDownloadClick = trackSelectionViewModel::downloadTrack,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            if (downloadedTracks.isNotEmpty()) {
+                item {
+                    Text(
+                        modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMedium,
+                        text = "Offline tracks"
+                    )
+                }
+                itemsIndexed(downloadedTracks) { index, track ->
+                    TrackButton(
+                        track = track,
+                        token = token ?: "",
+                        navController = navController,
+                        index = index,
+                        deleteTrack = trackSelectionViewModel::deleteTrack,
+                        onDownloadClick = trackSelectionViewModel::downloadTrack,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             item {
                 Text(
@@ -132,16 +151,29 @@ fun TrackSelectionScreen(
                     text = "Available tracks"
                 )
             }
-            itemsIndexed(availableTracks) { index, track ->
-                TrackButton(
-                    track = track,
-                    token = token ?: "",
-                    navController = navController,
-                    index = index,
-                    deleteTrack = trackSelectionViewModel::deleteTrack,
-                    onDownloadClick = trackSelectionViewModel::downloadTrack,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            if (availableTracks.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
+                item {
+                    Text(
+                        text = "No more tracks available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                itemsIndexed(availableTracks) { index, track ->
+                    TrackButton(
+                        track = track,
+                        token = token ?: "",
+                        navController = navController,
+                        index = index,
+                        deleteTrack = trackSelectionViewModel::deleteTrack,
+                        onDownloadClick = trackSelectionViewModel::downloadTrack,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             item {
                 if (!fetchError.isNullOrEmpty()) {
@@ -155,6 +187,12 @@ fun TrackSelectionScreen(
                             trackSelectionViewModel.fetchTrackList(token)
                         }
                     )
+                } else if (isLoadingTracks) {
+                    Loading(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
                 } else {
                     IconButton(
                         onClick = {
@@ -165,7 +203,6 @@ fun TrackSelectionScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp)
                             .fillMaxHeight(0.1f)
                     ) {
                         Icon(
@@ -174,6 +211,7 @@ fun TrackSelectionScreen(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
+
                 }
             }
         }
