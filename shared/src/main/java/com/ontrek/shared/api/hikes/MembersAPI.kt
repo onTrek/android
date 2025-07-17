@@ -82,9 +82,6 @@ fun getGroupMembers(
     })
 }
 
-//@Headers("Content-Type: application/json;charset=UTF-8")
-//@PUT("/groups/{id}/members/location")
-//fun updateMemberLocation(@Header("Bearer") token: String, @Path("id") id: Int, @Body memberInfo: MemberInfoUpdate): Call<Void>
 fun updateMemberLocation(
     id: Int,
     memberInfo: MemberInfoUpdate,

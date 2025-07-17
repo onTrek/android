@@ -86,7 +86,7 @@ fun getGroups(
     })
 }
 
-fun postGroup(
+fun createGroup(
     group: GroupIDCreation,
     onSuccess: (GroupID?) -> Unit,
     onError: (String) -> Unit,
@@ -111,7 +111,7 @@ fun postGroup(
     })
 }
 
-fun patchGPXInGroup(
+fun changeGPXInGroup(
     id: Int,
     trackId: Int,
     onSuccess: (MessageResponse?) -> Unit,
