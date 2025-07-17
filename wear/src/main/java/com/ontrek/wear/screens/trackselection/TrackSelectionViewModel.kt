@@ -52,8 +52,8 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _availableTrackListState = MutableStateFlow<List<TrackUI>>(listOf())
     val availableTrackListState: StateFlow<List<TrackUI>> = _availableTrackListState
 
-    private val _isLoading = MutableStateFlow<Boolean>(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isLoadingTracks = MutableStateFlow<Boolean>(true)
+    val isLoadingTracks: StateFlow<Boolean> = _isLoadingTracks
 
     private val _fetchError = MutableStateFlow<String?>(null)
     val fetchError: StateFlow<String?> = _fetchError
@@ -64,15 +64,32 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _updateSuccess = MutableStateFlow<Boolean>(false)
     val updateSuccess: StateFlow<Boolean> = _updateSuccess
 
+    private val _downloadSuccess = MutableStateFlow<Boolean>(false)
+    val downloadSuccess: StateFlow<Boolean> = _downloadSuccess
+
+    private val _isLoadingDownloads = MutableStateFlow<Boolean>(true)
+    val isLoadingDownloads: StateFlow<Boolean> = _isLoadingDownloads
+
     init {
         loadDownloadedTracks()
     }
 
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
+    fun resetDownloadSuccess() {
+        _downloadSuccess.value = false
+    }
+
     private fun loadDownloadedTracks() {
+        _isLoadingDownloads.value = true
+
         viewModelScope.launch {
             try {
                 val tracks = db.trackDao().getAllTracks()
                 _downloadedTrackListState.value = tracks.map { track ->
+                    Log.d("TrackSelectionViewModel", "Loaded downloaded track: ${track.title}")
                     TrackUI(
                         id = track.id,
                         title = track.title,
@@ -81,6 +98,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                         state = if (track.downloadedAt > 0) DownloadState.Completed else DownloadState.NotStarted
                     )
                 }
+                _isLoadingDownloads.value = false
             } catch (e: Exception) {
                 Log.e("TrackSelectionViewModel", "Error loading downloaded tracks: ${e.message}")
                 _fetchError.value = "Failed to load downloaded tracks"
@@ -88,16 +106,13 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         }
     }
 
-    fun resetUpdateSuccess() {
-        _updateSuccess.value = false
-    }
-
     fun fetchTrackList(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")
-        _isLoading.value = true
+        _isLoadingTracks.value = true
 
 
         viewModelScope.launch {
+            delay(2000)  // TODO: Remove this delay, it's just for testing purposes
             getTracks(
                 onSuccess = ::updateTracks,
                 onError = ::setError,
@@ -126,7 +141,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         } else {
             Log.e("WearOS", "Data is null")
         }
-        _isLoading.value = false
+        _isLoadingTracks.value = false
     }
 
 //    private fun List<TrackButtonUI>.sorted(): List<TrackButtonUI> {
@@ -152,11 +167,11 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     fun setError(error: String?) {
         Log.e("WearOS", "Error occurred: $error")
         _fetchError.value = error
-        _isLoading.value = false
+        _isLoadingTracks.value = false
     }
 
     private fun updateButtonState(index: Int, newState: DownloadState) {
-        _downloadedTrackListState.value = _downloadedTrackListState.value.toMutableList().also {
+        _availableTrackListState.value = _availableTrackListState.value.toMutableList().also {
             it[index] = it[index].copy(state = newState)
         }
     }
@@ -195,6 +210,9 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                     Log.d("DownloadTrack", "File downloaded successfully: $downloaded.filename")
 
                     // Update the downloaded track list state
+                    updateButtonState(index, DownloadState.Completed)
+
+                    // Add the downloaded track to the downloaded list
                     _downloadedTrackListState.value = listOf(
                         downloaded.copy(
                             state = DownloadState.Completed,
@@ -209,7 +227,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
                     Log.d("DownloadTrack", "Track saved to database: ${downloaded.title}")
                     _downloadError.value = null
-                    updateButtonState(index, DownloadState.Completed)
+                    _downloadSuccess.value = true
                 }
             )
         }
@@ -244,6 +262,9 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                 _availableTrackListState.value = _availableTrackListState.value.toMutableList().also {
                     it.add(trackToDelete.copy(state = DownloadState.NotStarted))
                 }
+
+                // Reset the button state to NotStarted
+                updateButtonState(_availableTrackListState.value.indexOf(trackToDelete), DownloadState.NotStarted)
             } catch (e: Exception) {
                 Log.e("TrackSelectionViewModel", "Error deleting track: ${e.message}")
             }
