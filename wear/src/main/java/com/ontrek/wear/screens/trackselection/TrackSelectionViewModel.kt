@@ -9,7 +9,6 @@ import com.ontrek.shared.api.gpx.downloadGpx
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.Track
 import com.ontrek.wear.data.AppDatabase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
