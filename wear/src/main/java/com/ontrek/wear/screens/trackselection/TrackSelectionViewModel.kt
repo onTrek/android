@@ -112,7 +112,6 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
 
         viewModelScope.launch {
-            delay(2000)  // TODO: Remove this delay, it's just for testing purposes
             getTracks(
                 onSuccess = ::updateTracks,
                 onError = ::setError,
@@ -182,7 +181,6 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         updateButtonState(index, DownloadState.InProgress)
 
         viewModelScope.launch {
-            delay(500)  // TODO: Remove this delay, it's just for testing purposes
             downloadGpx(
                 token = token,
                 gpxID = trackID,
