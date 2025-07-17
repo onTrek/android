@@ -186,6 +186,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                 onError = {
                     Log.e("DownloadTrack", "Error occurred: $it")
                     _downloadError.value = "Failed to download track"
+                    updateButtonState(index, DownloadState.NotStarted)
                 },
                 onSuccess = { fileContent ->
                     val downloaded = _availableTrackListState.value[index]
