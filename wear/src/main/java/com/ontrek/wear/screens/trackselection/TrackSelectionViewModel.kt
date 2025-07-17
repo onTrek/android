@@ -95,11 +95,14 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
-        getTracks(
-            onSuccess = ::updateTracks,
-            onError = ::setError,
-            token = token,
-        )
+
+        viewModelScope.launch {
+            getTracks(
+                onSuccess = ::updateTracks,
+                onError = ::setError,
+                token = token,
+            )
+        }
     }
 
     fun updateTracks(data: List<Track>?) {
