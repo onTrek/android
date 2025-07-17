@@ -5,8 +5,10 @@ import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Track
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -64,13 +66,14 @@ fun getTrack(
 fun uploadTrack(
     gpxFileBytes: ByteArray,
     titleTrack: String,
+    fileName: String,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
     token: String
 ) {
-    val titlePart = RequestBody.create(MultipartBody.FORM, titleTrack)
-    val requestFile = RequestBody.create(MediaType.parse("application/gpx+xml"), gpxFileBytes)
-    val filePart = MultipartBody.Part.createFormData("file", titleTrack, requestFile)
+    val titlePart = titleTrack.toRequestBody(MultipartBody.FORM)
+    val requestFile = gpxFileBytes.toRequestBody("application/gpx+xml".toMediaTypeOrNull(), 0, gpxFileBytes.size)
+    val filePart = MultipartBody.Part.createFormData("file", fileName, requestFile)
     Log.d("API Track", "Uploading track: $titleTrack with token: $token")
     RetrofitClient.api.uploadTrack(token, titlePart, filePart).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {

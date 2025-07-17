@@ -1,5 +1,6 @@
 package com.ontrek.mobile.utils.components.trackComponents
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,56 +11,47 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ontrek.shared.api.track.uploadTrack
+import java.net.URLDecoder
 
 @Composable
 fun AddTrackDialog(
     onDismissRequest: () -> Unit,
     onTrackAdded: () -> Unit,
-    token: String
+    token: String,
+    fileUri: Uri
 ) {
     var title by remember { mutableStateOf("") }
-    var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var isUploading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
-    val filePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            try {
-                context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                    val buffer = ByteArray(1024)  // Leggo i primi 1024 bytes
-                    val bytesRead = inputStream.read(buffer)
-                    if (bytesRead > 0) {
-                        val content = String(buffer, 0, bytesRead)
-                        if (content.contains("<?xml") && content.contains("<gpx")) {
-                            selectedFileUri = uri
-                        } else {
-                            errorMessage = "Select a valid GPX file"
-                        }
-                    } else {
-                        errorMessage = "Empty file selected or not a valid GPX file"
-                    }
-                } ?: run {
-                    errorMessage = "Impossible to read the file"
-                }
-            } catch (e: Exception) {
-                errorMessage = "Error to read the file: ${e.message}"
-                Log.e("AddTrack", "Errore nella lettura del file", e)
+    val getFileNameFromUri: (Context, Uri) -> String? = { context, uri ->
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex("_display_name")
+            if (cursor.moveToFirst() && nameIndex != -1) {
+                cursor.getString(nameIndex)
+            } else {
+                null
             }
         }
     }
 
+    val fileName by remember {
+        mutableStateOf(
+            getFileNameFromUri(context, fileUri)?.let { URLDecoder.decode(it, "UTF-8") } ?: "file.gpx"
+        )
+    }
+
     Dialog(
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(dismissOnClickOutside = false)
+        properties = DialogProperties(dismissOnClickOutside = true)
     ) {
         Card(
             modifier = Modifier
@@ -89,20 +81,22 @@ fun AddTrackDialog(
                     supportingText = { Text("${title.length}/64") }
                 )
 
-                Button(
-                    onClick = { filePicker.launch("*/*")},
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Select GPX File")
-                }
-
-                selectedFileUri?.let {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = "File selected: ${it.lastPathSegment ?: "file.gpx"}",
+                        text = "Selected file:",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 0.dp, bottom = 2.dp)
+                    )
+
+                    Text(
+                        text = fileName,
+                        style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.MiddleEllipsis,
+                        modifier = Modifier.padding(start = 10.dp),
                     )
                 }
+
 
                 errorMessage?.let {
                     Text(
@@ -127,11 +121,12 @@ fun AddTrackDialog(
                             isUploading = true
                             errorMessage = null
 
-                            selectedFileUri?.let { uri ->
+                            fileUri.let { uri ->
                                 try {
                                     context.contentResolver.openInputStream(uri)?.use { inputStream ->
                                         val bytes = inputStream.readBytes()
                                         uploadTrack(
+                                            fileName = fileName,
                                             titleTrack = title,
                                             gpxFileBytes = bytes,
                                             onSuccess = {
@@ -153,7 +148,7 @@ fun AddTrackDialog(
                                 }
                             }
                         },
-                        enabled = title.isNotEmpty() && selectedFileUri != null && !isUploading
+                        enabled = title.isNotEmpty() && !isUploading
                     ) {
                         if (isUploading) {
                             CircularProgressIndicator(
