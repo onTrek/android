@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -33,10 +34,10 @@ fun TrackSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seleziona una traccia") },
+        title = { Text("Select a Track") },
         text = {
             if (tracks.isEmpty()) {
-                Text("Nessuna traccia disponibile")
+                Text("There are no tracks available.")
             } else {
                 Column(
                     modifier = Modifier
@@ -52,8 +53,8 @@ fun TrackSelectionDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Route,
-                                contentDescription = "Traccia",
+                                imageVector = Icons.Default.Terrain,
+                                contentDescription = "Track",
                                 tint = MaterialTheme.colorScheme.primary
                             )
 
@@ -77,7 +78,7 @@ fun TrackSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annulla")
+                Text("Close")
             }
         }
     )
