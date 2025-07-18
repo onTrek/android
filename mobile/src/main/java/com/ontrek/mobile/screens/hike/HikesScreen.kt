@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.groupComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
@@ -83,10 +84,9 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 is HikesViewModel.GroupsState.Success -> {
                     val groups = (listGroup as HikesViewModel.GroupsState.Success).groups
                     if (groups.isEmpty()) {
-                        Text(
-                            text = "The groups list is empty.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.align(Alignment.Center)
+                        EmptyComponent (
+                            title = "No Groups Found",
+                            description = "You haven't created any groups yet.",
                         )
                     } else {
                         LazyColumn(
