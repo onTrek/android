@@ -39,11 +39,11 @@ fun AddGroup(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { if (it.length <= 100) description = it },
-                    label = { Text("Descrizione") },
+                    label = { Text("Description") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     supportingText = {
-                        Text("${description.length}/100 caratteri")
+                        Text("${description.length}/100")
                     }
                 )
 
