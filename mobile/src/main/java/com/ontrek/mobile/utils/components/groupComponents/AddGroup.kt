@@ -23,104 +23,95 @@ fun AddGroup(
     var selectedTrack by remember { mutableStateOf<Track?>(null) }
     var showTrackSelection by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
             Text(
                 "Crea Nuovo Gruppo",
                 style = MaterialTheme.typography.titleLarge
             )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descrizione del gruppo") },
+        },
+        text = {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
-
-            // Selezione traccia
-            OutlinedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showTrackSelection = true }
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descrizione del gruppo") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+
+                // Selezione traccia
+                OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .clickable { showTrackSelection = true }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Route,
-                        contentDescription = "Traccia",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        text = selectedTrack?.title ?: "Seleziona una traccia",
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // Bottoni azioni
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(
-                    onClick = onDismiss
-                ) {
-                    Text("Annulla")
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = {
-                        selectedTrack?.let { track ->
-                            onCreateGroup(description, track.id)
-                        }
-                    },
-                    enabled = description.isNotBlank() && selectedTrack != null && !isLoading
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Route,
+                            contentDescription = "Traccia",
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                    } else {
-                        Text("Crea")
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = selectedTrack?.title ?: "Seleziona una traccia",
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
-
-            if (showTrackSelection) {
-                TrackSelectionDialog(
-                    tracks = tracks,
-                    onDismiss = { showTrackSelection = false },
-                    onTrackSelected = { track ->
-                        selectedTrack = track
-                        showTrackSelection = false
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    selectedTrack?.let { track ->
+                        onCreateGroup(description, track.id)
                     }
-                )
+                },
+                enabled = description.isNotBlank() && selectedTrack != null && !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Crea")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Annulla")
             }
         }
+    )
+
+    if (showTrackSelection) {
+        TrackSelectionDialog(
+            tracks = tracks,
+            onDismiss = { showTrackSelection = false },
+            onTrackSelected = { track ->
+                selectedTrack = track
+                showTrackSelection = false
+            }
+        )
     }
 }
