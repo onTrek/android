@@ -16,10 +16,10 @@ fun login(loginBody : Login, onSuccess : (TokenResponse?) -> Unit, onError: (Str
         override fun onResponse(call: Call<TokenResponse>, response: Response<TokenResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()
-                Log.d("Mobile", "API Success: $data")
+                Log.d("Auth", "API Success: $data")
                 onSuccess(data)
             } else {
-                Log.e("Mobile", "API Error: ${response.code()}, ${response.errorBody()}")
+                Log.e("Auth", "API Error: ${response.code()}, ${response.errorBody()}")
                 onError("${response.code()}")
             }
         }
@@ -28,7 +28,7 @@ fun login(loginBody : Login, onSuccess : (TokenResponse?) -> Unit, onError: (Str
             call: Call<TokenResponse?>,
             t: Throwable
         ) {
-            Log.e("Mobile", "API Error: ${t.toString()}")
+            Log.e("Auth", "API Error: ${t.toString()}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })
@@ -39,10 +39,10 @@ fun signup(signupBody : Signup, onSuccess : (MessageResponse?) -> Unit, onError:
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()
-                Log.d("Mobile", "API Success: $data")
+                Log.d("Auth", "API Success: $data")
                 onSuccess(data)
             } else {
-                Log.e("Mobile", "API Error: ${response.code()}, ${response.errorBody()}")
+                Log.e("Auth", "API Error: ${response.code()}, ${response.errorBody()}")
                 onError("${response.code()}")
             }
         }
@@ -51,7 +51,7 @@ fun signup(signupBody : Signup, onSuccess : (MessageResponse?) -> Unit, onError:
             call: Call<MessageResponse?>,
             t: Throwable
         ) {
-            Log.e("Mobile", "API Error: ${t.toString()}")
+            Log.e("Auth", "API Error: ${t.toString()}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })

@@ -57,7 +57,7 @@ fun BottomNavBar(navController: NavController) {
             title = "Profile",
             selectedIcon = Icons.Filled.Person,
             unselectedIcon = Icons.Outlined.Person,
-            route = Screen.Connection.route,
+            route = Screen.Profile.route,
         ),
     )
 

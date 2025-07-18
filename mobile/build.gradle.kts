@@ -43,6 +43,8 @@ dependencies {
 
     implementation(project(":shared"))
     implementation(libs.navigation.compose)
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
     implementation(libs.material.icons.extended)
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)

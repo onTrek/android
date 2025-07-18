@@ -2,7 +2,7 @@ package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.ontrek.shared.api.track.fetchData
+import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ class TrackSelectionViewModel : ViewModel() {
     private val _data = MutableStateFlow<List<Track>>(listOf<Track>())
     val trackListState: StateFlow<List<Track>> = _data
 
-    private val _isLoading = MutableStateFlow<Boolean>(false)
+    private val _isLoading = MutableStateFlow<Boolean>(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
@@ -22,7 +22,7 @@ class TrackSelectionViewModel : ViewModel() {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
-        fetchData(
+        getTracks(
             onSuccess = ::updateData,
             onError = ::setError,
             token = token,
@@ -33,6 +33,7 @@ class TrackSelectionViewModel : ViewModel() {
         Log.d("WearOS", "Data updated: $data")
         if (data != null) {
             _data.value = data
+            _error.value = null
         } else {
             Log.e("WearOS", "Data is null")
         }
