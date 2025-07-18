@@ -12,7 +12,6 @@ import com.ontrek.shared.api.friends.searchUsers
 import com.ontrek.shared.api.friends.sendFriendRequest
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Friend
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -45,7 +44,6 @@ class FriendsViewModel : ViewModel() {
     fun loadFriends(token: String) {
         viewModelScope.launch {
             _friendsState.value = FriendsState.Loading
-            delay(500) // Simula un ritardo per il caricamento
             getFriends(
                 token = token,
                 onSuccess = { friends ->
@@ -61,7 +59,6 @@ class FriendsViewModel : ViewModel() {
     fun loadSentFriendRequests(token: String) {
         viewModelScope.launch {
             _sentFriendRequests.value = SentRequestsState.Loading
-            delay(500)
             getSentFriendRequest(
                 token = token,
                 onSuccess = { requests ->
@@ -78,7 +75,6 @@ class FriendsViewModel : ViewModel() {
     fun loadFriendRequests(token: String) {
         viewModelScope.launch {
             _requestsState.value = RequestsState.Loading
-            delay(500)
             getFriendRequests(
                 token = token,
                 onSuccess = { requests ->
@@ -134,7 +130,6 @@ class FriendsViewModel : ViewModel() {
     fun sendFriendRequest(userId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(400)
             sendFriendRequest(
                 token = token,
                 id = userId,
@@ -153,7 +148,6 @@ class FriendsViewModel : ViewModel() {
     fun acceptRequest(requestId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(500)
             acceptFriendRequest(
                 token = token,
                 id = requestId,
@@ -173,7 +167,6 @@ class FriendsViewModel : ViewModel() {
     fun rejectFriendRequest(requestId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(500)
             deleteFriendRequest(
                 token = token,
                 id = requestId,
@@ -192,7 +185,6 @@ class FriendsViewModel : ViewModel() {
     fun removeFriend(friendId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            delay(500)
             deleteFriend(
                 token = token,
                 id = friendId,
