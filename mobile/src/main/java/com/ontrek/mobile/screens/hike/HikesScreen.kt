@@ -31,9 +31,8 @@ fun HikesScreen(navController: NavHostController, token: String) {
     val viewModel: HikesViewModel = viewModel()
     val context = LocalContext.current
 
-    val groups by viewModel.groups.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val msgToast by viewModel.msgToast.collectAsState()
+    val listGroup by viewModel.listGroup.collectAsState()
+    val msgToast by viewModel.msgToast.collectAsState("")
 
     LaunchedEffect(Unit) {
         viewModel.loadGroups(token)
@@ -52,7 +51,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("I miei Gruppi") },
+                title = { Text("My Hikes Groups") },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -61,11 +60,10 @@ fun HikesScreen(navController: NavHostController, token: String) {
             FloatingActionButton(
                 onClick = {
                     // Qui implementeremo la creazione di un nuovo gruppo
-                    // navController.navigate(Screen.CreateGroup.route)
                 },
                 modifier = Modifier.padding(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Aggiungi Gruppo")
+                Icon(Icons.Default.Add, contentDescription = "Add Groups")
             }
         }
     ) { innerPadding ->
@@ -74,41 +72,50 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when {
-                isLoading -> {
+            when (listGroup) {
+                is HikesViewModel.GroupsState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                groups.isEmpty() -> {
-                    Text(
-                        text = "Nessun gruppo disponibile",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        items(groups) { group ->
-                            GroupItem(
-                                group = group,
-                                onItemClick = {
-                                    navController.navigate("group_details/${group.group_id}")
-                                }
-                            )
+                is HikesViewModel.GroupsState.Success -> {
+                    val groups = (listGroup as HikesViewModel.GroupsState.Success).groups
+                    if (groups.isEmpty()) {
+                        Text(
+                            text = "The groups list is empty.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            items(groups) { group ->
+                                GroupItem(
+                                    group = group,
+                                    onItemClick = {
+                                        navController.navigate("group_details/${group.group_id}")
+                                    }
+                                )
+                            }
                         }
                     }
+                }
+                is HikesViewModel.GroupsState.Error -> {
+                    Text(
+                        text = (listGroup as HikesViewModel.GroupsState.Error).message,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
     Card(
@@ -126,7 +133,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Group,
-                contentDescription = "Gruppo",
+                contentDescription = "Icona Gruppo",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .size(40.dp)
@@ -162,7 +169,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                 )
 
                 Text(
-                    text = "Creato il: ${formatDate(group.created_at)}",
+                    text = "Date Creation: ${formatDate(group.created_at)}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
