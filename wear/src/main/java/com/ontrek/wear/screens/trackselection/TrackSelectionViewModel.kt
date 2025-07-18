@@ -51,7 +51,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _availableTrackListState = MutableStateFlow<List<TrackUI>>(listOf())
     val availableTrackListState: StateFlow<List<TrackUI>> = _availableTrackListState
 
-    private val _isLoadingTracks = MutableStateFlow<Boolean>(true)
+    private val _isLoadingTracks = MutableStateFlow(true)
     val isLoadingTracks: StateFlow<Boolean> = _isLoadingTracks
 
     private val _fetchError = MutableStateFlow<String?>(null)
@@ -60,13 +60,13 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _downloadError = MutableStateFlow<String?>(null)
     val downloadError: StateFlow<String?> = _downloadError
 
-    private val _updateSuccess = MutableStateFlow<Boolean>(false)
+    private val _updateSuccess = MutableStateFlow(false)
     val updateSuccess: StateFlow<Boolean> = _updateSuccess
 
-    private val _downloadSuccess = MutableStateFlow<Boolean>(false)
+    private val _downloadSuccess = MutableStateFlow(false)
     val downloadSuccess: StateFlow<Boolean> = _downloadSuccess
 
-    private val _isLoadingDownloads = MutableStateFlow<Boolean>(true)
+    private val _isLoadingDownloads = MutableStateFlow(true)
     val isLoadingDownloads: StateFlow<Boolean> = _isLoadingDownloads
 
     init {
@@ -147,6 +147,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
     fun setError(error: String?) {
         Log.e("WearOS", "Error occurred: $error")
+        _availableTrackListState.value = listOf()  // Clear the available track list on error
         _fetchError.value = error
         _isLoadingTracks.value = false
     }

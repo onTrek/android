@@ -4,11 +4,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
@@ -39,7 +41,6 @@ import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.data.DatabaseProvider
 import com.ontrek.wear.screens.trackselection.components.TrackButton
-import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
 
@@ -175,19 +176,29 @@ fun TrackSelectionScreen(
                     )
                 }
             }
+            if (!fetchError.isNullOrEmpty() && !isLoadingTracks) {
+                item {
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Error,
+                            contentDescription = "Error loading tracks.",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        Text(
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleSmall,
+                            text = "Error loading tracks.",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
             item {
-                if (!fetchError.isNullOrEmpty()) {
-                    ErrorScreen(
-                        "Error loading tracks",
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        token,
-                        refresh = { token ->
-                            trackSelectionViewModel.fetchTrackList(token)
-                        }
-                    )
-                } else if (isLoadingTracks) {
+                if (isLoadingTracks) {
                     Loading(
                         modifier = Modifier
                             .fillMaxWidth()
