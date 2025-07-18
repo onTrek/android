@@ -142,26 +142,6 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         _isLoadingTracks.value = false
     }
 
-//    private fun List<TrackButtonUI>.sorted(): List<TrackButtonUI> {
-//        return this.sortedWith { a, b ->
-//            when {
-//                a.state is DownloadState.Completed && b.state !is DownloadState.Completed -> -1
-//                a.state !is DownloadState.Completed && b.state is DownloadState.Completed -> 1
-//                else -> when {
-//                    a.downloadedAt == null && b.downloadedAt != null -> 1
-//                    a.downloadedAt != null && b.downloadedAt == null -> -1
-//                    a.downloadedAt != null && b.downloadedAt != null -> {
-//                        if (a.downloadedAt!! > b.downloadedAt!!) -1 else 1
-//                    }
-//
-//                    else -> {
-//                        if (a.uploadedAt > b.uploadedAt) -1 else 1
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     fun setError(error: String?) {
         Log.e("WearOS", "Error occurred: $error")
         _fetchError.value = error
