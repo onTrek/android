@@ -154,7 +154,7 @@ fun TrackSelectionScreen(
             if (availableTracks.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
                 item {
                     Text(
-                        text = "No more tracks available",
+                        text = "All your tracks are downloaded.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier

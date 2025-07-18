@@ -88,7 +88,7 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
             try {
                 val tracks = db.trackDao().getAllTracks()
                 _downloadedTrackListState.value = tracks.map { track ->
-                    Log.d("TrackSelectionViewModel", "Loaded downloaded track: ${track.title}")
+                    Log.d("TrackSelectionViewModel", "Loaded downloaded track: ${track.id} - ${track.title}")
                     TrackUI(
                         id = track.id,
                         title = track.title,
