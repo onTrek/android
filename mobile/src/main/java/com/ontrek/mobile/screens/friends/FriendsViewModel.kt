@@ -199,6 +199,68 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
+
+    // Funzioni per aggiornare le liste degli amici e delle richieste (senza rifare le chiamate API)
+    fun removeSentFriendRequestInList(requestId: String) {
+        viewModelScope.launch {
+            _sentFriendRequests.value = when (val currentState = _sentFriendRequests.value) {
+                is SentRequestsState.Success -> {
+                    val updatedRequests = currentState.requests.filter { it.id != requestId }
+                    SentRequestsState.Success(updatedRequests)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+    fun addFriendToList(friend: Friend) {
+        viewModelScope.launch {
+            _friendsState.value = when (val currentState = _friendsState.value) {
+                is FriendsState.Success -> {
+                    val updatedFriends = currentState.friends.toMutableList().apply { add(friend) }
+                    FriendsState.Success(updatedFriends)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+    fun removeFriendFromList(friendId: String) {
+        viewModelScope.launch {
+            _friendsState.value = when (val currentState = _friendsState.value) {
+                is FriendsState.Success -> {
+                    val updatedFriends = currentState.friends.filter { it.id != friendId }
+                    FriendsState.Success(updatedFriends)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+    fun removeRequestFromList(requestId: String) {
+        viewModelScope.launch {
+            _requestsState.value = when (val currentState = _requestsState.value) {
+                is RequestsState.Success -> {
+                    val updatedRequests = currentState.requests.filter { it.id != requestId }
+                    RequestsState.Success(updatedRequests)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+    fun addRequestToList(request: FriendRequest) {
+        viewModelScope.launch {
+            _requestsState.value = when (val currentState = _requestsState.value) {
+                is RequestsState.Success -> {
+                    val updatedRequests = currentState.requests.toMutableList().apply { add(request) }
+                    RequestsState.Success(updatedRequests)
+                }
+                else -> currentState
+            }
+        }
+    }
+
     // Stati delle amicizie
     sealed class FriendsState {
         object Loading : FriendsState()
