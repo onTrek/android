@@ -27,7 +27,7 @@ fun AddGroup(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Crea Nuovo Gruppo",
+                "Create new group",
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -38,10 +38,13 @@ fun AddGroup(
             ) {
                 OutlinedTextField(
                     value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Descrizione del gruppo") },
+                    onValueChange = { if (it.length <= 100) description = it },
+                    label = { Text("Descrizione") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
+                    supportingText = {
+                        Text("${description.length}/100 caratteri")
+                    }
                 )
 
                 // Selezione traccia
@@ -58,14 +61,14 @@ fun AddGroup(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Route,
-                            contentDescription = "Traccia",
+                            contentDescription = "Track",
                             tint = MaterialTheme.colorScheme.primary
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
-                            text = selectedTrack?.title ?: "Seleziona una traccia",
+                            text = selectedTrack?.title ?: "Select a track",
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -91,7 +94,7 @@ fun AddGroup(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Crea")
+                    Text("Create")
                 }
             }
         },
@@ -99,7 +102,7 @@ fun AddGroup(
             TextButton(
                 onClick = onDismiss
             ) {
-                Text("Annulla")
+                Text("Close")
             }
         }
     )
