@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.hikes.getGroups
 import com.ontrek.shared.data.File
 import com.ontrek.shared.data.GroupDoc
+import com.ontrek.shared.data.GroupIDCreation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,17 +29,7 @@ class HikesViewModel : ViewModel() {
         viewModelScope.launch {
             getGroups(
                 onSuccess = { groupsList ->
-                    val groups = groupsList ?: emptyList()
-                    // Verifica se aggiungere un gruppo di test
-                    val finalGroups = if (groups.isEmpty()) {
-                        Log.d("HikesViewModel", "No groups found, adding a test group")
-                        listOf(createTestGroup())
-                    } else {
-                        groups
-                    }
-
-                    _listGroup.value = GroupsState.Success(finalGroups)
-                    Log.d("HikesViewModel", "Groups loaded: ${finalGroups.size}")
+                    _listGroup.value = GroupsState.Success(groupsList ?: emptyList())
                 },
                 onError = { error ->
                     _listGroup.value = GroupsState.Error(error)
@@ -49,17 +40,24 @@ class HikesViewModel : ViewModel() {
         }
     }
 
-    private fun createTestGroup(): GroupDoc {
-        return GroupDoc(
-            created_at = "2023-10-01T12:00:00Z",
-            created_by = "test_user",
-            description = "Test Group",
-            group_id = 0,
-            file = File(
-                file_id = 0,
-                filename = "test_image.jpg",
-            ),
-        )
+    fun createGroup(
+        description: String,
+        trackId: Int,
+        token: String,
+        onSuccess: (GroupIDCreation) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val group = GroupIDCreation(
+                    description = description,
+                    file_id = 1,
+                )
+                onSuccess(group)
+            } catch (e: Exception) {
+                onError(e.message ?: "Unknown error")
+            }
+        }
     }
 
     fun resetMsgToast() {

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.mobile.utils.components.groupComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
 import java.time.ZoneId
@@ -33,6 +34,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
 
     val listGroup by viewModel.listGroup.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState("")
+    val addDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadGroups(token)
@@ -59,7 +61,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Qui implementeremo la creazione di un nuovo gruppo
+                    addDialog.value = true
                 },
                 modifier = Modifier.padding(16.dp),
             ) {
@@ -111,6 +113,29 @@ fun HikesScreen(navController: NavHostController, token: String) {
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+            }
+
+            if (addDialog.value) {
+                AddGroup(
+                    onDismiss = { addDialog.value = false },
+                    onCreateGroup = { description, trackId ->
+                        viewModel.createGroup(
+                            description = description,
+                            trackId = trackId,
+                            token = token,
+                            onSuccess = { groupIdCreation ->
+                                viewModel.loadGroups(token) // Reload groups after creation
+                                Toast.makeText(context, "Group created successfully: ${groupIdCreation.file_id}", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, "Error creating group: $error", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                        addDialog.value = false
+                    },
+                    isLoading = listGroup is HikesViewModel.GroupsState.Loading,
+                    tracks = emptyList() // Replace with actual track list if needed
+                )
             }
         }
     }
