@@ -88,7 +88,10 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
             try {
                 val tracks = db.trackDao().getAllTracks()
                 _downloadedTrackListState.value = tracks.map { track ->
-                    Log.d("TrackSelectionViewModel", "Loaded downloaded track: ${track.id} - ${track.title}")
+                    Log.d(
+                        "TrackSelectionViewModel",
+                        "Loaded downloaded track: ${track.id} - ${track.title}"
+                    )
                     TrackUI(
                         id = track.id,
                         title = track.title,
@@ -199,9 +202,10 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                     ) + _downloadedTrackListState.value
 
                     // remove the track from available list
-                    _availableTrackListState.value = _availableTrackListState.value.toMutableList().also {
-                        it.removeAt(index)
-                    }
+                    _availableTrackListState.value =
+                        _availableTrackListState.value.toMutableList().also {
+                            it.removeAt(index)
+                        }
 
                     Log.d("DownloadTrack", "Track saved to database: ${downloaded.title}")
                     _downloadError.value = null
@@ -232,17 +236,22 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                 trackToDelete.state = DownloadState.NotStarted
 
                 // Remove from the list
-                _downloadedTrackListState.value = _downloadedTrackListState.value.toMutableList().also {
-                    it.removeAt(index)
-                }
+                _downloadedTrackListState.value =
+                    _downloadedTrackListState.value.toMutableList().also {
+                        it.removeAt(index)
+                    }
 
                 // Add back to available track list with NotStarted state
-                _availableTrackListState.value = _availableTrackListState.value.toMutableList().also {
-                    it.add(trackToDelete.copy(state = DownloadState.NotStarted))
-                }
+                _availableTrackListState.value =
+                    _availableTrackListState.value.toMutableList().also {
+                        it.add(trackToDelete.copy(state = DownloadState.NotStarted))
+                    }
 
                 // Reset the button state to NotStarted
-                updateButtonState(_availableTrackListState.value.indexOf(trackToDelete), DownloadState.NotStarted)
+                updateButtonState(
+                    _availableTrackListState.value.indexOf(trackToDelete),
+                    DownloadState.NotStarted
+                )
             } catch (e: Exception) {
                 Log.e("TrackSelectionViewModel", "Error deleting track: ${e.message}")
             }
