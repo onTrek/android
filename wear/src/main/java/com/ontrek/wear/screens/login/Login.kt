@@ -52,7 +52,7 @@ fun Login(
             //Only for debug purposes
             CompactButton(
                 onClick = {
-                    preferencesViewModel.saveToken("3e530eef-2f77-418e-89e7-d82537c9109a") //fuck it we ball
+                    preferencesViewModel.saveToken("b35e0a16-1d06-4396-acfd-375a57c43383") //fuck it we ball
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.95f)

@@ -10,7 +10,6 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <application
-        android:allowBackup="true"
         android:name=".StoreApplication"
         android:icon='@mipmap/ic_launcher'
         android:label="@string/app_name"

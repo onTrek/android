@@ -1,5 +1,6 @@
 package com.ontrek.wear.screens.track
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,8 +39,11 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.components.ErrorScreen
+import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
+import com.ontrek.wear.utils.sensors.GpsSensor
 
 
 private const val buttonSweepAngle = 60f
@@ -48,36 +53,59 @@ private const val buttonSweepAngle = 60f
  * This screen displays a compass arrow indicating the current direction, the progress bar of the track,
  * and a button to trigger an SOS signal.
  * @param navController The navigation controller to handle navigation actions.
- * @param text A string parameter that can be used to display additional information on the screen.
+ * @param trackID A string parameter that can be used to display additional information on the screen.
+ * @param sessionID A string parameter representing the session ID, which can be used to fetch friends data or other session-related information.
  * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(navController: NavHostController, text: String, modifier: Modifier = Modifier) {
+fun TrackScreen(navController: NavHostController, trackID: String, sessionID: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
+    // Inizializza il sensore GPS
+    val gpsSensor = remember { GpsSensor(context) }
+    // Contiene il file GPX caricato
+    val gpxViewModel = remember { TrackScreenViewModel() }
 
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
-
+    // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
     val accuracy by compassSensor.accuracy.collectAsState()
 
+    // Raccoglie la lista dei punti del tracciato dal ViewModel
+    val trackPoints by gpxViewModel.trackPointListState.collectAsState()
+    // Raccoglie la lunghezza totale del tracciato come stato osservabile
+    //val totalLength by gpxViewModel.totalLengthState.collectAsState()
+    // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
+    val parsingError by gpxViewModel.parsingErrorState.collectAsState()
+
+    // Raccoglie la posizione corrente come stato osservabile
+    val currentLocation by gpsSensor.location.collectAsState()
+
+
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
-    DisposableEffect(compassSensor) {
+    DisposableEffect(compassSensor, gpsSensor) {
         // Avvia la lettura dei dati dai sensori
         compassSensor.start()
+        gpsSensor.start()
+        gpxViewModel.loadGpx(context, "$trackID.gpx")
 
         // Pulisce le risorse quando il componente viene rimosso dalla composizione
         onDispose {
             compassSensor.stop()
+            gpsSensor.stop()
         }
+    }
+
+    LaunchedEffect(currentLocation) {
+        Log.d("TrackScreen", "Current Location: ${currentLocation?.latitude}, ${currentLocation?.longitude}")
     }
 
     val progress = 0.75f
 
-    var alone = false
+    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     var info: String? = null
     var infobackgroundColor: androidx.compose.ui.graphics.Color =
@@ -85,8 +113,18 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
     var infotextColor: androidx.compose.ui.graphics.Color =
         MaterialTheme.colorScheme.onPrimaryContainer
 
+    if (!parsingError.isEmpty()) {
+        ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
+    }
     AnimatedVisibility(
-        visible = accuracy < 2,
+        visible = trackPoints.isEmpty() && parsingError.isEmpty(),
+        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
+    ) {
+        Loading(Modifier.fillMaxSize())
+    }
+    AnimatedVisibility(
+        visible = accuracy < 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {
@@ -98,7 +136,7 @@ fun TrackScreen(navController: NavHostController, text: String, modifier: Modifi
         }
     }
     AnimatedVisibility(
-        visible = accuracy >= 2,
+        visible = accuracy >= 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
         enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
         exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
     ) {

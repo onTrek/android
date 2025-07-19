@@ -71,4 +71,8 @@ interface ApiService {
     @Streaming
     @GET("gpx/{id}/map")
     fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/gpx/{id}/download")
+    fun downloadGPX(@Header("Bearer") token: String, @Path("id") gpxID: Int): Call<ResponseBody>
 }

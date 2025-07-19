@@ -1,6 +1,5 @@
 package com.ontrek.wear
 
-import NavigationStack
 import android.Manifest
 import android.R.style.Theme_DeviceDefault
 import android.content.pm.PackageManager
@@ -16,12 +15,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material3.AppScaffold
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.data.PreferencesViewModel
+import com.ontrek.wear.screens.NavigationStack
 import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
@@ -41,10 +42,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 // Permesso di localizzazione precisa concesso
                 Log.d("GPS_PERMISSIONS", "Permesso di localizzazione precisa concesso")
             }
+
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                 // Solo permesso di localizzazione approssimativa concesso
                 Log.d("GPS_PERMISSIONS", "Solo permesso di localizzazione approssimativa concesso")
             }
+
             else -> {
                 // Nessun permesso concesso
                 Log.d("GPS_PERMISSIONS", "Permessi di localizzazione negati")
@@ -65,17 +68,19 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
+                Log.d("Download", "Number of files in context: " + this.fileList().size.toString())
                 when {
                     token == null -> Loading(Modifier.fillMaxSize())
                     // if GPS permissions are not granted, show a message or handle it
                     (!localPermissions) -> {
                         PermissionRequester(context)
                     }
+
                     token!!.isEmpty() -> Login()
-                    else -> NavigationStack()
-//                    else -> AppScaffold {
-//                        NavigationStack()
-//                    }
+//                    else -> NavigationStack()
+                    else -> AppScaffold {
+                        NavigationStack()
+                    }
                 }
             }
         }
@@ -116,7 +121,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
     }
 
-    fun checkLocationPermissions() : Boolean{
+    fun checkLocationPermissions(): Boolean {
         val hasFineLocationPermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -130,7 +135,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         return hasFineLocationPermission && hasCoarseLocationPermission
     }
 
-    private fun checkAndRequestLocationPermissions() : Boolean {
+    private fun checkAndRequestLocationPermissions(): Boolean {
         if (!checkLocationPermissions()) {
             locationPermissionRequest.launch(
                 arrayOf(
