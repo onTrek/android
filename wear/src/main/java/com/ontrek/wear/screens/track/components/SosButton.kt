@@ -1,7 +1,9 @@
 package com.ontrek.wear.screens.track.components
 
 import android.content.Context
+import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -37,6 +39,8 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.theme.OnTrekTheme
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+
+private const val animationDuration = 5000L
 
 @Composable
 fun SosButton(
@@ -88,40 +92,52 @@ fun SosButton(
                     detectTapGestures(
                         onPress = {
                             isPressed = true
-                            var elapsed = 0L
 
                             scope.launch {
                                 scaleAnim.snapTo(1f)
                                 scaleAnim.animateTo(
                                     scaleRate, animationSpec = tween(
-                                        durationMillis = 5000, easing = LinearEasing
+                                        durationMillis = animationDuration.toInt(),
+                                        easing = LinearEasing
                                     )
                                 )
                             }
 
                             // Vibrate progressively
-                            //                        val vibrationJob = scope.launch {
-                            //                            var elapsed = 0L
-                            //                            while (elapsed < 5000L && isPressed) {
-                            //                                val intensity = ((elapsed / 5000f).coerceIn(0f, 1f) * 255).toInt()
-                            //                                vibrator.defaultVibrator.vibrate(
-                            //                                    VibrationEffect.createOneShot(50, intensity)
-                            //                                )
-                            //                                delay(300)
-                            //                                elapsed += 300
-                            //                            }
-                            //                        }
+                            scope.launch {
+                                // Create a waveform that increases in intensity
+                                val steps = 20 // Number of intensity steps
+                                val stepDuration = animationDuration / steps
+
+                                // Create timing and amplitude arrays
+                                val timings = LongArray(steps) { stepDuration }
+                                val amplitudes = IntArray(steps) { i ->
+                                    val progress = (i.toFloat() / (steps - 1)).coerceIn(0f, 1f)
+                                    (progress * 254 + 1).toInt() // Intensity from 1 to 255
+                                }
+
+                                Log.d("VIBRATION", "Starting continuous increasing vibration")
+
+                                // Create a single waveform vibration that increases in intensity
+                                vibrator.defaultVibrator.vibrate(
+                                    VibrationEffect.createWaveform(
+                                        timings,
+                                        amplitudes,
+                                        -1
+                                    )
+                                )
+                            }
 
                             val success = try {
-                                withTimeoutOrNull(5000L) {
+                                withTimeoutOrNull(animationDuration) {
                                     awaitRelease()
                                 } == null
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 false
                             }
 
                             isPressed = false
-//                          vibrationJob.cancel()
+                            vibrator.defaultVibrator.cancel()
 
                             if (success) {
                                 onSosTriggered()
