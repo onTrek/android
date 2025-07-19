@@ -47,9 +47,20 @@ import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 import com.ontrek.wear.utils.functions.calculateFontSize
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationCompat
+import androidx.wear.ongoing.OngoingActivity
+import kotlin.apply
 
 
 private const val buttonSweepAngle = 60f
+
+private const val NOTIFICATION_CHANNEL_ID = "track_navigation_channel"
+private const val NOTIFICATION_ID = 1001
 
 /**
  * Composable function that represents the Track screen.
@@ -64,6 +75,7 @@ private const val buttonSweepAngle = 60f
 fun TrackScreen(navController: NavHostController, trackID: String, sessionID: String, modifier: Modifier = Modifier) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
+    val applicationContext = context.applicationContext
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
@@ -108,6 +120,65 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     //TODO()
     val trackName = "NOT IMPLEMENTED"
+
+    // Create PendingIntent to return to the app
+    val pendingIntent = remember {
+        val intent = Intent(applicationContext, context.javaClass).apply {
+            action = Intent.ACTION_MAIN
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        PendingIntent.getActivity(
+            applicationContext, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    // Create notification builder
+    val notificationBuilder = remember {
+        NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.hiking)
+            .setContentTitle("OnTrek")
+            .setContentText(trackName)
+            .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(pendingIntent)
+    }
+
+    val ongoingActivity = remember {
+
+        OngoingActivity.Builder(applicationContext, NOTIFICATION_ID, notificationBuilder)
+            .setStaticIcon(R.drawable.hiking)
+            .build()
+    }
+
+    // Get the NotificationManager
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    val channel = NotificationChannel(
+        NOTIFICATION_CHANNEL_ID,
+        "Track Navigation",
+        NotificationManager.IMPORTANCE_HIGH
+    ).apply {
+        description = "Shows ongoing track navigation information"
+        setShowBadge(true)
+    }
+    notificationManager.createNotificationChannel(channel)
+
+    DisposableEffect(Unit) {
+        Log.d("NOTIFICATION_BUILDER", "Creating notification for ongoing track navigation")
+
+        // Apply the ongoing activity to the notification
+        ongoingActivity.apply(applicationContext)
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+
+        onDispose {
+            Log.d("NOTIFICATION_BUILDER", "Destroying notification for ongoing track navigation")
+            // Cancel the notification to stop the ongoing activity
+            notificationManager.cancel(NOTIFICATION_ID)
+        }
+    }
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor, gpsSensor) {
