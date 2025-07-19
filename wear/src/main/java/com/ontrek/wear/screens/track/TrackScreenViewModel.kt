@@ -156,17 +156,6 @@ class TrackScreenViewModel : ViewModel() {
     // Elaborates the distance to the track based on the current location and the current track points
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
-        val oldIndex = nextTrackPoint.value?.index
-        nextTrackPoint.value =
-            findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index)
-        val newIndex = nextTrackPoint.value!!.index
-        if (oldIndex != newIndex) {
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-
-            //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
-            //elaborateDirection(0.0F)
-        }
 
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
         onTrack.value = (_distanceFromTrack.value ?: 0.0) < trackDistanceThreshold
@@ -180,6 +169,19 @@ class TrackScreenViewModel : ViewModel() {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
             Log.d("TRACK_SCREEN_VIEW_MODEL", "User is on track, reset notification")
+        }
+
+
+        val oldIndex = nextTrackPoint.value?.index
+        nextTrackPoint.value =
+            findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index)
+        val newIndex = nextTrackPoint.value!!.index
+        if (oldIndex != newIndex) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
+            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
+
+            //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
+            //elaborateDirection(0.0F)
         }
     }
 

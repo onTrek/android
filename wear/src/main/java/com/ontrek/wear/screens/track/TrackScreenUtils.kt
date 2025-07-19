@@ -11,10 +11,12 @@ import com.ontrek.wear.utils.objects.NearPoint
 import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs
 
-fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int?): TrackPoint {
+fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, onTrack: Boolean, actualPointIndex: Int?): TrackPoint {
     val threadSafePosition = currentLocation
     val probableNextPoint = if (actualPointIndex == null) {
         getNearestPoints(threadSafePosition, trackPoints)[0]
+    } else if (onTrack) {
+        NearPoint(actualPointIndex, getDistanceTo(currentLocation.toSimplePoint(), trackPoints[actualPointIndex].toSimplePoint()))
     } else {
         extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
     }
