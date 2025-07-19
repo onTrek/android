@@ -137,7 +137,7 @@ class TrackScreenViewModel : ViewModel() {
                 nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
             if (isNearTrackValue) {
                 nextTrackPoint.value = findNextTrackPoint(
-                    currentLocation, trackPoints.value, onTrack.value, nextTrackPoint.value?.index
+                    currentLocation, trackPoints.value, false, nextTrackPoint.value?.index
                 )
                 Log.d(
                     "TRACK_SCREEN_VIEW_MODEL",
@@ -164,6 +164,25 @@ class TrackScreenViewModel : ViewModel() {
             "${if (onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
         )
 
+        val oldIndex = nextTrackPoint.value?.index
+        nextTrackPoint.value =
+            findNextTrackPoint(currentLocation, trackPoints.value, onTrack.value, nextTrackPoint.value?.index)
+        val newIndex = nextTrackPoint.value!!.index
+        if (oldIndex != newIndex) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
+            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
+
+            //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
+            //elaborateDirection(0.0F)
+        }
+
+        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
+        onTrack.value = (_distanceFromTrack.value ?: 0.0) < trackDistanceThreshold
+        Log.d(
+            "TRACK_SCREEN_VIEW_MODEL",
+            "${if (onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
+        )
+
         if (_distanceFromTrack.value!! > notificationTrackDistanceThreshold && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
@@ -172,19 +191,6 @@ class TrackScreenViewModel : ViewModel() {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
             Log.d("TRACK_SCREEN_VIEW_MODEL", "User is on track, reset notification")
-        }
-
-
-        val oldIndex = nextTrackPoint.value?.index
-        nextTrackPoint.value =
-            findNextTrackPoint(currentLocation, trackPoints.value, nextTrackPoint.value?.index)
-        val newIndex = nextTrackPoint.value!!.index
-        if (oldIndex != newIndex) {
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-
-            //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
-            //elaborateDirection(0.0F)
         }
     }
 
