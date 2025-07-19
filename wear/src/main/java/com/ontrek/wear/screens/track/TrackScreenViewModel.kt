@@ -137,7 +137,7 @@ class TrackScreenViewModel : ViewModel() {
                 nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
             if (isNearTrackValue) {
                 nextTrackPoint.value = findNextTrackPoint(
-                    currentLocation, trackPoints.value, nextTrackPoint.value?.index
+                    currentLocation, trackPoints.value, onTrack.value, nextTrackPoint.value?.index
                 )
                 Log.d(
                     "TRACK_SCREEN_VIEW_MODEL",
@@ -159,7 +159,10 @@ class TrackScreenViewModel : ViewModel() {
 
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
         onTrack.value = (_distanceFromTrack.value ?: 0.0) < trackDistanceThreshold
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "${if(onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}")
+        Log.d(
+            "TRACK_SCREEN_VIEW_MODEL",
+            "${if (onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
+        )
 
         if (_distanceFromTrack.value!! > notificationTrackDistanceThreshold && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
@@ -218,8 +221,13 @@ class TrackScreenViewModel : ViewModel() {
 
     fun computeDistanceFromTrack(currentLocation: Location): Double {
         val previousPoint = (nextTrackPoint.value?.index ?: 1) - 1
-        val previousPointDistance = getDistanceTo(currentLocation.toSimplePoint(), trackPoints.value[previousPoint].toSimplePoint())
-        val nextPointDistance = getDistanceTo(currentLocation.toSimplePoint(), trackPoints.value[nextTrackPoint.value!!.index].toSimplePoint())
+        val previousPointDistance = getDistanceTo(
+            currentLocation.toSimplePoint(), trackPoints.value[previousPoint].toSimplePoint()
+        )
+        val nextPointDistance = getDistanceTo(
+            currentLocation.toSimplePoint(),
+            trackPoints.value[nextTrackPoint.value!!.index].toSimplePoint()
+        )
 
         return previousPointDistance + nextPointDistance - trackPoints.value[nextTrackPoint.value!!.index].distanceToPrevious
     }
