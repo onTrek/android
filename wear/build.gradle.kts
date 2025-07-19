@@ -42,6 +42,7 @@ android {
 dependencies {
     implementation(project(":shared"))
 
+    implementation(libs.wear)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.play.services.location)

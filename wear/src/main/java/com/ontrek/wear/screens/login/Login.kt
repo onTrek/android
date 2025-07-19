@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material3.CompactButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices

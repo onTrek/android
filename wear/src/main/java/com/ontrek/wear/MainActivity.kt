@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.ambient.AmbientLifecycleObserver
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
     private var hasLocationPermissions = false
+    private lateinit var ambientController: AmbientLifecycleObserver
 
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -62,13 +64,15 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         super.onCreate(savedInstanceState)
         setTheme(Theme_DeviceDefault)
 
+        ambientController = AmbientLifecycleObserver(this, AmbientCallback())
+        lifecycle.addObserver(ambientController)
+
         val context = this
         val localPermissions = checkAndRequestLocationPermissions()
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
-                Log.d("Download", "Number of files in context: " + this.fileList().size.toString())
                 when {
                     token == null -> Loading(Modifier.fillMaxSize())
                     // if GPS permissions are not granted, show a message or handle it
@@ -77,13 +81,17 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     }
 
                     token!!.isEmpty() -> Login()
-//                    else -> NavigationStack()
                     else -> AppScaffold {
                         NavigationStack()
                     }
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycle.removeObserver(ambientController)
     }
 
     override fun onResume() {
@@ -149,5 +157,23 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             return true
         }
         return false
+    }
+
+    private inner class AmbientCallback : AmbientLifecycleObserver.AmbientLifecycleCallback {
+        override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
+            Log.d("AMBIENT", "Entering ambient mode")
+            val layoutParams = window.attributes
+            layoutParams.screenBrightness = 0.0f
+            window.attributes = layoutParams
+
+        }
+
+        override fun onExitAmbient() {
+            // Codice da eseguire quando l'app esce dalla modalità ambient
+            Log.d("AMBIENT", "Exiting ambient mode")
+            val layoutParams = window.attributes
+            layoutParams.screenBrightness = -1.0f //system default brightness
+            window.attributes = layoutParams
+        }
     }
 }

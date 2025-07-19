@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
@@ -41,9 +42,11 @@ import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
+import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
+import com.ontrek.wear.utils.functions.calculateFontSize
 
 
 private const val buttonSweepAngle = 60f
@@ -69,10 +72,20 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     // Contiene il file GPX caricato
     val gpxViewModel = remember { TrackScreenViewModel() }
 
+    // Raccoglie l'accuratezza del sensore GPS come stato osservabile
+    val gpsAccuracy by gpsSensor.accuracy.collectAsState()
+    val isGpsAccuracyLow = {
+        gpsAccuracy > trackPointThreshold
+    }
+    val gpsAccuracyText = "Low GPS signal"
+    val vibrator = getSystemService(context, android.os.Vibrator::class.java)
+
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsState()
     // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
     val accuracy by compassSensor.accuracy.collectAsState()
+    // Raccoglie la necessità di vibrare quando l'accuratezza torna alta
+    val vibrationNeeded by compassSensor.vibrationNeeded.collectAsState()
 
     // Raccoglie la lista dei punti del tracciato dal ViewModel
     val trackPoints by gpxViewModel.trackPointListState.collectAsState()
@@ -80,10 +93,21 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     //val totalLength by gpxViewModel.totalLengthState.collectAsState()
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
     val parsingError by gpxViewModel.parsingErrorState.collectAsState()
-
+    // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
+    val isNearTrack by gpxViewModel.isNearTrackState.collectAsState()
+    // Raccoglie l'indice del punto più vicino al tracciato come stato osservabile
+    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsState()
+    // Raccoglie l'angolo della freccia come stato osservabile
+    val arrowDirection by gpxViewModel.arrowDirectionState.collectAsState()
     // Raccoglie la posizione corrente come stato osservabile
     val currentLocation by gpsSensor.location.collectAsState()
+    // Raccoglie se l'utente è sul tracciato come stato osservabile
+    val onTrak by gpxViewModel.onTrakState.collectAsState()
+    // Raccoglie il progresso lungo il tracciato come stato osservabile
+    val progress by gpxViewModel.progressState.collectAsState()
 
+    //TODO()
+    val trackName = "NOT IMPLEMENTED"
 
     // Gestisce il ciclo di vita del sensore: avvio all'ingresso nella composizione e arresto all'uscita
     DisposableEffect(compassSensor, gpsSensor) {
@@ -96,95 +120,134 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         onDispose {
             compassSensor.stop()
             gpsSensor.stop()
+            gpxViewModel.reset()
         }
+    }
+
+    LaunchedEffect(progress) {
+        if (progress == 1f) {
+            Log.d("GPS_TRACK", "Track completed")
+            navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
+                // Clear the back stack to prevent going back to the track screen
+                popUpTo(Screen.TrackScreen.route) { inclusive = true }
+            }
+        }
+    }
+
+    LaunchedEffect(onTrak) {
+        Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
+    }
+
+    LaunchedEffect(accuracy) {
+        if (accuracy == 3 && vibrationNeeded) {
+            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(300, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+            compassSensor.setVibrationNeeded(false)
+        } else if (accuracy < 3) {
+            compassSensor.setVibrationNeeded(true)
+        }
+    }
+
+    LaunchedEffect(direction) {
+        if (accuracy < 2) return@LaunchedEffect
+        gpxViewModel.elaborateDirection(direction)
     }
 
     LaunchedEffect(currentLocation) {
-        Log.d("TrackScreen", "Current Location: ${currentLocation?.latitude}, ${currentLocation?.longitude}")
-    }
+        val threadSafeCurrentLocation = currentLocation
 
-    val progress = 0.75f
+        if (threadSafeCurrentLocation == null) {
+            Log.d("GPS_LOCATION", "Location not available")
+            return@LaunchedEffect
+        }
+
+        if (isNearTrack == null || isNearTrack == false) {
+            // Startup function
+            gpxViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
+        } else if (isNearTrack == true) {
+            // If we are near the track, we can proceed to elaborate the position
+            gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
+        }
+    }
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    var info: String? = null
-    var infobackgroundColor: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.primaryContainer
-    var infotextColor: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.onPrimaryContainer
+    val infobackgroundColor: androidx.compose.ui.graphics.Color =
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+    val infotextColor: androidx.compose.ui.graphics.Color =
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
 
     if (!parsingError.isEmpty()) {
         ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
-    }
-    AnimatedVisibility(
-        visible = trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
+    } else if (isNearTrack != null && isNearTrack != true) {
+        WarningScreen("You are too distant from the selected track", Modifier.fillMaxSize(),null, null)
+    } else if (trackPoints.isEmpty() || isNearTrack == null) {
         Loading(Modifier.fillMaxSize())
-    }
-    AnimatedVisibility(
-        visible = accuracy < 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier.fillMaxSize()
+    } else {
+        AnimatedVisibility(
+            visible = accuracy < 3,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
-            CompassCalibrationNotice(modifier)
-        }
-    }
-    AnimatedVisibility(
-        visible = accuracy >= 2 && !trackPoints.isEmpty() && parsingError.isEmpty(),
-        enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
-        exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
-    ) {
-        ScreenScaffold(
-        timeText = {
-            TimeText(
-                backgroundColor = infobackgroundColor,
-                modifier = Modifier.padding(10.dp)
-            ) { time ->
-                curvedText(
-                    text = if (info.isNullOrBlank()) time else info,
-                    overflow = TextOverflow.Ellipsis,
-                    color = infotextColor,
-                )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxSize()
+            ) {
+                CompassCalibrationNotice(modifier)
             }
-        },
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier.fillMaxSize()
+        }
+        AnimatedVisibility(
+            visible = accuracy == 3,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(),
+            exit = fadeOut(animationSpec = tween(1000)) + slideOutVertically()
         ) {
-
-            CircularProgressIndicator(
-                progress = { progress },
-                startAngle = 90f + buttonWidth / 2,
-                endAngle = 90f - buttonWidth / 2,
-            )
-
-
-            Arrow(
-                direction = direction,  // Angolo di rotazione basato sui dati del sensore
-//                    color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
-            )
-
-            if (!alone) {
-                SosButton(
-                    sweepAngle = buttonSweepAngle,
-                    onSosTriggered = {
-                        navController.navigate(route = Screen.SOSScreen.route)
+            ScreenScaffold(
+                timeText = {
+                    TimeText(
+                        backgroundColor = infobackgroundColor,
+                        modifier = Modifier.padding(10.dp)
+                    ) { time ->
+                        val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                        val dynamicFontSize = calculateFontSize(displayText)
+                        curvedText(
+                            text = displayText,
+                            overflow = TextOverflow.Ellipsis,
+                            color = infotextColor,
+                            fontSize = dynamicFontSize
+                        )
                     }
-                )
+                },
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = modifier.fillMaxSize()
+                ) {
+
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        startAngle = 90f + buttonWidth / 2,
+                        endAngle = 90f - buttonWidth / 2,
+                    )
+
+                    Arrow(
+                        direction = arrowDirection,
+//                      color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
+                    )
+
+                    if (!alone) {
+                        SosButton(
+                            sweepAngle = buttonSweepAngle,
+                            onSosTriggered = {
+                                navController.navigate(route = Screen.SOSScreen.route)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
-}
 }
 
 @Composable
@@ -192,7 +255,7 @@ fun CompassCalibrationNotice(
     modifier: Modifier = Modifier,
 ) {
     val message = "Low accuracy"
-    val subMessage = "Tilt and move the device"
+    val subMessage = "Tilt and move the device until it vibrates"
 
     Column(
         modifier = modifier
@@ -203,16 +266,16 @@ fun CompassCalibrationNotice(
     ) {
         Text(
             text = message,
-            modifier = Modifier.padding(top = 15.dp),
+            modifier = Modifier.padding(top = 10.dp),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
             fontSize = MaterialTheme.typography.titleMedium.fontSize
         )
-        GifRenderer(Modifier.fillMaxSize(0.6f), R.drawable.compass, R.drawable.compassplaceholder)
+        GifRenderer(Modifier.fillMaxSize(0.5f), R.drawable.compass, R.drawable.compassplaceholder)
         Text(
             text = subMessage,
-            modifier = Modifier.padding(horizontal = 10.dp),
+            modifier = Modifier.padding(horizontal = 15.dp),
             textAlign = TextAlign.Center,
         )
     }
