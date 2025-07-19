@@ -12,12 +12,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Snooze
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,8 +32,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.wear.compose.material3.AlertDialog
+import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CircularProgressIndicator
+import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
@@ -43,10 +53,10 @@ import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
+import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import com.ontrek.wear.utils.functions.calculateFontSize
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -72,7 +82,12 @@ private const val NOTIFICATION_ID = 1001
  * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(navController: NavHostController, trackID: String, sessionID: String, modifier: Modifier = Modifier) {
+fun TrackScreen(
+    navController: NavHostController,
+    trackID: String,
+    sessionID: String,
+    modifier: Modifier = Modifier
+) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
     val applicationContext = context.applicationContext
@@ -85,7 +100,7 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val gpxViewModel = remember { TrackScreenViewModel() }
 
     // Raccoglie l'accuratezza del sensore GPS come stato osservabile
-    val gpsAccuracy by gpsSensor.accuracy.collectAsState()
+    val gpsAccuracy by gpsSensor.accuracy.collectAsStateWithLifecycle()
     val isGpsAccuracyLow = {
         gpsAccuracy > trackPointThreshold
     }
@@ -93,32 +108,38 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val vibrator = getSystemService(context, android.os.Vibrator::class.java)
 
     // Raccoglie il valore corrente della direzione come stato osservabile
-    val direction by compassSensor.direction.collectAsState()
+    val direction by compassSensor.direction.collectAsStateWithLifecycle()
     // Raccoglie l'accuratezza del sensore della bussola come stato osservabile
-    val accuracy by compassSensor.accuracy.collectAsState()
+    val accuracy by compassSensor.accuracy.collectAsStateWithLifecycle()
     // Raccoglie la necessità di vibrare quando l'accuratezza torna alta
-    val vibrationNeeded by compassSensor.vibrationNeeded.collectAsState()
+    val vibrationNeeded by compassSensor.vibrationNeeded.collectAsStateWithLifecycle()
 
     // Raccoglie la lista dei punti del tracciato dal ViewModel
-    val trackPoints by gpxViewModel.trackPointListState.collectAsState()
+    val trackPoints by gpxViewModel.trackPointListState.collectAsStateWithLifecycle()
     // Raccoglie la lunghezza totale del tracciato come stato osservabile
-    //val totalLength by gpxViewModel.totalLengthState.collectAsState()
+    //val totalLength by gpxViewModel.totalLengthState.collectAsStateWithLifecycle()
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
-    val parsingError by gpxViewModel.parsingErrorState.collectAsState()
+    val parsingError by gpxViewModel.parsingErrorState.collectAsStateWithLifecycle()
     // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
-    val isNearTrack by gpxViewModel.isNearTrackState.collectAsState()
+    val isNearTrack by gpxViewModel.isNearTrackState.collectAsStateWithLifecycle()
     // Raccoglie l'indice del punto più vicino al tracciato come stato osservabile
-    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsState()
+    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsStateWithLifecycle()
     // Raccoglie l'angolo della freccia come stato osservabile
-    val arrowDirection by gpxViewModel.arrowDirectionState.collectAsState()
+    val arrowDirection by gpxViewModel.arrowDirectionState.collectAsStateWithLifecycle()
     // Raccoglie la posizione corrente come stato osservabile
-    val currentLocation by gpsSensor.location.collectAsState()
+    val currentLocation by gpsSensor.location.collectAsStateWithLifecycle()
     // Raccoglie se l'utente è sul tracciato come stato osservabile
-    val onTrak by gpxViewModel.onTrakState.collectAsState()
+    val onTrak by gpxViewModel.onTrackState.collectAsStateWithLifecycle()
     // Raccoglie il progresso lungo il tracciato come stato osservabile
-    val progress by gpxViewModel.progressState.collectAsState()
+    val progress by gpxViewModel.progressState.collectAsStateWithLifecycle()
+    // Raccoglie la distanza dal tracciato come stato osservabile
+    val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
+    // Raccoglie la distanza minima per la notifica come stato osservabile
+    val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
 
-    //TODO()
+    var showDialog by remember { mutableStateOf(false) }
+
+    //TODO: Take the track name from the DB
     val trackName = "NOT IMPLEMENTED"
 
     // Create PendingIntent to return to the app
@@ -211,7 +232,12 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     LaunchedEffect(accuracy) {
         if (accuracy == 3 && vibrationNeeded) {
-            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(300, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrator?.vibrate(
+                android.os.VibrationEffect.createOneShot(
+                    300,
+                    android.os.VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
             compassSensor.setVibrationNeeded(false)
         } else if (accuracy < 3) {
             compassSensor.setVibrationNeeded(true)
@@ -242,15 +268,26 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
+    val isOffTrack = distanceFromTrack?.let { it > notificationTrackDistanceThreshold } == true
     val infobackgroundColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
     val infotextColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
 
     if (!parsingError.isEmpty()) {
-        ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
+        ErrorScreen(
+            "Error while parsing the GPX file: $parsingError",
+            Modifier.fillMaxSize(),
+            null,
+            null
+        )
     } else if (isNearTrack != null && isNearTrack != true) {
-        WarningScreen("You are too distant from the selected track", Modifier.fillMaxSize(),null, null)
+        WarningScreen(
+            "You are too distant from the selected track",
+            Modifier.fillMaxSize(),
+            null,
+            null
+        )
     } else if (trackPoints.isEmpty() || isNearTrack == null) {
         Loading(Modifier.fillMaxSize())
     } else {
@@ -277,7 +314,11 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                         backgroundColor = infobackgroundColor,
                         modifier = Modifier.padding(10.dp)
                     ) { time ->
-                        val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                        val displayText = when {
+                            isOffTrack -> "Off track!"
+                            isGpsAccuracyLow() -> gpsAccuracyText
+                            else -> time
+                        }
                         val dynamicFontSize = calculateFontSize(displayText)
                         curvedText(
                             text = displayText,
@@ -301,7 +342,9 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
                     Arrow(
                         direction = arrowDirection,
-//                      color = MaterialTheme.colorScheme.primaryContainer,
+                        distanceFraction = distanceFromTrack?.let {
+                            (it / notificationTrackDistanceThreshold).toFloat().coerceIn(0f, 1f)
+                        },
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
@@ -316,6 +359,14 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                         )
                     }
                 }
+                OffTrackDialog(
+                    showDialog = showDialog && distanceNotification,
+                    onConfirm = { showDialog = false },
+                    onSnooze = {
+//                        gpxViewModel.snoozeOffTrack()
+                        showDialog = false
+                    }
+                )
             }
         }
     }
@@ -349,6 +400,71 @@ fun CompassCalibrationNotice(
             modifier = Modifier.padding(horizontal = 15.dp),
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@Composable
+fun OffTrackDialog(
+    showDialog: Boolean,
+    onConfirm: () -> Unit,
+    onSnooze: () -> Unit
+) {
+    AlertDialog(
+        visible = showDialog,
+        onDismissRequest = onConfirm,
+        icon = {
+            Icon(
+                imageVector = Icons.Outlined.Warning,
+                contentDescription = "Off Track",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 30.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "You are getting off track!",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Confirm",
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onSnooze,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(end = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Snooze,
+                    contentDescription = "Snooze",
+                )
+            }
+        }
+    ) {
+        item {
+            Text(
+                text = "Get back on track or snooze the notification.",
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
