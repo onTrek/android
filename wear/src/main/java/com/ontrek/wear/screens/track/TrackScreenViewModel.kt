@@ -183,6 +183,10 @@ class TrackScreenViewModel : ViewModel() {
         }
     }
 
+    fun dismissOffTrackNotification() {
+        _notifyOffTrack.value = false
+    }
+
     fun elaborateDirection(compassDirection: Float) {
 
         val threadSafePosition = position.value

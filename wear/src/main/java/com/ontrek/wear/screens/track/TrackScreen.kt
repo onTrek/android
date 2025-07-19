@@ -137,7 +137,6 @@ fun TrackScreen(
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
 
-    var showDialog by remember { mutableStateOf(false) }
 
     //TODO: Take the track name as parameter like id
     val trackName = "NOT IMPLEMENTED"
@@ -241,6 +240,20 @@ fun TrackScreen(
             compassSensor.setVibrationNeeded(false)
         } else if (accuracy < 3) {
             compassSensor.setVibrationNeeded(true)
+        }
+    }
+
+    LaunchedEffect(distanceNotification) {
+        val longArray = longArrayOf(300, 300, 300, 300, 300)
+        val vibrationPattern = intArrayOf(255, 0, 255, 0, 255)
+        if (distanceNotification) {
+            vibrator?.vibrate(
+                android.os.VibrationEffect.createWaveform(
+                    longArray,
+                    vibrationPattern,
+                    -1
+                )
+            )
         }
     }
 
@@ -360,11 +373,11 @@ fun TrackScreen(
                     }
                 }
                 OffTrackDialog(
-                    showDialog = showDialog && distanceNotification,
-                    onConfirm = { showDialog = false },
+                    showDialog = distanceNotification,
+                    onConfirm = { gpxViewModel.dismissOffTrackNotification() },
                     onSnooze = {
 //                        gpxViewModel.snoozeOffTrack()
-                        showDialog = false
+                        gpxViewModel.dismissOffTrackNotification()
                     }
                 )
             }
