@@ -139,7 +139,7 @@ fun TrackScreen(
 
     var showDialog by remember { mutableStateOf(false) }
 
-    //TODO: Take the track name from the DB
+    //TODO: Take the track name as parameter like id
     val trackName = "NOT IMPLEMENTED"
 
     // Create PendingIntent to return to the app
