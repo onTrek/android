@@ -13,11 +13,10 @@ import kotlin.math.abs
 
 fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int?): TrackPoint {
     val threadSafePosition = currentLocation
-    var probableNextPoint: NearPoint?
-    if (actualPointIndex == null) {
-        probableNextPoint = getNearestPoints(threadSafePosition, trackPoints)[0]
+    val probableNextPoint = if (actualPointIndex == null) {
+        getNearestPoints(threadSafePosition, trackPoints)[0]
     } else {
-        probableNextPoint = extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
+        extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
     }
     var probableNextPointIndex = probableNextPoint.index
     var probableNextPointDistance = probableNextPoint.distanceToUser

@@ -1,6 +1,5 @@
 package com.ontrek.wear
 
-import NavigationStack
 import android.Manifest
 import android.R.style.Theme_DeviceDefault
 import android.content.pm.PackageManager
