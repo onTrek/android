@@ -33,10 +33,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
-    private var hasLocationPermissions = false
+    private var hasPermissions = false
     private lateinit var ambientController: AmbientLifecycleObserver
 
-    private val locationPermissionRequest = registerForActivityResult(
+    private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         when {
@@ -48,6 +48,11 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                 // Solo permesso di localizzazione approssimativa concesso
                 Log.d("GPS_PERMISSIONS", "Solo permesso di localizzazione approssimativa concesso")
+            }
+
+            permissions.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false) -> {
+                // Permesso di notifiche concesso
+                Log.d("GPS_PERMISSIONS", "Permesso di notifiche concesso")
             }
 
             else -> {
@@ -68,7 +73,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         lifecycle.addObserver(ambientController)
 
         val context = this
-        val localPermissions = checkAndRequestLocationPermissions()
+        val localPermissions = checkAndRequestPermissions()
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
@@ -99,12 +104,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         Log.d("WATCH_CONNECTION", "Resuming activity, registering data listener")
         dataClient.addListener(this)
 
-        val newPermissionState = checkLocationPermissions()
+        val newPermissionState = checkPermissions()
 
         // Se lo stato dei permessi è cambiato, riavvia l'activity per aggiornare l'UI
-        if (hasLocationPermissions != newPermissionState) {
-            hasLocationPermissions = newPermissionState
-            if (hasLocationPermissions) {
+        if (hasPermissions != newPermissionState) {
+            hasPermissions = newPermissionState
+            if (hasPermissions) {
                 // I permessi sono stati concessi, ricrea l'activity
                 recreate()
             }
@@ -129,7 +134,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
     }
 
-    fun checkLocationPermissions(): Boolean {
+    fun checkPermissions(): Boolean {
         val hasFineLocationPermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -140,19 +145,27 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        return hasFineLocationPermission && hasCoarseLocationPermission
+        val hasNotificationPermission = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission")
+
+        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission
     }
 
-    private fun checkAndRequestLocationPermissions(): Boolean {
-        if (!checkLocationPermissions()) {
-            locationPermissionRequest.launch(
+    private fun checkAndRequestPermissions(): Boolean {
+        if (!checkPermissions()) {
+            permissionsRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.POST_NOTIFICATIONS
                 )
             )
         } else {
-            hasLocationPermissions = true
+            hasPermissions = true
             Log.d("GPS_PERMISSIONS", "Location permissions already granted")
             return true
         }
