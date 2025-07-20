@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
@@ -183,7 +183,7 @@ fun TrackSelectionScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Error,
+                            imageVector = Icons.Outlined.CloudOff,
                             contentDescription = "Error loading tracks.",
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(end = 4.dp)
