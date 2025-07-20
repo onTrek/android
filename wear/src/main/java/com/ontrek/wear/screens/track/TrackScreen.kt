@@ -1,5 +1,10 @@
 package com.ontrek.wear.screens.track
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -31,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -44,10 +50,12 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
+import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
+import com.ontrek.wear.screens.track.components.EndTrack
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
@@ -57,13 +65,6 @@ import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import androidx.core.app.NotificationCompat
-import androidx.wear.ongoing.OngoingActivity
 import kotlin.apply
 
 
@@ -85,6 +86,7 @@ private const val NOTIFICATION_ID = 1001
 fun TrackScreen(
     navController: NavHostController,
     trackID: String,
+    trackName: String,
     sessionID: String,
     modifier: Modifier = Modifier
 ) {
@@ -137,9 +139,11 @@ fun TrackScreen(
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
 
+    var isSosButtonPressed by remember { mutableStateOf(false) }
 
-    //TODO: Take the track name as parameter like id
-    val trackName = "NOT IMPLEMENTED"
+    var showEndTrackDialog by remember { mutableStateOf(false) }
+    var trackCompleted by remember { mutableStateOf(false) }
+
 
     // Create PendingIntent to return to the app
     val pendingIntent = remember {
@@ -174,7 +178,8 @@ fun TrackScreen(
     }
 
     // Get the NotificationManager
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     val channel = NotificationChannel(
         NOTIFICATION_CHANNEL_ID,
@@ -216,12 +221,10 @@ fun TrackScreen(
     }
 
     LaunchedEffect(progress) {
-        if (progress == 1f) {
+        if (progress == 1f && !trackCompleted) {
             Log.d("GPS_TRACK", "Track completed")
-            navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
-                // Clear the back stack to prevent going back to the track screen
-                popUpTo(Screen.TrackScreen.route) { inclusive = true }
-            }
+            showEndTrackDialog = true
+            trackCompleted = true
         }
     }
 
@@ -283,9 +286,9 @@ fun TrackScreen(
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     val isOffTrack = distanceFromTrack?.let { it > notificationTrackDistanceThreshold } == true
     val infobackgroundColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val infotextColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
     if (!parsingError.isEmpty()) {
         ErrorScreen(
@@ -323,22 +326,25 @@ fun TrackScreen(
         ) {
             ScreenScaffold(
                 timeText = {
-                    TimeText(
-                        backgroundColor = infobackgroundColor,
-                        modifier = Modifier.padding(10.dp)
-                    ) { time ->
-                        val displayText = when {
-                            isOffTrack -> "Off track!"
-                            isGpsAccuracyLow() -> gpsAccuracyText
-                            else -> time
+                    if (!isSosButtonPressed) {
+                        TimeText(
+                            backgroundColor = infobackgroundColor,
+                            modifier = Modifier.padding(10.dp)
+                        ) { time ->
+                            val displayText = when {
+                                isOffTrack -> "Off track!"
+                                progress == 1f -> "Track Completed"
+                                isGpsAccuracyLow() -> gpsAccuracyText
+                                else -> time
+                            }
+                            val dynamicFontSize = calculateFontSize(displayText)
+                            curvedText(
+                                text = displayText,
+                                overflow = TextOverflow.Ellipsis,
+                                color = infotextColor,
+                                fontSize = dynamicFontSize
+                            )
                         }
-                        val dynamicFontSize = calculateFontSize(displayText)
-                        curvedText(
-                            text = displayText,
-                            overflow = TextOverflow.Ellipsis,
-                            color = infotextColor,
-                            fontSize = dynamicFontSize
-                        )
                     }
                 },
             ) {
@@ -368,7 +374,10 @@ fun TrackScreen(
                             sweepAngle = buttonSweepAngle,
                             onSosTriggered = {
                                 navController.navigate(route = Screen.SOSScreen.route)
-                            }
+                            },
+                            onPressStateChanged = { pressed: Boolean ->
+                                isSosButtonPressed = pressed
+                            },
                         )
                     }
                 }
@@ -381,6 +390,18 @@ fun TrackScreen(
                     }
                 )
             }
+            EndTrack(
+                visible = showEndTrackDialog,
+                onDismiss = { showEndTrackDialog = false },
+                onConfirm = {
+                    // Navigate to the end track screen with the track name
+                    navController.navigate(Screen.MainScreen.route) {
+                        // Clear the back stack to prevent going back to the track screen
+                        popUpTo(Screen.TrackScreen.route) { inclusive = true }
+                    }
+                },
+                trackName = trackName
+            )
         }
     }
 }
