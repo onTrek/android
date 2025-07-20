@@ -47,6 +47,7 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
+import com.ontrek.wear.screens.track.components.EndTrack
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
@@ -127,6 +128,9 @@ fun TrackScreen(
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
 
+    var showEndTrackDialog by remember { mutableStateOf(false) }
+    var trackCompleted by remember { mutableStateOf(false) }
+
 
     // Create PendingIntent to return to the app
     val pendingIntent = remember {
@@ -204,12 +208,10 @@ fun TrackScreen(
     }
 
     LaunchedEffect(progress) {
-        if (progress == 1f) {
+        if (progress == 1f && !trackCompleted) {
             Log.d("GPS_TRACK", "Track completed")
-            navController.navigate(Screen.EndTrackScreen.route + "?trackName=$trackName") {
-                // Clear the back stack to prevent going back to the track screen
-                popUpTo(Screen.TrackScreen.route) { inclusive = true }
-            }
+            showEndTrackDialog = true
+            trackCompleted = true
         }
     }
 
@@ -256,9 +258,9 @@ fun TrackScreen(
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     val infobackgroundColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val infotextColor: androidx.compose.ui.graphics.Color =
-        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+        if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
     if (!parsingError.isEmpty()) {
         ErrorScreen(
@@ -301,7 +303,11 @@ fun TrackScreen(
                             backgroundColor = infobackgroundColor,
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
-                            val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                            val displayText = when {
+                                isGpsAccuracyLow() -> gpsAccuracyText
+                                progress == 1f -> "Track Completed"
+                                else -> time
+                            }
                             val dynamicFontSize = calculateFontSize(displayText)
                             curvedText(
                                 text = displayText,
@@ -345,6 +351,18 @@ fun TrackScreen(
                     }
                 }
             }
+            EndTrack(
+                visible = showEndTrackDialog,
+                onDismiss = { showEndTrackDialog = false },
+                onConfirm = {
+                    // Navigate to the end track screen with the track name
+                    navController.navigate(Screen.MainScreen.route) {
+                        // Clear the back stack to prevent going back to the track screen
+                        popUpTo(Screen.TrackScreen.route) { inclusive = true }
+                    }
+                },
+                trackName = trackName
+            )
         }
     }
 }
