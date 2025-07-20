@@ -1,5 +1,10 @@
 package com.ontrek.wear.screens.track
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -17,7 +22,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material3.CircularProgressIndicator
@@ -34,6 +42,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
+import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
@@ -43,18 +52,10 @@ import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
+import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import com.ontrek.wear.utils.functions.calculateFontSize
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import androidx.core.app.NotificationCompat
-import androidx.wear.ongoing.OngoingActivity
-import kotlin.apply
 
 
 private const val buttonSweepAngle = 60f
@@ -72,7 +73,13 @@ private const val NOTIFICATION_ID = 1001
  * @param modifier A [Modifier] to be applied to the screen layout.
  */
 @Composable
-fun TrackScreen(navController: NavHostController, trackID: String, sessionID: String, modifier: Modifier = Modifier) {
+fun TrackScreen(
+    navController: NavHostController,
+    trackID: String,
+    trackName: String,
+    sessionID: String,
+    modifier: Modifier = Modifier
+) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
     val applicationContext = context.applicationContext
@@ -118,8 +125,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     // Raccoglie il progresso lungo il tracciato come stato osservabile
     val progress by gpxViewModel.progressState.collectAsState()
 
-    //TODO()
-    val trackName = "NOT IMPLEMENTED"
+    var isSosButtonPressed by remember { mutableStateOf(false) }
+
 
     // Create PendingIntent to return to the app
     val pendingIntent = remember {
@@ -154,7 +161,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     }
 
     // Get the NotificationManager
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     val channel = NotificationChannel(
         NOTIFICATION_CHANNEL_ID,
@@ -211,7 +219,12 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
 
     LaunchedEffect(accuracy) {
         if (accuracy == 3 && vibrationNeeded) {
-            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(300, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrator?.vibrate(
+                android.os.VibrationEffect.createOneShot(
+                    300,
+                    android.os.VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
             compassSensor.setVibrationNeeded(false)
         } else if (accuracy < 3) {
             compassSensor.setVibrationNeeded(true)
@@ -248,9 +261,19 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         if (isGpsAccuracyLow()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
 
     if (!parsingError.isEmpty()) {
-        ErrorScreen("Error while parsing the GPX file: $parsingError", Modifier.fillMaxSize(),null, null)
+        ErrorScreen(
+            "Error while parsing the GPX file: $parsingError",
+            Modifier.fillMaxSize(),
+            null,
+            null
+        )
     } else if (isNearTrack != null && isNearTrack != true) {
-        WarningScreen("You are too distant from the selected track", Modifier.fillMaxSize(),null, null)
+        WarningScreen(
+            "You are too distant from the selected track",
+            Modifier.fillMaxSize(),
+            null,
+            null
+        )
     } else if (trackPoints.isEmpty() || isNearTrack == null) {
         Loading(Modifier.fillMaxSize())
     } else {
@@ -273,18 +296,20 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         ) {
             ScreenScaffold(
                 timeText = {
-                    TimeText(
-                        backgroundColor = infobackgroundColor,
-                        modifier = Modifier.padding(10.dp)
-                    ) { time ->
-                        val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
-                        val dynamicFontSize = calculateFontSize(displayText)
-                        curvedText(
-                            text = displayText,
-                            overflow = TextOverflow.Ellipsis,
-                            color = infotextColor,
-                            fontSize = dynamicFontSize
-                        )
+                    if (!isSosButtonPressed) {
+                        TimeText(
+                            backgroundColor = infobackgroundColor,
+                            modifier = Modifier.padding(10.dp)
+                        ) { time ->
+                            val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                            val dynamicFontSize = calculateFontSize(displayText)
+                            curvedText(
+                                text = displayText,
+                                overflow = TextOverflow.Ellipsis,
+                                color = infotextColor,
+                                fontSize = dynamicFontSize
+                            )
+                        }
                     }
                 },
             ) {
@@ -312,7 +337,10 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                             sweepAngle = buttonSweepAngle,
                             onSosTriggered = {
                                 navController.navigate(route = Screen.SOSScreen.route)
-                            }
+                            },
+                            onPressStateChanged = { pressed: Boolean ->
+                                isSosButtonPressed = pressed
+                            },
                         )
                     }
                 }

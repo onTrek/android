@@ -50,7 +50,7 @@ fun TrackButton(
             if (track.state is DownloadState.NotStarted) {
                 onDownloadClick(token, index, track.id, context)
             } else if (track.state is DownloadState.Completed) {
-                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${track.id}")
+                navController.navigate(route = Screen.TrackScreen.route + "?trackID=${track.id}&trackName=${track.title}")
             }
         },
         onLongClick = {

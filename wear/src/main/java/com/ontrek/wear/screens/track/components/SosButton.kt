@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sos
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +47,8 @@ private const val animationDuration = 5000L
 fun SosButton(
     modifier: Modifier = Modifier,
     sweepAngle: Float = 0f,
-    onSosTriggered: () -> Unit
+    onSosTriggered: () -> Unit,
+    onPressStateChanged: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val vibrator = remember {
@@ -60,6 +62,10 @@ fun SosButton(
     val widthFactor = remember(sweepAngle) {
         val normalizedAngle = (sweepAngle / 360f).coerceIn(0f, 1f)
         0.4f + (normalizedAngle * 0.7f)
+    }
+
+    LaunchedEffect(isPressed) {
+        onPressStateChanged(isPressed)
     }
 
 
@@ -175,7 +181,8 @@ fun SosButtonPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                onSosTriggered = {}
+                onSosTriggered = {},
+                onPressStateChanged = {}
             )
         }
     }
