@@ -52,6 +52,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.wear.ongoing.OngoingActivity
 import kotlin.apply
@@ -117,6 +119,8 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
     val onTrak by gpxViewModel.onTrakState.collectAsState()
     // Raccoglie il progresso lungo il tracciato come stato osservabile
     val progress by gpxViewModel.progressState.collectAsState()
+
+    var isSosButtonPressed by remember { mutableStateOf(false) }
 
     //TODO()
     val trackName = "NOT IMPLEMENTED"
@@ -273,18 +277,20 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
         ) {
             ScreenScaffold(
                 timeText = {
-                    TimeText(
-                        backgroundColor = infobackgroundColor,
-                        modifier = Modifier.padding(10.dp)
-                    ) { time ->
-                        val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
-                        val dynamicFontSize = calculateFontSize(displayText)
-                        curvedText(
-                            text = displayText,
-                            overflow = TextOverflow.Ellipsis,
-                            color = infotextColor,
-                            fontSize = dynamicFontSize
-                        )
+                    if (!isSosButtonPressed) {
+                        TimeText(
+                            backgroundColor = infobackgroundColor,
+                            modifier = Modifier.padding(10.dp)
+                        ) { time ->
+                            val displayText = if (isGpsAccuracyLow()) gpsAccuracyText else time
+                            val dynamicFontSize = calculateFontSize(displayText)
+                            curvedText(
+                                text = displayText,
+                                overflow = TextOverflow.Ellipsis,
+                                color = infotextColor,
+                                fontSize = dynamicFontSize
+                            )
+                        }
                     }
                 },
             ) {
@@ -312,7 +318,10 @@ fun TrackScreen(navController: NavHostController, trackID: String, sessionID: St
                             sweepAngle = buttonSweepAngle,
                             onSosTriggered = {
                                 navController.navigate(route = Screen.SOSScreen.route)
-                            }
+                            },
+                            onPressStateChanged = { pressed: Boolean ->
+                                isSosButtonPressed = pressed
+                            },
                         )
                     }
                 }
