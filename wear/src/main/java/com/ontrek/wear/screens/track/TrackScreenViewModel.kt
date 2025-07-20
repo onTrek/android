@@ -54,8 +54,6 @@ class TrackScreenViewModel : ViewModel() {
     val isNearTrackState: StateFlow<Boolean?> = isNearTrack
     private val arrowDirection = MutableStateFlow<Float>(0F)
     val arrowDirectionState: StateFlow<Float> = arrowDirection
-    private val onTrack = MutableStateFlow<Boolean>(false)
-    val onTrackState: StateFlow<Boolean> = onTrack
 
     private val _distanceFromTrack = MutableStateFlow<Double?>(null)
     val distanceFromTrack: StateFlow<Double?> = _distanceFromTrack
@@ -158,15 +156,15 @@ class TrackScreenViewModel : ViewModel() {
         position.value = currentLocation
 
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
-        onTrack.value = (_distanceFromTrack.value ?: 0.0) < trackDistanceThreshold
+        val onTrack = _distanceFromTrack.value!! < trackDistanceThreshold
         Log.d(
             "TRACK_SCREEN_VIEW_MODEL",
-            "${if (onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
+            "${if (onTrack) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
         )
 
         val oldIndex = nextTrackPoint.value?.index
         nextTrackPoint.value =
-            findNextTrackPoint(currentLocation, trackPoints.value, onTrack.value, nextTrackPoint.value?.index)
+            findNextTrackPoint(currentLocation, trackPoints.value, onTrack, nextTrackPoint.value?.index)
         val newIndex = nextTrackPoint.value!!.index
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
@@ -177,11 +175,6 @@ class TrackScreenViewModel : ViewModel() {
         }
 
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
-        onTrack.value = (_distanceFromTrack.value ?: 0.0) < trackDistanceThreshold
-        Log.d(
-            "TRACK_SCREEN_VIEW_MODEL",
-            "${if (onTrack.value) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
-        )
 
         if (_distanceFromTrack.value!! > notificationTrackDistanceThreshold && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true

@@ -130,8 +130,6 @@ fun TrackScreen(
     val arrowDirection by gpxViewModel.arrowDirectionState.collectAsStateWithLifecycle()
     // Raccoglie la posizione corrente come stato osservabile
     val currentLocation by gpsSensor.location.collectAsStateWithLifecycle()
-    // Raccoglie se l'utente è sul tracciato come stato osservabile
-    val onTrak by gpxViewModel.onTrackState.collectAsStateWithLifecycle()
     // Raccoglie il progresso lungo il tracciato come stato osservabile
     val progress by gpxViewModel.progressState.collectAsStateWithLifecycle()
     // Raccoglie la distanza dal tracciato come stato osservabile
@@ -226,10 +224,6 @@ fun TrackScreen(
             showEndTrackDialog = true
             trackCompleted = true
         }
-    }
-
-    LaunchedEffect(onTrak) {
-        Log.d("GPS_TRACK", "OnTrak state changed: $onTrak")
     }
 
     LaunchedEffect(accuracy) {
