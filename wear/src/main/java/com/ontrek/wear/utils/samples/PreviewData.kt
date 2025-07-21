@@ -16,7 +16,8 @@ val sampleTrackList: List<Track> = listOf(
             min_altitude = 320
         ),
         title = "Morning Hike",
-        upload_date = "2024-06-01"
+        upload_date = "2024-06-01",
+        size = 0
     ),
     Track(
         id = 3,
@@ -30,7 +31,8 @@ val sampleTrackList: List<Track> = listOf(
             min_altitude = 400
         ),
         title = "Mount Everest Expedition",
-        upload_date = "2024-06-02"
+        upload_date = "2024-06-02",
+        size = 0
     ),
     Track(
         id = 2,
@@ -44,6 +46,7 @@ val sampleTrackList: List<Track> = listOf(
             min_altitude = 400
         ),
         title = "Evening Trail",
-        upload_date = "2024-06-02"
+        upload_date = "2024-06-02",
+        size = 0
     )
 )

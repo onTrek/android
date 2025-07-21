@@ -1,6 +1,5 @@
 package com.ontrek.wear
 
-import NavigationStack
 import android.Manifest
 import android.R.style.Theme_DeviceDefault
 import android.content.pm.PackageManager
@@ -16,12 +15,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.ambient.AmbientLifecycleObserver
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.data.PreferencesViewModel
+import com.ontrek.wear.screens.NavigationStack
 import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
@@ -31,9 +33,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
-    private var hasLocationPermissions = false
+    private var hasPermissions = false
+    private lateinit var ambientController: AmbientLifecycleObserver
 
-    private val locationPermissionRequest = registerForActivityResult(
+    private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         when {
@@ -41,10 +44,17 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 // Permesso di localizzazione precisa concesso
                 Log.d("GPS_PERMISSIONS", "Permesso di localizzazione precisa concesso")
             }
+
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                 // Solo permesso di localizzazione approssimativa concesso
                 Log.d("GPS_PERMISSIONS", "Solo permesso di localizzazione approssimativa concesso")
             }
+
+            permissions.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false) -> {
+                // Permesso di notifiche concesso
+                Log.d("GPS_PERMISSIONS", "Permesso di notifiche concesso")
+            }
+
             else -> {
                 // Nessun permesso concesso
                 Log.d("GPS_PERMISSIONS", "Permessi di localizzazione negati")
@@ -59,8 +69,11 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         super.onCreate(savedInstanceState)
         setTheme(Theme_DeviceDefault)
 
+        ambientController = AmbientLifecycleObserver(this, AmbientCallback())
+        lifecycle.addObserver(ambientController)
+
         val context = this
-        val localPermissions = checkAndRequestLocationPermissions()
+        val localPermissions = checkAndRequestPermissions()
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
@@ -71,14 +84,19 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     (!localPermissions) -> {
                         PermissionRequester(context)
                     }
+
                     token!!.isEmpty() -> Login()
-                    else -> NavigationStack()
-//                    else -> AppScaffold {
-//                        NavigationStack()
-//                    }
+                    else -> AppScaffold {
+                        NavigationStack()
+                    }
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycle.removeObserver(ambientController)
     }
 
     override fun onResume() {
@@ -86,12 +104,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         Log.d("WATCH_CONNECTION", "Resuming activity, registering data listener")
         dataClient.addListener(this)
 
-        val newPermissionState = checkLocationPermissions()
+        val newPermissionState = checkPermissions()
 
         // Se lo stato dei permessi è cambiato, riavvia l'activity per aggiornare l'UI
-        if (hasLocationPermissions != newPermissionState) {
-            hasLocationPermissions = newPermissionState
-            if (hasLocationPermissions) {
+        if (hasPermissions != newPermissionState) {
+            hasPermissions = newPermissionState
+            if (hasPermissions) {
                 // I permessi sono stati concessi, ricrea l'activity
                 recreate()
             }
@@ -116,7 +134,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
     }
 
-    fun checkLocationPermissions() : Boolean{
+    fun checkPermissions(): Boolean {
         val hasFineLocationPermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -127,22 +145,48 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        return hasFineLocationPermission && hasCoarseLocationPermission
+        val hasNotificationPermission = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission")
+
+        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission
     }
 
-    private fun checkAndRequestLocationPermissions() : Boolean {
-        if (!checkLocationPermissions()) {
-            locationPermissionRequest.launch(
+    private fun checkAndRequestPermissions(): Boolean {
+        if (!checkPermissions()) {
+            permissionsRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.POST_NOTIFICATIONS
                 )
             )
         } else {
-            hasLocationPermissions = true
+            hasPermissions = true
             Log.d("GPS_PERMISSIONS", "Location permissions already granted")
             return true
         }
         return false
+    }
+
+    private inner class AmbientCallback : AmbientLifecycleObserver.AmbientLifecycleCallback {
+        override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
+            Log.d("AMBIENT", "Entering ambient mode")
+            val layoutParams = window.attributes
+            layoutParams.screenBrightness = 0.0f
+            window.attributes = layoutParams
+
+        }
+
+        override fun onExitAmbient() {
+            // Codice da eseguire quando l'app esce dalla modalità ambient
+            Log.d("AMBIENT", "Exiting ambient mode")
+            val layoutParams = window.attributes
+            layoutParams.screenBrightness = -1.0f //system default brightness
+            window.attributes = layoutParams
+        }
     }
 }

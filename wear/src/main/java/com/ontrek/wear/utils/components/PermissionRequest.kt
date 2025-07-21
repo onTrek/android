@@ -30,7 +30,7 @@ fun PermissionRequester(
         ) {
             Column {
                 Text(
-                    text = "Location permissions denied",
+                    text = "Location and notification permissions denied",
                     modifier = Modifier.fillMaxWidth(0.95f),
                     textAlign = TextAlign.Center,
                     style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium

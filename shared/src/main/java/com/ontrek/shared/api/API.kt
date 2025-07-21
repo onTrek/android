@@ -1,8 +1,13 @@
 package com.ontrek.shared.api
 
+import com.ontrek.shared.data.Login
+import com.ontrek.shared.data.MessageResponse
+import com.ontrek.shared.data.Signup
+import com.ontrek.shared.data.TokenResponse
 import com.ontrek.shared.data.Friend
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Track
+import com.ontrek.shared.data.Profile
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -11,11 +16,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Headers
-import com.ontrek.shared.data.Login
-import com.ontrek.shared.data.MessageResponse
-import com.ontrek.shared.data.Profile
-import com.ontrek.shared.data.Signup
-import com.ontrek.shared.data.TokenResponse
 import retrofit2.http.PUT
 import retrofit2.http.Query
 import okhttp3.MultipartBody
@@ -73,12 +73,12 @@ interface ApiService {
     fun deleteTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<MessageResponse>
 
     @Streaming
-    @GET("gpx/{id}/download")
-    fun downloadTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
-
-    @Streaming
     @GET("gpx/{id}/map")
     fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/gpx/{id}/download")
+    fun downloadGPX(@Header("Bearer") token: String, @Path("id") gpxID: Int): Call<ResponseBody>
 
 
     // ------- FRIENDS ---------

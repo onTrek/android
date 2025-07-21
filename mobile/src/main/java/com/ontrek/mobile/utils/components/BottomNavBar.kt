@@ -19,8 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.ontrek.mobile.screens.Screen
+import com.ontrek.mobile.screens.TopLevelScreen
 
 
 data class BottomNavItem(
@@ -30,68 +32,84 @@ data class BottomNavItem(
     val hasNews: Boolean = false,
     val badgeCount: Int? = null,
     val route: String = title,
-)
+) {
+    constructor(
+        topLevelScreen: TopLevelScreen,
+        selectedIcon: ImageVector,
+        unselectedIcon: ImageVector
+    ) : this(
+        title = topLevelScreen.title,
+        route = topLevelScreen.route,
+        selectedIcon = selectedIcon,
+        unselectedIcon = selectedIcon,
+    )
+}
 
 @Composable
 fun BottomNavBar(navController: NavController) {
-    val items = listOf(
+
+    val topLevelRoutes = listOf(
+
         BottomNavItem(
-            title = "Hikes",
+            topLevelScreen = TopLevelScreen.Hikes,
             selectedIcon = Icons.Filled.Hiking,
             unselectedIcon = Icons.Outlined.Hiking,
-            route = Screen.Hikes.route,
         ),
         BottomNavItem(
-            title = "Tracks",
+            topLevelScreen = TopLevelScreen.Tracks,
             selectedIcon = Icons.Filled.Route,
             unselectedIcon = Icons.Outlined.Route,
-            route = Screen.Tracks.route,
         ),
         BottomNavItem(
-            title = "Friends",
+            topLevelScreen = TopLevelScreen.Friends,
             selectedIcon = Icons.Filled.Group,
             unselectedIcon = Icons.Outlined.Group,
-            route = Screen.Friends.route,
         ),
         BottomNavItem(
-            title = "Profile",
+            topLevelScreen = TopLevelScreen.Profile,
             selectedIcon = Icons.Filled.Person,
             unselectedIcon = Icons.Outlined.Person,
-            route = Screen.Profile.route,
         ),
     )
 
-    // Track current route
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    // Find index of current route
-    val selectedItemIndex = items.indexOfFirst { it.route == currentRoute }.takeIf { it >= 0 }
-
     NavigationBar {
-        items.forEachIndexed { index, item ->
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+        topLevelRoutes.forEach { topLevelRoute ->
+            val selected =
+                currentDestination?.hierarchy?.any { it.route == topLevelRoute.route } == true
             NavigationBarItem(
-                selected = selectedItemIndex == index,
-                onClick = {
-                    if (currentRoute != item.route) {
-                        navController.navigate(item.route)
-                    }
-                },
-                label = { Text(text = item.title) },
                 icon = {
                     BadgedBox(
                         badge = {
-                            if (item.badgeCount != null) {
-                                Badge { Text(text = item.badgeCount.toString()) }
-                            } else if (item.hasNews) {
+                            if (topLevelRoute.badgeCount != null) {
+                                Badge { Text(text = topLevelRoute.badgeCount.toString()) }
+                            } else if (topLevelRoute.hasNews) {
                                 Badge()
                             }
                         }
                     ) {
                         Icon(
-                            imageVector = if (selectedItemIndex == index) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.title
+                            imageVector = if (selected) topLevelRoute.selectedIcon else topLevelRoute.unselectedIcon,
+                            contentDescription = topLevelRoute.title
                         )
+                    }
+                },
+                label = { Text(topLevelRoute.title) },
+                selected = selected,
+                onClick = {
+                    navController.navigate(topLevelRoute.route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
                     }
                 }
             )
