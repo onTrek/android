@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ fun TrackDetailScreen(
     token: String
 ) {
     val viewModel: TrackDetailViewModel = viewModel()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val trackDetailState by viewModel.trackDetailState.collectAsState()
     val imageState by viewModel.imageState.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
@@ -55,6 +57,9 @@ fun TrackDetailScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -67,6 +72,7 @@ fun TrackDetailScreen(
                         modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
                     )
                 },
+                scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -97,7 +103,7 @@ fun TrackDetailScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(horizontal = 16.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
                         if (showDeleteConfirmation) {
@@ -268,6 +274,12 @@ fun TrackDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Track",
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
                             Text(
                                 text = "Delete Track",
                                 color = MaterialTheme.colorScheme.onError
