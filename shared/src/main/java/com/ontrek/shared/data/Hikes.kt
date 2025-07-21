@@ -1,8 +1,8 @@
 package com.ontrek.shared.data
 
-data class File(
+data class TrackInfo(
     val filename: String,
-    val file_id: Int
+    val id: Int
 )
 
 data class FileID(
@@ -14,7 +14,7 @@ data class GroupDoc(
     val created_by: String,
     val description: String,
     val group_id: Int,
-    val file: File,
+    val track: TrackInfo,
     val members_number: Int,
 )
 
@@ -37,7 +37,8 @@ data class GroupInfoResponseDoc(
     val created_at: String,
     val description: String,
     val members: List<GroupMember>,
-    val created_by: UserMinimal
+    val created_by: UserMinimal,
+    val track: TrackInfo,
 )
 
 data class MemberInfo(

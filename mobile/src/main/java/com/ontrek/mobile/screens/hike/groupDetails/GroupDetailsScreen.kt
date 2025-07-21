@@ -1,10 +1,8 @@
 package com.ontrek.mobile.screens.hike.groupDetails
 
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,21 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.mobile.screens.hike.HikesViewModel
-import com.ontrek.mobile.screens.track.detail.TrackDetailViewModel
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.hikesComponents.IconTextComponent
-import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
-import com.ontrek.shared.data.MemberInfo
-import com.ontrek.shared.data.Track
+import com.ontrek.mobile.utils.components.hikesComponents.TrackSelectionDialog
+import com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent.MembersGroup
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -52,7 +46,6 @@ fun GroupDetailsScreen(
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showTrackSelection by remember { mutableStateOf(false) }
-    var showAddMemberDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(groupId) {
         viewModel.loadGroupDetails(groupId, token)
@@ -73,7 +66,7 @@ fun GroupDetailsScreen(
                     TitleGeneric(
                         title = when (groupState) {
                             is GroupDetailsViewModel.GroupState.Success -> (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo.description
-                            is GroupDetailsViewModel.GroupState.Loading -> "Caricamento..."
+                            is GroupDetailsViewModel.GroupState.Loading -> "Charge..."
                             else -> "Group Details"
                         },
                         modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
@@ -141,7 +134,7 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "General Information",
+                                    text = "Information",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -181,28 +174,40 @@ fun GroupDetailsScreen(
                                 .padding(vertical = 8.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                Icon(
+                                    imageVector = Icons.Default.Route,
+                                    contentDescription = "Associated Track",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+
+                                Text(
+                                    text = if (groupInfo.track != null) {
+                                        groupInfo.track.filename
+                                    } else {
+                                        "No track associated"
+                                    },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f).padding(start = 8.dp)
+                                )
+
+
+                                IconButton(
+                                    onClick = { showTrackSelection = true }
                                 ) {
-                                    Text(
-                                        text = "Traccia Associata",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                    Icon(
+                                        imageVector = Icons.Default.Cached,
+                                        contentDescription = "Change Track",
+                                        tint = MaterialTheme.colorScheme.secondary
                                     )
-
-                                    Button(onClick = { showTrackSelection = true }) {
-                                        Text("Cambia")
-                                    }
                                 }
-
-                                Spacer(modifier = Modifier.height(8.dp))
 
                                 if (showTrackSelection) {
                                     TrackSelectionDialog(
@@ -211,70 +216,30 @@ fun GroupDetailsScreen(
                                         onTrackSelected = { track ->
                                             viewModel.changeTrack(groupId, track.id, token)
                                             showTrackSelection = false
-                                        }
+                                        },
+                                        oldTrack = groupInfo.track.id
                                     )
                                 }
 
-                                Button(
-                                    onClick = { navController.navigate("track_detail/${groupId}") },
-                                    modifier = Modifier.fillMaxWidth()
+                                IconButton(
+                                    onClick = { navController.navigate(Screen.TrackDetail.createRoute(groupInfo.track.id.toString()))}
                                 ) {
-                                    Text("Visualizza Dettagli Traccia")
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Track Details",
+                                        tint = MaterialTheme.colorScheme.tertiary
+                                    )
                                 }
                             }
                         }
 
-                        // Sezione membri
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Membri del Gruppo",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-
-                                    Button(onClick = { showAddMemberDialog = true }) {
-                                        Text("Aggiungi")
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                if (membersState.isEmpty()) {
-                                    Text(
-                                        text = "Nessun membro nel gruppo",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
-                                } else {
-                                    Column {
-                                        membersState.forEach { member ->
-                                            MemberItem(
-                                                member = member,
-                                                onRemoveClick = {
-                                                    viewModel.removeMember(groupId, member.user.id, token)
-                                                }
-                                            )
-                                            Divider(modifier = Modifier.padding(vertical = 4.dp))
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        MembersGroup(
+                            groupId = groupId,
+                            membersState = membersState,
+                            token = token,
+                            creatorGroupMember = groupInfo.created_by.username,
+                            viewModel = viewModel,
+                        )
 
                         Spacer(modifier = Modifier.weight(1f))
                         // Bottone elimina gruppo
@@ -296,99 +261,6 @@ fun GroupDetailsScreen(
         }
     }
 }
-
-@Composable
-fun MemberItem(
-    member: MemberInfo,
-    onRemoveClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "Member",
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = member.user.username,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = onRemoveClick) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Rimuovi",
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-}
-
-@Composable
-fun TrackSelectionDialog(
-    tracks: List<Track>,
-    onDismiss: () -> Unit,
-    onTrackSelected: (Track) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Seleziona una traccia") },
-        text = {
-            if (tracks.isEmpty()) {
-                Text("Nessuna traccia disponibile")
-            } else {
-                LazyColumn(
-                    modifier = Modifier.height(300.dp)
-                ) {
-                    items(tracks) { track ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable { onTrackSelected(track) },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Route,
-                                contentDescription = "Traccia",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Text(
-                                text = track.title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier,
-                            DividerDefaults.Thickness,
-                            DividerDefaults.color
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close")
-            }
-        }
-    )
-}
-
 private fun formatDate(dateString: String): String {
     return try {
         val instant = Instant.parse(dateString)

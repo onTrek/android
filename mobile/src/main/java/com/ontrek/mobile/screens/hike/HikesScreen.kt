@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.hike
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -107,7 +106,6 @@ fun HikesScreen(navController: NavHostController, token: String) {
                                 GroupItem(
                                     group = group,
                                     onItemClick = {
-                                        Log.d("HikesScreen", "Navigating to GroupDetailsScreen with group ID: ${group.group_id}")
                                         navController.navigate("GroupDetailsScreen/${group.group_id}")
                                     }
                                 )
@@ -176,8 +174,9 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // Controlla se file è null
                 IconTextComponent(
-                    text = group.file.filename,
+                    text = if (group.track != null) group.track.filename else "No track available",
                     icon = Icons.Default.Terrain,
                     styleText = MaterialTheme.typography.bodySmall,
                     modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
@@ -200,7 +199,6 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
         }
     }
 }
-
 private fun formatDate(dateString: String): String {
     return try {
         val instant = Instant.parse(dateString)
