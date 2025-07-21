@@ -1,4 +1,4 @@
-package com.ontrek.mobile.utils.components.groupComponents
+package com.ontrek.mobile.utils.components.hikesComponents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

@@ -108,12 +108,12 @@ fun GroupDetailsScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(16.dp)
+                            .padding( horizontal = 16.dp, vertical = 8.dp )
                     ) {
                         // Dialoghi di conferma
                         if (showDeleteConfirmation) {
                             DeleteConfirmationDialog(
-                                title = "Elimina Gruppo",
+                                title = "Delete Group",
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
                                     viewModel.deleteGroup(
@@ -140,15 +140,15 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "Informazioni Gruppo",
+                                    text = "General Information",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                Text(
-                                    text = "Descrizione: ${groupInfo.description}",
+                                TitleGeneric(
+                                    title = groupInfo.description,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
 

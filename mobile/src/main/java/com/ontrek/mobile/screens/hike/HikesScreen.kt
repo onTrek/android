@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
@@ -22,13 +22,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.TitleGeneric
-import com.ontrek.mobile.utils.components.groupComponents.AddGroup
-import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
+import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
 import java.time.ZoneId
@@ -77,7 +75,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 },
                 modifier = Modifier.padding(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Groups")
+                Icon(Icons.Default.GroupAdd, contentDescription = "Add Groups")
             }
         }
     ) { innerPadding ->
