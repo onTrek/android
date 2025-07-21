@@ -2,6 +2,11 @@ package com.ontrek.mobile.screens.track.detail
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +21,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -41,6 +49,18 @@ fun TrackDetailScreen(
     val current = LocalContext.current
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    val minScale = 1f
+    val maxScale = 3f
+    val scale = remember { mutableFloatStateOf(1f) }
+    val offset = remember { mutableStateOf(Offset.Zero) }
+    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+        val newScale = (scale.floatValue * zoomChange).coerceIn(minScale, maxScale)
+        scale.floatValue = newScale
+
+        if (newScale > 1.5f) {
+            offset.value += panChange
+        }
+    }
 
     LaunchedEffect(trackId) {
         viewModel.loadTrackDetails(trackId, token)
@@ -129,9 +149,21 @@ fun TrackDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(200.dp)
+                                .aspectRatio(4f / 3f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .pointerInput(Unit) {
+                                    awaitEachGesture {
+                                        awaitFirstDown(requireUnconsumed = false)
+                                        do {
+                                            val event = awaitPointerEvent()
+                                        } while (event.changes.any { it.pressed })
+
+                                        scale.value = 1f
+                                        offset.value = Offset.Zero
+                                    }
+                                }
+                                .transformable(state = transformableState),
                             contentAlignment = Alignment.Center
                         ) {
                             when (imageState) {
@@ -162,7 +194,14 @@ fun TrackDetailScreen(
                                             .build(),
                                         contentDescription = "Track Image",
                                         contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer(
+                                                scaleX = scale.floatValue,
+                                                scaleY = scale.floatValue,
+                                                translationX = offset.value.x,
+                                                translationY = offset.value.y
+                                            )
                                     )
                                 }
                             }
