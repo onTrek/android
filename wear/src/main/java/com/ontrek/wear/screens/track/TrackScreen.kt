@@ -210,6 +210,13 @@ fun TrackScreen(
     LaunchedEffect(progress) {
         if (progress == 1f && !trackCompleted) {
             Log.d("GPS_TRACK", "Track completed")
+            vibrator?.vibrate(
+                android.os.VibrationEffect.createWaveform(
+                    longArrayOf(100, 100, 500),
+                    intArrayOf(100, 0, 100),
+                    -1 // -1 means no repeat
+                )
+            )
             showEndTrackDialog = true
             trackCompleted = true
         }
