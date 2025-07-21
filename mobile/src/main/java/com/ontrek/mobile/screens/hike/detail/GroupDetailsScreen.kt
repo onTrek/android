@@ -179,12 +179,18 @@ fun GroupDetailsScreen(
                                 Text(
                                     text = "Associated Track",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    thickness = DividerDefaults.Thickness,
+                                    color = DividerDefaults.color
+                                )
+
                                 Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
+                                        .fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {

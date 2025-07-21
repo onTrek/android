@@ -157,7 +157,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
         ) {
             Text (
                 text = group.description,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
