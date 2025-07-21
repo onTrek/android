@@ -50,7 +50,11 @@ fun TrackSelectionDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
-                                .clickable { onTrackSelected(track) },
+                                .clickable {
+                                    if (track.id != oldTrack) {
+                                        onTrackSelected(track)
+                                        onDismiss()
+                                    }},
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
