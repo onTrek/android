@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ontrek.shared.constant.MAX_DESCRIPTION_LENGTH
 import com.ontrek.shared.data.Track
 
 @Composable
@@ -38,12 +39,12 @@ fun AddGroup(
             ) {
                 OutlinedTextField(
                     value = description,
-                    onValueChange = { if (it.length <= 100) description = it },
+                    onValueChange = { if (it.length <= MAX_DESCRIPTION_LENGTH) description = it },
                     label = { Text("Description") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     supportingText = {
-                        Text("${description.length}/100")
+                        Text("${description.length}/$MAX_DESCRIPTION_LENGTH")
                     }
                 )
 
