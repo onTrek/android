@@ -27,6 +27,7 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.TitleGeneric
+import com.ontrek.mobile.utils.components.hikesComponents.IconTextComponent
 import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.Track
@@ -128,7 +129,7 @@ fun GroupDetailsScreen(
                         }
 
                         // Sezione informazioni generali
-                        Card(
+                       Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp),
@@ -145,25 +146,30 @@ fun GroupDetailsScreen(
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
                                 TitleGeneric(
                                     title = groupInfo.description,
-                                    style = MaterialTheme.typography.bodyLarge
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                Text(
-                                    text = "Creato da: ${groupInfo.created_by.username}",
-                                    style = MaterialTheme.typography.bodyMedium
+                                IconTextComponent(
+                                    icon = Icons.Default.Person,
+                                    descriptionIcon = "Created by:",
+                                    text = "@${groupInfo.created_by.username}",
+                                    spacer = true,
+                                    styleText = MaterialTheme.typography.bodyMedium,
+                                    modifierIcon = Modifier.padding(vertical = 4.dp).size(24.dp)
                                 )
 
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                Text(
-                                    text = "Data creazione: ${formatDate(groupInfo.created_at)}",
-                                    style = MaterialTheme.typography.bodyMedium
+                                IconTextComponent(
+                                    icon = Icons.Default.CalendarMonth,
+                                    descriptionIcon = "Created on:",
+                                    spacer = true,
+                                    text = formatDate(groupInfo.created_at),
+                                    styleText = MaterialTheme.typography.bodyMedium,
+                                    modifierIcon = Modifier.padding(vertical = 4.dp).size(24.dp)
                                 )
                             }
                         }
@@ -270,6 +276,7 @@ fun GroupDetailsScreen(
                             }
                         }
 
+                        Spacer(modifier = Modifier.weight(1f))
                         // Bottone elimina gruppo
                         Button(
                             onClick = { showDeleteConfirmation = true },
@@ -279,7 +286,7 @@ fun GroupDetailsScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
                             Text(
-                                text = "Elimina Gruppo",
+                                text = "Delete Group",
                                 color = MaterialTheme.colorScheme.onError
                             )
                         }

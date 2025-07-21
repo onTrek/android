@@ -38,7 +38,6 @@ class GroupDetailsViewModel : ViewModel() {
                     if (groupInfo != null) {
                         _groupState.value = GroupState.Success(groupInfo)
                         _membersState.value = groupInfo.members.map { member ->
-                            // Converti GroupMember in MemberInfo (è un'approssimazione perché non abbiamo tutti i dati)
                             MemberInfo(
                                 user = com.ontrek.shared.data.UserMinimal(
                                     id = member.id,

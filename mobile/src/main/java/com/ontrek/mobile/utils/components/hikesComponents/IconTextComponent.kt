@@ -1,6 +1,7 @@
 package com.ontrek.mobile.utils.components.hikesComponents
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,8 @@ import androidx.compose.ui.unit.dp
 fun IconTextComponent(
     text: String,
     icon: ImageVector = Icons.Default.TextFields,
+    descriptionIcon: String = "",
+    spacer: Boolean = false,
     styleText: TextStyle = MaterialTheme.typography.bodyMedium,
     modifierIcon: Modifier = Modifier
         .padding(end = 8.dp)
@@ -37,6 +40,17 @@ fun IconTextComponent(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifierIcon
         )
+
+        if (descriptionIcon.isNotEmpty()) {
+            Text(
+                text = descriptionIcon,
+                style = styleText,
+                modifier = Modifier.padding(end = 4.dp)
+            )
+        }
+
+        if (spacer)
+            Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text = text,
