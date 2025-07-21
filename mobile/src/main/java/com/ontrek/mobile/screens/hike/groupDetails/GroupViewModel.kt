@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.hike.groupDetails
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.hikes.changeGPXInGroup
@@ -8,7 +7,7 @@ import com.ontrek.shared.api.hikes.deleteGroup
 import com.ontrek.shared.api.hikes.getGroupInfo
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupInfoResponseDoc
-import com.ontrek.shared.data.MemberInfo
+import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +18,8 @@ class GroupDetailsViewModel : ViewModel() {
     private val _groupState = MutableStateFlow<GroupState>(GroupState.Loading)
     val groupState: StateFlow<GroupState> = _groupState
 
-    private val _membersState = MutableStateFlow<List<MemberInfo>>(emptyList())
-    val membersState: StateFlow<List<MemberInfo>> = _membersState
+    private val _membersState = MutableStateFlow<List<GroupMember>>(emptyList())
+    val membersState: StateFlow<List<GroupMember>> = _membersState
 
     private val _tracks = MutableStateFlow<List<Track>>(emptyList())
     val tracks: StateFlow<List<Track>> = _tracks
@@ -29,7 +28,6 @@ class GroupDetailsViewModel : ViewModel() {
     val msgToast: StateFlow<String> = _msgToast
 
     fun loadGroupDetails(groupId: Int, token: String) {
-        Log.d("GroupDetailsViewModel", "Loading group details for groupId: $groupId")
         _groupState.value = GroupState.Loading
         viewModelScope.launch {
             getGroupInfo(
@@ -37,23 +35,10 @@ class GroupDetailsViewModel : ViewModel() {
                 onSuccess = { groupInfo ->
                     if (groupInfo != null) {
                         _groupState.value = GroupState.Success(groupInfo)
-                        _membersState.value = groupInfo.members.map { member ->
-                            MemberInfo(
-                                user = com.ontrek.shared.data.UserMinimal(
-                                    id = member.id,
-                                    username = member.username
-                                ),
-                                accuracy = 0.0,
-                                altitude = 0.0,
-                                going_to = "",
-                                help_request = false,
-                                latitude = 0.0,
-                                longitude = 0.0,
-                                time_stamp = ""
-                            )
-                        }
-                    } else {
-                        _groupState.value = GroupState.Error("Gruppo non trovato")
+                        _membersState.value = groupInfo.members
+                    }
+                    else {
+                        _groupState.value = GroupState.Error("Group not found")
                     }
                 },
                 onError = { error ->

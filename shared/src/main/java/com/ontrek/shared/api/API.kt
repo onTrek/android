@@ -1,6 +1,5 @@
 package com.ontrek.shared.api
 
-import com.ontrek.shared.data.File
 import com.ontrek.shared.data.FileID
 import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.GroupID
