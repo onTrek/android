@@ -13,7 +13,7 @@ import com.ontrek.mobile.screens.friends.FriendsScreen
 import com.ontrek.mobile.screens.track.TrackScreen
 import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 import com.ontrek.mobile.screens.hike.HikesScreen
-import com.ontrek.mobile.screens.hike.groupDetails.GroupDetailsScreen
+import com.ontrek.mobile.screens.hike.detail.GroupDetailsScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {

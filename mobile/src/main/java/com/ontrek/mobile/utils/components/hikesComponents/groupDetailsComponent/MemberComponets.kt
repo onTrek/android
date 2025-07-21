@@ -39,7 +39,7 @@ fun MembersGroup(
     membersState: List<GroupMember>,
     groupId: Int,
     token: String,
-    viewModel: com.ontrek.mobile.screens.hike.groupDetails.GroupDetailsViewModel,
+    viewModel: com.ontrek.mobile.screens.hike.detail.GroupDetailsViewModel,
 ) {
     var showAddMemberDialog by remember { mutableStateOf(false) }
 

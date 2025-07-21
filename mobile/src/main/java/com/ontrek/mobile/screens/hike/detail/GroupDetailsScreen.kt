@@ -1,6 +1,5 @@
-package com.ontrek.mobile.screens.hike.groupDetails
+package com.ontrek.mobile.screens.hike.detail
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,8 +20,8 @@ import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.utils.components.TitleGeneric
-import com.ontrek.mobile.utils.components.hikesComponents.IconTextComponent
 import com.ontrek.mobile.utils.components.hikesComponents.TrackSelectionDialog
 import com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent.MembersGroup
 import java.time.Instant
@@ -102,7 +101,7 @@ fun GroupDetailsScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding( horizontal = 16.dp, vertical = 8.dp )
+                            .padding(horizontal = 16.dp)
                     ) {
                         // Dialoghi di conferma
                         if (showDeleteConfirmation) {
@@ -122,11 +121,12 @@ fun GroupDetailsScreen(
                         }
 
                         // Sezione informazioni generali
-                       Card(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                .padding(vertical = 12.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -136,33 +136,30 @@ fun GroupDetailsScreen(
                                 Text(
                                     text = "Information",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    color = MaterialTheme.colorScheme.primary
                                 )
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    thickness = DividerDefaults.Thickness,
+                                    color = DividerDefaults.color
+                                )
 
-                                TitleGeneric(
-                                    title = groupInfo.description,
+                                Text(
+                                    text = groupInfo.description,
                                     style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
-                                IconTextComponent(
+                                InfoCardRow(
                                     icon = Icons.Default.Person,
-                                    descriptionIcon = "Created by:",
-                                    text = "@${groupInfo.created_by.username}",
-                                    spacer = true,
-                                    styleText = MaterialTheme.typography.bodyMedium,
-                                    modifierIcon = Modifier.padding(vertical = 4.dp).size(24.dp)
+                                    label = "Created by",
+                                    value = "@${groupInfo.created_by.username}",
                                 )
 
-                                IconTextComponent(
-                                    icon = Icons.Default.CalendarMonth,
-                                    descriptionIcon = "Created on:",
-                                    spacer = true,
-                                    text = formatDate(groupInfo.created_at),
-                                    styleText = MaterialTheme.typography.bodyMedium,
-                                    modifierIcon = Modifier.padding(vertical = 4.dp).size(24.dp)
+                                InfoCardRow(
+                                    icon = Icons.Default.Update,
+                                    label = "Created on",
+                                    value = formatDate(groupInfo.created_at),
                                 )
                             }
                         }
@@ -170,10 +167,10 @@ fun GroupDetailsScreen(
                         // Sezione traccia
                         Card(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
+                                .fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ){
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -205,7 +202,9 @@ fun GroupDetailsScreen(
                                             "No track associated"
                                         },
                                         style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.weight(1f).padding(start = 8.dp)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 8.dp)
                                     )
 
                                     IconButton(

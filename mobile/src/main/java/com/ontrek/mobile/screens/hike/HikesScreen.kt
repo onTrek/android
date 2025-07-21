@@ -17,15 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
-import com.ontrek.mobile.utils.components.hikesComponents.IconTextComponent
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
 import java.time.ZoneId
@@ -148,54 +149,43 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
             .clickable { onItemClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.Start
         ) {
-            Icon(
-                imageVector = Icons.Default.Hiking,
-                contentDescription = "Icona Gruppo",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(60.dp)
-                    .padding(end = 16.dp)
+            Text (
+                text = group.description,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                TitleGeneric(
-                    title = group.description,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    style = MaterialTheme.typography.titleLarge
-                )
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
-                Spacer(modifier = Modifier.height(4.dp))
+            InfoCardRow(
+                icon = Icons.Default.Terrain,
+                label = "Track",
+                value =  if (group.track != null) group.track.filename else "No track available"
+            )
 
-                // Controlla se file è null
-                IconTextComponent(
-                    text = if (group.track != null) group.track.filename else "No track available",
-                    icon = Icons.Default.Terrain,
-                    styleText = MaterialTheme.typography.bodySmall,
-                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
-                )
+            InfoCardRow(
+                icon = Icons.Default.Update,
+                label = "Created at",
+                value = formatDate(group.created_at)
+            )
 
-                IconTextComponent(
-                    text = "Created on: ${formatDate(group.created_at)}",
-                    icon = Icons.Default.Update,
-                    styleText = MaterialTheme.typography.bodySmall,
-                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
-                )
-
-                IconTextComponent(
-                    text = group.members_number.toString(),
-                    icon = Icons.Default.Group,
-                    styleText = MaterialTheme.typography.bodySmall,
-                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
-                )
-            }
+            InfoCardRow(
+                icon = Icons.Default.Group,
+                label = "#",
+                value = group.members_number.toString()
+            )
         }
     }
 }

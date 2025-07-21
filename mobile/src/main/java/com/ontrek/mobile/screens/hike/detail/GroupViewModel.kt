@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.hike.groupDetails
+package com.ontrek.mobile.screens.hike.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
