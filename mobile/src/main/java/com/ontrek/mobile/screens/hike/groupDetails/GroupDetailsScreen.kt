@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
+import com.ontrek.mobile.screens.hike.HikesViewModel
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.Track
 import java.time.Instant
@@ -83,26 +85,9 @@ fun GroupDetailsScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is GroupDetailsViewModel.GroupState.Error -> {
-                    val errorState = groupState as GroupDetailsViewModel.GroupState.Error
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = "Errore",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Errore: ${errorState.message}",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                   ErrorViewComponent(
+                        errorMsg = (groupState as GroupDetailsViewModel.GroupState.Error).message
+                   )
                 }
                 is GroupDetailsViewModel.GroupState.Success -> {
                     val groupInfo = (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo

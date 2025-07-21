@@ -41,9 +41,13 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         composable(route = Screen.Hikes.route) {
             HikesScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
         }
-        composable(Screen.Group.route) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getInt("groupId") ?: -1
-            GroupDetailsScreen(groupId, navController, token = preferencesViewModel.tokenState.value ?: "")
+        composable(route = Screen.Group.route) { backStackEntry ->
+            val groupID = backStackEntry.arguments?.getString("groupID") ?: ""
+            GroupDetailsScreen(
+                groupId = groupID.toIntOrNull() ?: 0,
+                navController = navController,
+                token = preferencesViewModel.tokenState.value ?: ""
+            )
         }
         composable(route = Screen.Friends.route) {
             FriendsScreen(navController)

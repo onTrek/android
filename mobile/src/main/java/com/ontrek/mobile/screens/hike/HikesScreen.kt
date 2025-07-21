@@ -21,8 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.groupComponents.AddGroup
 import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
@@ -106,7 +108,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
                                 GroupItem(
                                     group = group,
                                     onItemClick = {
-                                        navController.navigate("group_details/${group.group_id}")
+                                        navController.navigate("GroupDetailsScreen/${group.group_id}")
                                     }
                                 )
                             }
@@ -114,11 +116,8 @@ fun HikesScreen(navController: NavHostController, token: String) {
                     }
                 }
                 is HikesViewModel.GroupsState.Error -> {
-                    Text(
-                        text = (listGroup as HikesViewModel.GroupsState.Error).message,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
+                    ErrorViewComponent(
+                        errorMsg = (listGroup as HikesViewModel.GroupsState.Error).message
                     )
                 }
             }
@@ -162,7 +161,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                 contentDescription = "Icona Gruppo",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(60.dp)
                     .padding(end = 16.dp)
             )
 
