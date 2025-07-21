@@ -14,7 +14,8 @@ data class GroupDoc(
     val created_by: String,
     val description: String,
     val group_id: Int,
-    val file: File
+    val file: File,
+    val members_number: Int,
 )
 
 data class GroupID(

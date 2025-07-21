@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -27,6 +26,7 @@ import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
+import com.ontrek.mobile.utils.components.hikesComponents.IconTextComponent
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
 import java.time.ZoneId
@@ -157,7 +157,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Group,
+                imageVector = Icons.Default.Hiking,
                 contentDescription = "Icona Gruppo",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -176,42 +176,26 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Terrain,
-                        contentDescription = "File Icon",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp).padding(end = 4.dp)
-                    )
+                IconTextComponent(
+                    text = group.file.filename,
+                    icon = Icons.Default.Terrain,
+                    styleText = MaterialTheme.typography.bodySmall,
+                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
+                )
 
-                    Text(
-                        text = group.file.filename,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                IconTextComponent(
+                    text = "Created on: ${formatDate(group.created_at)}",
+                    icon = Icons.Default.Update,
+                    styleText = MaterialTheme.typography.bodySmall,
+                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon (
-                        imageVector = Icons.Default.Update,
-                        contentDescription = "Created At Icon",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp).padding(end = 4.dp)
-                    )
-
-                    Text(
-                        text = "Created on: ${formatDate(group.created_at)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                IconTextComponent(
+                    text = group.members_number.toString(),
+                    icon = Icons.Default.Group,
+                    styleText = MaterialTheme.typography.bodySmall,
+                    modifierIcon = Modifier.size(20.dp).padding(end = 4.dp)
+                )
             }
         }
     }

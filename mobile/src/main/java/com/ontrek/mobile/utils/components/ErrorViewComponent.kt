@@ -36,7 +36,8 @@ fun ErrorViewComponent(errorMsg: String) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = errorMsg,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
 }
