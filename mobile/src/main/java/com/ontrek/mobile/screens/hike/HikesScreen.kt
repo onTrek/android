@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.hike
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -108,6 +109,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
                                 GroupItem(
                                     group = group,
                                     onItemClick = {
+                                        Log.d("HikesScreen", "Navigating to GroupDetailsScreen with group ID: ${group.group_id}")
                                         navController.navigate("GroupDetailsScreen/${group.group_id}")
                                     }
                                 )

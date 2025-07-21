@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,9 +43,10 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             HikesScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
         }
         composable(route = Screen.Group.route) { backStackEntry ->
-            val groupID = backStackEntry.arguments?.getString("groupID") ?: ""
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            Log.d("NavigationStack", "Navigating to GroupDetailsScreen with groupID: $groupId")
             GroupDetailsScreen(
-                groupId = groupID.toIntOrNull() ?: 0,
+                groupId = groupId.toIntOrNull() ?: 0,
                 navController = navController,
                 token = preferencesViewModel.tokenState.value ?: ""
             )

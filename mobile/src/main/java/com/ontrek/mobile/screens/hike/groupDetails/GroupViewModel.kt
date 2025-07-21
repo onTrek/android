@@ -29,6 +29,7 @@ class GroupDetailsViewModel : ViewModel() {
     val msgToast: StateFlow<String> = _msgToast
 
     fun loadGroupDetails(groupId: Int, token: String) {
+        Log.d("GroupDetailsViewModel", "Loading group details for groupId: $groupId")
         _groupState.value = GroupState.Loading
         viewModelScope.launch {
             getGroupInfo(
