@@ -40,6 +40,9 @@ class FriendsViewModel : ViewModel() {
     private val _sentFriendRequests = MutableStateFlow<SentRequestsState>(SentRequestsState.Loading)
     val sentFriendRequests: StateFlow<SentRequestsState> = _sentFriendRequests
 
+    private val _isCharge = MutableStateFlow(false)
+    val isCharge: StateFlow<Boolean> = _isCharge
+
     // Carica la lista degli amici
     fun loadFriends(token: String) {
         viewModelScope.launch {
@@ -127,15 +130,21 @@ class FriendsViewModel : ViewModel() {
         }
     }
     // Invia richiesta di amicizia
-    fun sendFriendRequest(userId: String, token: String) {
+    fun sendFriendRequest(user: Friend, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             sendFriendRequest(
                 token = token,
-                id = userId,
+                id = user.id,
                 onSuccess = { message ->
                     _msgToast.value = message
-                    loadSentFriendRequests(token)
+                    addSentFriendRequest(
+                        FriendRequest(
+                            id = user.id,
+                            username = user.username,
+                            date = System.currentTimeMillis().toString()
+                        )
+                    )
                 },
                 onError = { error ->
                     _msgToast.value = error
@@ -145,16 +154,20 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Accetta richiesta di amicizia
-    fun acceptRequest(requestId: String, token: String) {
+    fun acceptRequest(user: FriendRequest, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             acceptFriendRequest(
                 token = token,
-                id = requestId,
+                id = user.id,
                 onSuccess = { message ->
                     _msgToast.value = message
-                    loadFriendRequests(token)
-                    loadFriends(token)
+                    removeRequestFromList(user.id)
+                    val friend = Friend(
+                        id = user.id,
+                        username = user.username,
+                    )
+                    addFriendToList(friend)
                 },
                 onError = { error ->
                     _msgToast.value = error
@@ -172,7 +185,7 @@ class FriendsViewModel : ViewModel() {
                 id = requestId,
                 onSuccess = { message ->
                     _msgToast.value = message
-                    loadFriendRequests(token)
+                    removeRequestFromList(requestId)
                 },
                 onError = { error ->
                     _msgToast.value = error
@@ -190,7 +203,7 @@ class FriendsViewModel : ViewModel() {
                 id = friendId,
                 onSuccess = { message ->
                     _msgToast.value = message
-                    loadFriends(token)
+                    removeFriendFromList(friendId)
                 },
                 onError = { error ->
                     _msgToast.value = error
@@ -199,13 +212,11 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-
-    // Funzioni per aggiornare le liste degli amici e delle richieste (senza rifare le chiamate API)
-    fun removeSentFriendRequestInList(requestId: String) {
+    fun addSentFriendRequest(request: FriendRequest) {
         viewModelScope.launch {
             _sentFriendRequests.value = when (val currentState = _sentFriendRequests.value) {
                 is SentRequestsState.Success -> {
-                    val updatedRequests = currentState.requests.filter { it.id != requestId }
+                    val updatedRequests = currentState.requests.toMutableList().apply { add(request) }
                     SentRequestsState.Success(updatedRequests)
                 }
                 else -> currentState
@@ -249,18 +260,6 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    fun addRequestToList(request: FriendRequest) {
-        viewModelScope.launch {
-            _requestsState.value = when (val currentState = _requestsState.value) {
-                is RequestsState.Success -> {
-                    val updatedRequests = currentState.requests.toMutableList().apply { add(request) }
-                    RequestsState.Success(updatedRequests)
-                }
-                else -> currentState
-            }
-        }
-    }
-
     // Stati delle amicizie
     sealed class FriendsState {
         object Loading : FriendsState()
@@ -292,5 +291,9 @@ class FriendsViewModel : ViewModel() {
 
     fun resetMsgToast() {
         _msgToast.value = ""
+    }
+
+    fun setIsCharge() {
+        _isCharge.value = !_isCharge.value
     }
 }

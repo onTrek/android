@@ -66,7 +66,7 @@ fun RequestsTab(
                         items(requests) { request ->
                             RequestItem(
                                 request = request,
-                                onAccept = { viewModel.acceptRequest(request.id, token) },
+                                onAccept = { viewModel.acceptRequest(request, token) },
                                 onReject = { viewModel.rejectFriendRequest(request.id, token) }
                             )
                         }

@@ -1,6 +1,8 @@
 package com.ontrek.mobile.screens.friends
 
 import android.widget.Toast
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.ontrek.mobile.utils.components.BottomNavBar
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -20,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.friends.tabs.FriendsTab
 import com.ontrek.mobile.screens.friends.tabs.RequestsTab
 import com.ontrek.mobile.screens.friends.tabs.SearchTab
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,14 +34,15 @@ fun FriendsScreen(
     navController: NavHostController
 ) {
     val viewModel: FriendsViewModel = viewModel()
-    val tabIndex = remember { mutableIntStateOf(0) }
     val tabs = listOf("Friends", "Search", "Requests")
     val msgToast by viewModel.msgToast.collectAsState()
     val context = LocalContext.current
     val requests by viewModel.requestsState.collectAsState()
+    val charge by viewModel.isCharge.collectAsState()
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val coroutineScope = rememberCoroutineScope()
 
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(charge) {
         viewModel.loadFriends(token)
         viewModel.loadFriendRequests(token)
     }
@@ -49,7 +56,8 @@ fun FriendsScreen(
 
     Scaffold(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .scrollable(state = rememberScrollState(), orientation = Orientation.Vertical),
         topBar = {
             TopAppBar(
                 title = {
@@ -67,12 +75,16 @@ fun FriendsScreen(
                 .padding(paddingValues)
         ) {
             TabRow(
-                selectedTabIndex = tabIndex.intValue
+                selectedTabIndex = pagerState.currentPage
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
-                        selected = tabIndex.intValue == index,
-                        onClick = { tabIndex.intValue = index },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        },
                         text = {
                             val count = when (requests) {
                                 is FriendsViewModel.RequestsState.Success -> {
@@ -94,10 +106,15 @@ fun FriendsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            when (tabIndex.intValue) {
-                0 -> FriendsTab(viewModel, token)
-                1 -> SearchTab(viewModel, token)
-                2 -> RequestsTab(viewModel, token)
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { page ->
+                when (page) {
+                    0 -> FriendsTab(viewModel, token)
+                    1 -> SearchTab(viewModel, token)
+                    2 -> RequestsTab(viewModel, token)
+                }
             }
         }
     }

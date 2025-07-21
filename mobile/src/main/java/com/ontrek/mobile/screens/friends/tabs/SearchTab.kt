@@ -103,7 +103,7 @@ fun SearchTab(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        viewModel.sendFriendRequest(user.id, token)
+                                        viewModel.sendFriendRequest(user, token)
                                         query = ""
                                         isSearching = false
                                     }
