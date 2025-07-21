@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.mobile.utils.components.trackComponents.AddTrackDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
+import com.ontrek.mobile.utils.components.trackComponents.AddTrackDialog
 import com.ontrek.mobile.utils.components.trackComponents.TrackItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,6 +127,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 tracks.isEmpty() -> {
                     Text(
                         text = "No tracks available",
@@ -134,23 +135,23 @@ fun TrackScreen(navController: NavHostController, token: String) {
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 else -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            items(tracks) { track ->
-                                TrackItem(
-                                    track = track,
-                                    onItemClick = {
-                                        navController.navigate(Screen.TrackDetail.createRoute(track.id.toString()))
-                                    }
-                                )
-                            }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        items(tracks) { track ->
+                            TrackItem(
+                                track = track,
+                                onItemClick = {
+                                    navController.navigate(Screen.TrackDetail.createRoute(track.id.toString()))
+                                }
+                            )
                         }
                     }
+
                 }
             }
             FloatingActionButton(
@@ -181,7 +182,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 onTrackAdded = {
                     showAddTrackDialog = false
                     viewModel.loadTracks(token)
-                    Toast.makeText(context, "Track added successfully",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
                 },
                 token = token,
                 fileUri = selectedFileUri!!,
