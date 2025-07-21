@@ -7,7 +7,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +23,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.groupComponents.AddGroup
+import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
 import java.time.ZoneId
@@ -36,9 +41,12 @@ fun HikesScreen(navController: NavHostController, token: String) {
     val listGroup by viewModel.listGroup.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState("")
     val addDialog = remember { mutableStateOf(false) }
+    val tracks by viewModel.tracks.collectAsState()
+    val isCharged by viewModel.isCharged.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isCharged) {
         viewModel.loadGroups(token)
+        viewModel.loadTracks(token)
     }
 
     LaunchedEffect(msgToast) {
@@ -119,22 +127,15 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 AddGroup(
                     onDismiss = { addDialog.value = false },
                     onCreateGroup = { description, trackId ->
-                        viewModel.createGroup(
+                        viewModel.addGroup(
                             description = description,
                             trackId = trackId,
-                            token = token,
-                            onSuccess = { groupIdCreation ->
-                                viewModel.loadGroups(token) // Reload groups after creation
-                                Toast.makeText(context, "Group created successfully: ${groupIdCreation.file_id}", Toast.LENGTH_SHORT).show()
-                            },
-                            onError = { error ->
-                                Toast.makeText(context, "Error creating group: $error", Toast.LENGTH_SHORT).show()
-                            }
+                            token = token
                         )
                         addDialog.value = false
                     },
                     isLoading = listGroup is HikesViewModel.GroupsState.Loading,
-                    tracks = emptyList() // Replace with actual track list if needed
+                    tracks = tracks
                 )
             }
         }
@@ -168,35 +169,50 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = "Gruppo #${group.group_id}",
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                TitleGeneric(
+                    title = group.description,
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    style = MaterialTheme.typography.titleLarge
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = group.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Terrain,
+                        contentDescription = "File Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp).padding(end = 4.dp)
+                    )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = group.file.filename,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-                Text(
-                    text = "Track: ${group.file.filename}",
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon (
+                        imageVector = Icons.Default.Update,
+                        contentDescription = "Created At Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp).padding(end = 4.dp)
+                    )
 
-                Text(
-                    text = "Date Creation: ${formatDate(group.created_at)}",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                    Text(
+                        text = "Created on: ${formatDate(group.created_at)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
