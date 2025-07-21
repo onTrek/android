@@ -174,61 +174,71 @@ fun GroupDetailsScreen(
                                 .padding(vertical = 8.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .padding(16.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Route,
-                                    contentDescription = "Associated Track",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(28.dp)
-                                )
-
                                 Text(
-                                    text = if (groupInfo.track != null) {
-                                        groupInfo.track.filename
-                                    } else {
-                                        "No track associated"
-                                    },
+                                    text = "Associated Track",
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f).padding(start = 8.dp)
+                                    fontWeight = FontWeight.Bold,
                                 )
-
-
-                                IconButton(
-                                    onClick = { showTrackSelection = true }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Cached,
-                                        contentDescription = "Change Track",
-                                        tint = MaterialTheme.colorScheme.secondary
+                                        imageVector = Icons.Default.Route,
+                                        contentDescription = "Associated Track",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
                                     )
-                                }
 
-                                if (showTrackSelection) {
-                                    TrackSelectionDialog(
-                                        tracks = tracks,
-                                        onDismiss = { showTrackSelection = false },
-                                        onTrackSelected = { track ->
-                                            viewModel.changeTrack(groupId, track.id, token)
-                                            showTrackSelection = false
+                                    Text(
+                                        text = if (groupInfo.track != null) {
+                                            groupInfo.track.filename
+                                        } else {
+                                            "No track associated"
                                         },
-                                        oldTrack = groupInfo.track.id
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.weight(1f).padding(start = 8.dp)
                                     )
-                                }
 
-                                IconButton(
-                                    onClick = { navController.navigate(Screen.TrackDetail.createRoute(groupInfo.track.id.toString()))}
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Info,
-                                        contentDescription = "Track Details",
-                                        tint = MaterialTheme.colorScheme.tertiary
-                                    )
+                                    IconButton(
+                                        onClick = { showTrackSelection = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Cached,
+                                            contentDescription = "Change Track",
+                                            tint = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+
+                                    if (showTrackSelection) {
+                                        TrackSelectionDialog(
+                                            tracks = tracks,
+                                            onDismiss = { showTrackSelection = false },
+                                            onTrackSelected = { track ->
+                                                viewModel.changeTrack(groupId, track.id, token)
+                                                showTrackSelection = false
+                                            },
+                                            oldTrack = groupInfo.track.id
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { navController.navigate(Screen.TrackDetail.createRoute(groupInfo.track.id.toString()))}
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Info,
+                                            contentDescription = "Track Details",
+                                            tint = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
                                 }
                             }
                         }
