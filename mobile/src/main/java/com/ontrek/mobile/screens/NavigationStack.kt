@@ -53,7 +53,10 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Friends.route, startDestination = Screen.Friends.route) {
             composable(route = Screen.Friends.route) {
-                FriendsScreen(navController)
+                FriendsScreen(
+                    token = preferencesViewModel.tokenState.value ?: "",
+                    navController = navController
+                )
             }
         }
     }
