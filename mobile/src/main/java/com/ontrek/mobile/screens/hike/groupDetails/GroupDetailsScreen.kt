@@ -22,9 +22,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.screens.hike.HikesViewModel
+import com.ontrek.mobile.screens.track.detail.TrackDetailViewModel
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.TitleGeneric
+import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.Track
 import java.time.Instant
@@ -65,7 +68,16 @@ fun GroupDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dettagli Gruppo") },
+                title = {
+                    TitleGeneric(
+                        title = when (groupState) {
+                            is GroupDetailsViewModel.GroupState.Success -> (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo.description
+                            is GroupDetailsViewModel.GroupState.Loading -> "Caricamento..."
+                            else -> "Group Details"
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
@@ -291,7 +303,7 @@ fun MemberItem(
     ) {
         Icon(
             imageVector = Icons.Default.Person,
-            contentDescription = "Membro",
+            contentDescription = "Member",
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(24.dp)
         )
@@ -353,14 +365,18 @@ fun TrackSelectionDialog(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Divider()
+                        HorizontalDivider(
+                            Modifier,
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
                     }
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annulla")
+                Text("Close")
             }
         }
     )

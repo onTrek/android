@@ -71,7 +71,7 @@ class GroupDetailsViewModel : ViewModel() {
                     _tracks.value = trackList ?: emptyList()
                 },
                 onError = { error ->
-                    _msgToast.value = "Errore nel caricamento delle tracce: $error"
+                    _msgToast.value = "Error loading tracks: $error"
                 },
                 token = token
             )
@@ -83,11 +83,11 @@ class GroupDetailsViewModel : ViewModel() {
             deleteGroup(
                 id = groupId,
                 onSuccess = { _ ->
-                    _msgToast.value = "Gruppo eliminato con successo"
+                    _msgToast.value = "Group deleted successfully"
                     onSuccess()
                 },
                 onError = { error ->
-                    _msgToast.value = "Errore nell'eliminazione del gruppo: $error"
+                    _msgToast.value = "Error deleting group: $error"
                 },
                 token = token
             )
@@ -100,11 +100,11 @@ class GroupDetailsViewModel : ViewModel() {
                 id = groupId,
                 trackId = trackId,
                 onSuccess = { _ ->
-                    _msgToast.value = "Traccia cambiata con successo"
+                    _msgToast.value = "Track changed successfully"
                     loadGroupDetails(groupId, token)
                 },
                 onError = { error ->
-                    _msgToast.value = "Errore nel cambio della traccia: $error"
+                    _msgToast.value = "Error changing track: $error"
                 },
                 token = token
             )
@@ -118,11 +118,11 @@ class GroupDetailsViewModel : ViewModel() {
                 userID = userId,
                 token = token,
                 onSuccess = {
-                    _msgToast.value = "Membro rimosso con successo"
+                    _msgToast.value = "Member removed successfully"
                     loadGroupDetails(groupId, token)
                 },
                 onError = { error ->
-                    _msgToast.value = "Errore nella rimozione del membro: $error"
+                    _msgToast.value = "Error removing member: $error"
                 }
             )
         }
