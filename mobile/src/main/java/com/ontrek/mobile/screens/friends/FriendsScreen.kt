@@ -1,23 +1,27 @@
 package com.ontrek.mobile.screens.friends
 
 import android.widget.Toast
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import com.ontrek.mobile.utils.components.BottomNavBar
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +29,7 @@ import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.friends.tabs.FriendsTab
 import com.ontrek.mobile.screens.friends.tabs.RequestsTab
 import com.ontrek.mobile.screens.friends.tabs.SearchTab
+import com.ontrek.mobile.utils.components.BottomNavBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +46,7 @@ fun FriendsScreen(
     val charge by viewModel.isCharge.collectAsState()
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     LaunchedEffect(charge) {
         viewModel.loadFriends(token)
@@ -57,7 +63,7 @@ fun FriendsScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .scrollable(state = rememberScrollState(), orientation = Orientation.Vertical),
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -65,6 +71,7 @@ fun FriendsScreen(
                         text = "Friends",
                     )
                 },
+                scrollBehavior = scrollBehavior,
             )
         },
         bottomBar = { BottomNavBar(navController) },
@@ -88,9 +95,11 @@ fun FriendsScreen(
                         text = {
                             val count = when (requests) {
                                 is FriendsViewModel.RequestsState.Success -> {
-                                    val successState = requests as FriendsViewModel.RequestsState.Success
+                                    val successState =
+                                        requests as FriendsViewModel.RequestsState.Success
                                     successState.requests.size
                                 }
+
                                 else -> 0
                             }
 
