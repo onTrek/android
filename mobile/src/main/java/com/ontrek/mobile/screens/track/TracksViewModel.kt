@@ -1,13 +1,9 @@
 package com.ontrek.mobile.screens.track
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.shared.api.track.getTracks
-import com.ontrek.shared.api.track.deleteTrack
 import com.ontrek.shared.data.Track
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -38,15 +34,6 @@ class TrackViewModel : ViewModel() {
             )
         }
 
-    }
-
-    fun deleteTrack(trackId: String, token: String) {
-
-    }
-
-    fun addTrack(track: Track) {
-        _tracks.value = _tracks.value + track
-        _msgToast.value = "Track added successfully"
     }
 
     fun resetMsgToast() {
