@@ -172,7 +172,7 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
             InfoCardRow(
                 icon = Icons.Default.Terrain,
                 label = "Track",
-                value =  if (group.track != null) group.track.filename else "No track available"
+                value =  if (group.track != null) group.track.title else "No track available"
             )
 
             InfoCardRow(

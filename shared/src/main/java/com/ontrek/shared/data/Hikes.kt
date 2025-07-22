@@ -1,7 +1,7 @@
 package com.ontrek.shared.data
 
 data class TrackInfo(
-    val filename: String,
+    val title: String,
     val id: Int
 )
 

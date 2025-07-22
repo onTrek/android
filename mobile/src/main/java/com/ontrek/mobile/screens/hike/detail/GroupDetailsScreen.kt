@@ -203,7 +203,7 @@ fun GroupDetailsScreen(
 
                                     Text(
                                         text = if (groupInfo.track != null) {
-                                            groupInfo.track.filename
+                                            groupInfo.track.title
                                         } else {
                                             "No track associated"
                                         },
