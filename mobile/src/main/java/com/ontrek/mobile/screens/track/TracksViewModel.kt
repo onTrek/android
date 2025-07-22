@@ -1,9 +1,7 @@
 package com.ontrek.mobile.screens.track
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.ontrek.shared.api.track.getTracks
-import com.ontrek.shared.api.track.deleteTrack
 import com.ontrek.shared.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,15 +29,6 @@ class TrackViewModel : ViewModel() {
             },
             token = token
         )
-    }
-
-    fun deleteTrack(trackId: String, token: String) {
-
-    }
-
-    fun addTrack(track: Track) {
-        _tracks.value = _tracks.value + track
-        _msgToast.value = "Track added successfully"
     }
 
     fun resetMsgToast() {
