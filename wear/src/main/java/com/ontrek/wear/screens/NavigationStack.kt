@@ -32,7 +32,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                     // TODO: Implement navigation to Hikes screen when available
                 },
                 onLogout = {
-                    // Handle logout logic if needed
+                    preferencesViewModel.clearToken()
                 }
             )
         }

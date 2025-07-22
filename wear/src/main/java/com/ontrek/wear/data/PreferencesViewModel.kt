@@ -37,4 +37,10 @@ class PreferencesViewModel(
             preferencesStore.saveToken(userName)
         }
     }
+
+    fun clearToken() {
+        viewModelScope.launch {
+            preferencesStore.clearToken()
+        }
+    }
 }
