@@ -134,7 +134,7 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "Group Details",
+                                    text = "Hike Details",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -162,20 +162,12 @@ fun GroupDetailsScreen(
                                     value = formatDate(groupInfo.created_at),
                                 )
                             }
-                        }
 
-                        // Sezione traccia
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            shape = MaterialTheme.shapes.medium,
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ){
+                            // Sezione track
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
                             ) {
                                 Text(
                                     text = "Track",
@@ -250,6 +242,7 @@ fun GroupDetailsScreen(
                                 }
                             }
                         }
+
 
                         // Sezione membri del gruppo
                         Card(
