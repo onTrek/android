@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ontrek.mobile.screens.TopLevelScreen
 
@@ -99,12 +98,6 @@ fun BottomNavBar(navController: NavController) {
                 selected = selected,
                 onClick = {
                     navController.navigate(topLevelRoute.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
                         // Avoid multiple copies of the same destination when
                         // reselecting the same item
                         launchSingleTop = true
