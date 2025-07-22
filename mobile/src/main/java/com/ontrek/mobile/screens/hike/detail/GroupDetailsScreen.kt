@@ -22,7 +22,6 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
-import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.hikesComponents.TrackSelectionDialog
 import com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent.MembersGroup
 import java.time.Instant
@@ -67,13 +66,9 @@ fun GroupDetailsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    TitleGeneric(
-                        title = when (groupState) {
-                            is GroupDetailsViewModel.GroupState.Success -> (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo.description
-                            is GroupDetailsViewModel.GroupState.Loading -> "Charge..."
-                            else -> "Group Details"
-                        },
-                        modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
+                    Text(
+                        text = "Details",
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -140,8 +135,8 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "Hike Details",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    text = groupInfo.description,
+                                    style = MaterialTheme.typography.titleLarge,
                                     color = MaterialTheme.colorScheme.primary
                                 )
 
@@ -149,11 +144,6 @@ fun GroupDetailsScreen(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     thickness = DividerDefaults.Thickness,
                                     color = DividerDefaults.color
-                                )
-
-                                Text(
-                                    text = groupInfo.description,
-                                    style = MaterialTheme.typography.titleLarge,
                                 )
 
                                 InfoCardRow(
@@ -278,7 +268,7 @@ fun GroupDetailsScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Track",
+                                contentDescription = "Delete",
                                 tint = MaterialTheme.colorScheme.onError,
                                 modifier = Modifier.size(ButtonDefaults.IconSize)
                             )

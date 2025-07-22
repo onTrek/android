@@ -33,7 +33,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,13 +81,9 @@ fun TrackDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    TitleTrack(
-                        title = when (trackDetailState) {
-                            is TrackDetailViewModel.TrackDetailState.Success ->
-                                (trackDetailState as TrackDetailViewModel.TrackDetailState.Success).track.title
-                            else -> "Track Details"
-                        },
-                        modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
+                    Text(
+                        text = "Details",
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -164,7 +159,7 @@ fun TrackDetailScreen(
                                             val event = awaitPointerEvent()
                                         } while (event.changes.any { it.pressed })
 
-                                        scale.value = 1f
+                                        scale.floatValue = 1f
                                         offset.value = Offset.Zero
                                     }
                                 }

@@ -32,6 +32,13 @@ class PreferencesViewModel(
             initialValue = null
         )
 
+    val currentUserState: StateFlow<String?> =
+        preferencesStore.currentUser.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = null
+        )
+
     fun saveToken(userName: String) {
         viewModelScope.launch {
             preferencesStore.saveToken(userName)

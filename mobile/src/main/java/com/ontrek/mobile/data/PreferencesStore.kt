@@ -17,6 +17,11 @@ class PreferencesStore(private val dataStore: DataStore<Preferences>) {
             preferences[TOKEN] ?: ""
         }
 
+    val currentUser: Flow<String> =
+        dataStore.data.map { preferences ->
+            preferences[stringPreferencesKey("currentUser")] ?: ""
+        }
+
     suspend fun saveToken(token: String) {
         dataStore.edit { preferences ->
             preferences[TOKEN] = token
