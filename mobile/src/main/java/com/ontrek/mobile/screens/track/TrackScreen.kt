@@ -109,6 +109,18 @@ fun TrackScreen(navController: NavHostController, token: String) {
             )
         },
         bottomBar = { BottomNavBar(navController) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    showFilePicker = true
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Track",
+                )
+            }
+        }
     ) { innerPadding ->
 
         LaunchedEffect(Unit) {
@@ -150,19 +162,6 @@ fun TrackScreen(navController: NavHostController, token: String) {
                     }
 
                 }
-            }
-            FloatingActionButton(
-                onClick = {
-                    showFilePicker = true
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Track",
-                )
             }
         }
 
