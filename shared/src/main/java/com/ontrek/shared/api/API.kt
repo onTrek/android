@@ -2,7 +2,7 @@ package com.ontrek.shared.api
 
 import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.Signup
-import com.ontrek.shared.data.TokenResponse
+import com.ontrek.shared.data.LoginResponse
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.FileID
 import com.ontrek.shared.data.GroupDoc
@@ -49,7 +49,7 @@ interface ApiService {
     // ------- AUTH ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/login")
-    fun login(@Body loginBody: Login): Call<TokenResponse>
+    fun login(@Body loginBody: Login): Call<LoginResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/register")
