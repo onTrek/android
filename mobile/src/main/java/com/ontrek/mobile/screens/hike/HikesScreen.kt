@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Terrain
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,12 +24,8 @@ import androidx.navigation.NavHostController
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
-import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +58,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("My Hikes Groups") },
+                title = { Text("Hikes") },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -72,7 +69,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
                     addDialog.value = true
                 },
             ) {
-                Icon(Icons.Default.GroupAdd, contentDescription = "Add Groups")
+                Icon(Icons.Default.Add, contentDescription = "Add Groups")
             }
         }
     ) { innerPadding ->
@@ -152,13 +149,32 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text (
-                text = group.description,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text (
+                    text = group.description,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Icon(
+                    imageVector = Icons.Default.Group,
+                    contentDescription = "Members Icon",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = group.members_number.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -166,32 +182,25 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                 color = DividerDefaults.color
             )
 
-            InfoCardRow(
-                icon = Icons.Default.Terrain,
-                label = "Track",
-                value =  if (group.track != null) group.track.title else "No track available",
-                truncate = true
-            )
-
-            InfoCardRow(
-                icon = Icons.Default.Update,
-                label = "Created at",
-                value = formatDate(group.created_at)
-            )
-
-            InfoCardRow(
-                icon = Icons.Default.Group,
-                label = "#",
-                value = group.members_number.toString()
-            )
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Terrain,
+                    contentDescription = "Track Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = group.track.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
-    }
-}
-private fun formatDate(dateString: String): String {
-    return try {
-        val instant = Instant.parse(dateString)
-        DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(ZoneId.systemDefault()).format(instant)
-    } catch (e: Exception) {
-        dateString
     }
 }

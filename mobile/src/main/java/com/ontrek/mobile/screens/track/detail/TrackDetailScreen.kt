@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
@@ -291,15 +290,15 @@ fun TrackDetailScreen(
 
                                 // Altitudine Massima
                                 TrackInfoRow(
-                                    icon = Icons.Default.Terrain,
-                                    label = "Max Height",
+                                    icon = Icons.Default.KeyboardDoubleArrowUp,
+                                    label = "Max Altitude",
                                     value = "${track.stats.max_altitude} m"
                                 )
 
                                 // Altitudine Minima
                                 TrackInfoRow(
-                                    icon = Icons.Default.Terrain,
-                                    label = "Min Height",
+                                    icon = Icons.Default.KeyboardDoubleArrowDown,
+                                    label = "Min Altitude",
                                     value = "${track.stats.min_altitude} m"
                                 )
                             }

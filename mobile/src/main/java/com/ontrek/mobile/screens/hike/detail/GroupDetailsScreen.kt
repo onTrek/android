@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ fun GroupDetailsScreen(
     navController: NavHostController,
     token: String
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val viewModel: GroupDetailsViewModel = viewModel()
     val groupState by viewModel.groupState.collectAsState()
     val membersState by viewModel.membersState.collectAsState()
@@ -59,6 +61,9 @@ fun GroupDetailsScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -71,6 +76,7 @@ fun GroupDetailsScreen(
                         modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
                     )
                 },
+                scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
@@ -248,8 +254,8 @@ fun GroupDetailsScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f, fill = true)
-                                .padding(top = 12.dp, bottom = 10.dp),
+                                .heightIn(min = 360.dp)
+                                .padding(top = 12.dp, bottom = 12.dp),
                             shape = MaterialTheme.shapes.medium,
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
