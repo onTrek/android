@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cached
-import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -56,7 +56,7 @@ fun TrackSelectionDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Route,
+                                imageVector = Icons.Default.Terrain,
                                 contentDescription = "Track",
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -72,17 +72,10 @@ fun TrackSelectionDialog(
                             )
 
                             if (oldTrack == track.id) {
-                                Text(
-                                    text = "(Current)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            } else {
                                 Icon(
-                                    imageVector = Icons.Default.Cached,
-                                    contentDescription = "Track Icon",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(start = 8.dp)
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Current Track",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }

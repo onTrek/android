@@ -178,7 +178,7 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "Associated Track",
+                                    text = "Track",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -196,7 +196,7 @@ fun GroupDetailsScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Route,
+                                        imageVector = Icons.Default.Terrain,
                                         contentDescription = "Associated Track",
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(28.dp)
@@ -220,7 +220,7 @@ fun GroupDetailsScreen(
                                         onClick = { showTrackSelection = true }
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Cached,
+                                            imageVector = Icons.Default.Edit,
                                             contentDescription = "Change Track",
                                             tint = MaterialTheme.colorScheme.secondary
                                         )
@@ -277,6 +277,13 @@ fun GroupDetailsScreen(
                                 .padding(bottom = 8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Track",
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+
                             Text(
                                 text = "Delete Group",
                                 color = MaterialTheme.colorScheme.onError

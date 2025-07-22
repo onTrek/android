@@ -71,7 +71,6 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 onClick = {
                     addDialog.value = true
                 },
-                modifier = Modifier.padding(16.dp),
             ) {
                 Icon(Icons.Default.GroupAdd, contentDescription = "Add Groups")
             }
