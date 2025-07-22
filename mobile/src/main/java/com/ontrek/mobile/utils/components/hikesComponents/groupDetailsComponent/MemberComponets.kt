@@ -25,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ontrek.mobile.screens.hike.detail.GroupDetailsViewModel
+import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
 
 @Composable
@@ -33,17 +35,21 @@ fun MembersGroup(
     membersState: List<GroupMember>,
     groupId: Int,
     token: String,
-    viewModel: com.ontrek.mobile.screens.hike.detail.GroupDetailsViewModel,
+    viewModel: GroupDetailsViewModel,
 ) {
     var showAddMemberDialog by remember { mutableStateOf(false) }
 
     if (showAddMemberDialog) {
-        AddMemberDialog(
-            groupId = groupId,
+        SearchUsersDialog(
             onDismiss = { showAddMemberDialog = false },
-            onMemberAdded = { viewModel.loadGroupDetails(groupId, token) },
-            token = token
-        )
+            onUserSelected = { user ->
+                viewModel.addMember(user.id, groupId, token)
+                showAddMemberDialog = false
+            },
+            token = token,
+            title = "Add Member",
+            onlyFriend = true,
+       )
     }
 
     Column(

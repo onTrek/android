@@ -39,9 +39,15 @@ class PreferencesViewModel(
             initialValue = null
         )
 
-    fun saveToken(userName: String) {
+    fun saveToken(token: String) {
         viewModelScope.launch {
-            preferencesStore.saveToken(userName)
+            preferencesStore.saveToken(token)
+        }
+    }
+
+    fun saveCurrentUser(userId: String) {
+        viewModelScope.launch {
+            preferencesStore.saveCurrentUser(userId)
         }
     }
 }

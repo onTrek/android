@@ -27,4 +27,10 @@ class PreferencesStore(private val dataStore: DataStore<Preferences>) {
             preferences[TOKEN] = token
         }
     }
+
+    suspend fun saveCurrentUser(userId: String) {
+        dataStore.edit { preferences ->
+            preferences[stringPreferencesKey("currentUser")] = userId
+        }
+    }
 }

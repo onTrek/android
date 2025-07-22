@@ -3,7 +3,6 @@ package com.ontrek.shared.api
 import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.Signup
 import com.ontrek.shared.data.TokenResponse
-import com.ontrek.shared.data.Friend
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.FileID
 import com.ontrek.shared.data.GroupDoc
@@ -23,6 +22,7 @@ import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Profile
+import com.ontrek.shared.data.UserMinimal
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -92,15 +92,11 @@ interface ApiService {
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/")
-    fun getFriends(@Header("Bearer") token: String): Call<List<Friend>>
+    fun getFriends(@Header("Bearer") token: String): Call<List<UserMinimal>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("friends/{id}")
     fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
-
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("search")
-    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
 
     // ------- FRIEND REQUESTS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
@@ -160,4 +156,9 @@ interface ApiService {
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("/groups/{id}/members/")
     fun removeMemberFromGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Query("user_id") userId: String? = null): Call<Void>
+
+    // ------- SEARCH USER PROFILE ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("search")
+    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<UserMinimal>>
 }

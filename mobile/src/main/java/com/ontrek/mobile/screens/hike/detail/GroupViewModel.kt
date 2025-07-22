@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.hike.detail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.hikes.changeGPXInGroup
@@ -110,6 +111,12 @@ class GroupDetailsViewModel : ViewModel() {
                     _msgToast.value = "Error removing member: $error"
                 }
             )
+        }
+    }
+
+    fun addMember(userId: String, groupId: Int, token: String) {
+        viewModelScope.launch {
+            Log.d("GroupDetailsViewModel", "Adding member with ID: $userId to group ID: $groupId")
         }
     }
 
