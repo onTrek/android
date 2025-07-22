@@ -1,7 +1,6 @@
 package com.ontrek.shared.api
 
 import com.ontrek.shared.data.Login
-import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Signup
 import com.ontrek.shared.data.TokenResponse
 import com.ontrek.shared.data.Friend
@@ -12,7 +11,6 @@ import com.ontrek.shared.data.GroupID
 import com.ontrek.shared.data.GroupIDCreation
 import com.ontrek.shared.data.GroupInfoResponseDoc
 import com.ontrek.shared.data.Track
-import com.ontrek.shared.data.Profile
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -21,15 +19,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Headers
-import retrofit2.http.PUT
-import retrofit2.http.Query
-import com.ontrek.shared.data.Login
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Profile
-import com.ontrek.shared.data.Signup
-import com.ontrek.shared.data.TokenResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
