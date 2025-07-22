@@ -3,6 +3,9 @@ package com.ontrek.wear.screens.track
 import android.content.Context
 import android.location.Location
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.data.TrackPoint
@@ -16,8 +19,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
+import kotlin.collections.maxOfOrNull
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
 
 /* * The threshold to consider a track point as surpassed.
@@ -50,8 +55,8 @@ class TrackScreenViewModel : ViewModel() {
     val trackPointListState: StateFlow<List<TrackPoint>> = trackPoints
     private val parsingError = MutableStateFlow<String>("")
     val parsingErrorState: StateFlow<String> = parsingError
-    private val isNearTrack = MutableStateFlow<Boolean?>(null)
-    val isNearTrackState: StateFlow<Boolean?> = isNearTrack
+    private val _isInitialized = MutableStateFlow<Boolean?>(null)
+    val isInitialized: StateFlow<Boolean?> = _isInitialized
     private val arrowDirection = MutableStateFlow<Float>(0F)
     val arrowDirectionState: StateFlow<Float> = arrowDirection
 
@@ -65,6 +70,8 @@ class TrackScreenViewModel : ViewModel() {
 
     private val progress = MutableStateFlow(0F) // Progress along the track
     val progressState: StateFlow<Float> = progress
+    private val _isOffTrack = MutableStateFlow(false)
+    val isOffTrack: StateFlow<Boolean> = _isOffTrack
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -72,6 +79,7 @@ class TrackScreenViewModel : ViewModel() {
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
+    private var isAtStartup by mutableStateOf(true)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -133,6 +141,7 @@ class TrackScreenViewModel : ViewModel() {
                 (trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE)
             val isNearTrackValue =
                 nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Nearest point: ${nearestPoint.index}, distance: ${nearestPoint.distanceToUser}")
             if (isNearTrackValue) {
                 nextTrackPoint.value = findNextTrackPoint(
                     currentLocation, trackPoints.value, false, nextTrackPoint.value?.index
@@ -144,10 +153,11 @@ class TrackScreenViewModel : ViewModel() {
                 progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
                 //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
                 //but this is a first approximation, more accurate results will be obtained when accuracy improves
+                computeIfOnTrack(currentLocation)
                 elaborateDirection(direction)
             }
             //Change UI screen state
-            isNearTrack.value = isNearTrackValue
+            _isInitialized.value = isNearTrackValue
         }
     }
 
@@ -156,34 +166,55 @@ class TrackScreenViewModel : ViewModel() {
         position.value = currentLocation
 
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
-        val onTrack = _distanceFromTrack.value!! < trackDistanceThreshold
-        Log.d(
-            "TRACK_SCREEN_VIEW_MODEL",
-            "${if (onTrack) "ON TRACK" else "OFF TRACK"} - Distance from track: ${_distanceFromTrack.value}"
-        )
+        //TODO() HOW!?!?!?!?!
+        val simplifyAlgorithm = _distanceFromTrack.value!! < trackDistanceThreshold
+        //Log.d(
+        //    "ON_TRACK_DISTANCE",
+        //    "Distance from track: ${_distanceFromTrack.value}"
+        //)
 
         val oldIndex = nextTrackPoint.value?.index
         nextTrackPoint.value =
-            findNextTrackPoint(currentLocation, trackPoints.value, onTrack, nextTrackPoint.value?.index)
+            findNextTrackPoint(currentLocation, trackPoints.value, simplifyAlgorithm, nextTrackPoint.value?.index)
         val newIndex = nextTrackPoint.value!!.index
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
+            if (isAtStartup) isAtStartup = false
             progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
 
             //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
             //elaborateDirection(0.0F)
         }
 
+        computeIfOnTrack(currentLocation)
+    }
+
+    fun computeIfOnTrack(currentLocation: Location) {
+        Log.d("ON_TRACK_COMPUTATION", "Computing if on track with location: $currentLocation")
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
 
-        if (_distanceFromTrack.value!! > notificationTrackDistanceThreshold && !_alreadyNotifiedOffTrack.value) {
+        val distance = if (isAtStartup) getDistanceTo(currentLocation.toSimplePoint(),
+            nextTrackPoint.value!!.toSimplePoint()) else _distanceFromTrack.value!!
+
+        val notificationThreshold = if (isAtStartup) {
+            val initialThreshold = max((trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE), 100.0) + notificationTrackDistanceThreshold
+            Log.d("ON_TRACK_COMPUTATION", "At startup, using initial threshold: $initialThreshold, distance: $distance, notification threshold: $notificationTrackDistanceThreshold")
+            initialThreshold
+        } else {
+            Log.d("ON_TRACK_COMPUTATION", "distance: $distance")
+            notificationTrackDistanceThreshold
+        }
+
+        _isOffTrack.value = distance > notificationThreshold
+
+        if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "User is off track, notifying")
-        } else if (_distanceFromTrack.value!! <= notificationTrackDistanceThreshold) {
+            Log.d("ON_TRACK_COMPUTATION", "User is off track, notifying")
+        } else if (!_isOffTrack.value) {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "User is on track, reset notification")
+            Log.d("ON_TRACK_COMPUTATION", "User is on track, reset notification")
         }
     }
 
@@ -236,7 +267,7 @@ class TrackScreenViewModel : ViewModel() {
         trackPoints.value = emptyList()
         totalLength.value = 0F
         parsingError.value = ""
-        isNearTrack.value = null
+        _isInitialized.value = null
         nextTrackPoint.value = null
         arrowDirection.value = 0F
         position.value = null

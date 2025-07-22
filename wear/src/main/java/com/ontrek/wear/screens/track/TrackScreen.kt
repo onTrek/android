@@ -123,9 +123,9 @@ fun TrackScreen(
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
     val parsingError by gpxViewModel.parsingErrorState.collectAsStateWithLifecycle()
     // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
-    val isNearTrack by gpxViewModel.isNearTrackState.collectAsStateWithLifecycle()
-    // Raccoglie l'indice del punto più vicino al tracciato come stato osservabile
-    //val nearestTrackPoint by gpxViewModel.nearestTrackPointState.collectAsStateWithLifecycle()
+    val isInitialized by gpxViewModel.isInitialized.collectAsStateWithLifecycle()
+    // Raccoglie se stiamo all'inizio o alla fine del tracciato come stato osservabile
+    val isOffTrack by gpxViewModel.isOffTrack.collectAsStateWithLifecycle()
     // Raccoglie l'angolo della freccia come stato osservabile
     val arrowDirection by gpxViewModel.arrowDirectionState.collectAsStateWithLifecycle()
     // Raccoglie la posizione corrente come stato osservabile
@@ -267,10 +267,10 @@ fun TrackScreen(
             return@LaunchedEffect
         }
 
-        if (isNearTrack == null || isNearTrack == false) {
+        if (isInitialized == null || isInitialized == false) {
             // Startup function
             gpxViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
-        } else if (isNearTrack == true) {
+        } else if (isInitialized == true) {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
         }
@@ -278,7 +278,6 @@ fun TrackScreen(
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    val isOffTrack = distanceFromTrack?.let { it > notificationTrackDistanceThreshold } == true
     val infobackgroundColor: androidx.compose.ui.graphics.Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val infotextColor: androidx.compose.ui.graphics.Color =
@@ -291,14 +290,14 @@ fun TrackScreen(
             null,
             null
         )
-    } else if (isNearTrack != null && isNearTrack != true) {
+    } else if (isInitialized != null && isInitialized != true) {
         WarningScreen(
             "You are too distant from the selected track",
             Modifier.fillMaxSize(),
             null,
             null
         )
-    } else if (trackPoints.isEmpty() || isNearTrack == null) {
+    } else if (trackPoints.isEmpty() || isInitialized == null) {
         Loading(Modifier.fillMaxSize())
     } else {
         AnimatedVisibility(

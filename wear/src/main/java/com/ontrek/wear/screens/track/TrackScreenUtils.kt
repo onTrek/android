@@ -18,8 +18,6 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
         val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
         val nearestPoint = nearestPoints[0]
         if (nearestPoint.index > trackPoints.size - min(7, trackPoints.size)) nearestPoints.find { it.index < 5 } ?: nearestPoint else nearestPoint
-    } else if (onTrack) {
-        NearPoint(actualPointIndex, getDistanceTo(currentLocation.toSimplePoint(), trackPoints[actualPointIndex].toSimplePoint()))
     } else {
         extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
     }
