@@ -12,13 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun InfoCardRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    value: String
+    value: String,
+    truncate: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -47,7 +49,9 @@ fun InfoCardRow(
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = if (truncate) 1 else Int.MAX_VALUE,
+            overflow = if (truncate) TextOverflow.Ellipsis else TextOverflow.Clip
         )
     }
 }

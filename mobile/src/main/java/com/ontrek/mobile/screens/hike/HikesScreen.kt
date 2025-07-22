@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
@@ -25,7 +24,6 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
-import com.ontrek.mobile.utils.components.TitleGeneric
 import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
 import java.time.Instant
@@ -172,7 +170,8 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
             InfoCardRow(
                 icon = Icons.Default.Terrain,
                 label = "Track",
-                value =  if (group.track != null) group.track.title else "No track available"
+                value =  if (group.track != null) group.track.title else "No track available",
+                truncate = true
             )
 
             InfoCardRow(
