@@ -41,7 +41,7 @@ const val degreesThreshold: Double = 5.0
  * If the user is within this distance from the track, they are considered on track.
  * This value is used to determine if the user is close enough to the track to be considered on track.
  */
-const val trackDistanceThreshold: Double = 50.0
+const val trackDistanceThreshold: Double = 100.0
 
 /* * The distance threshold to notify the user when they are going off track.
  * If the user is above this distance from the track, they will be notified that they are going off track.
@@ -190,7 +190,6 @@ class TrackScreenViewModel : ViewModel() {
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
-        Log.d("ON_TRACK_COMPUTATION", "Computing if on track with location: $currentLocation")
         _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
 
         val distance = if (isAtStartup) getDistanceTo(currentLocation.toSimplePoint(),
@@ -214,7 +213,6 @@ class TrackScreenViewModel : ViewModel() {
         } else if (!_isOffTrack.value) {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
-            Log.d("ON_TRACK_COMPUTATION", "User is on track, reset notification")
         }
     }
 
@@ -250,16 +248,24 @@ class TrackScreenViewModel : ViewModel() {
     }
 
     fun computeDistanceFromTrack(currentLocation: Location): Double {
-        val previousPoint = (nextTrackPoint.value?.index ?: 1) - 1
+        val nextPoint = trackPoints.value[nextTrackPoint.value!!.index]
+        var previousPoint = trackPoints.value[nextPoint.index - 1]
+
+        while (trackPoints.value[previousPoint.index + 1].distanceToPrevious < trackPointThreshold) {
+            previousPoint = trackPoints.value.getOrNull(previousPoint.index - 1) ?: break
+        }
+
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Next point index: ${nextPoint.index}, Previous point: ${previousPoint.index}")
+
         val previousPointDistance = getDistanceTo(
-            currentLocation.toSimplePoint(), trackPoints.value[previousPoint].toSimplePoint()
+            currentLocation.toSimplePoint(), previousPoint.toSimplePoint()
         )
         val nextPointDistance = getDistanceTo(
             currentLocation.toSimplePoint(),
-            trackPoints.value[nextTrackPoint.value!!.index].toSimplePoint()
+            nextPoint.toSimplePoint()
         )
 
-        return previousPointDistance + nextPointDistance - trackPoints.value[nextTrackPoint.value!!.index].distanceToPrevious
+        return previousPointDistance + nextPointDistance - getDistanceTo(previousPoint.toSimplePoint(), nextPoint.toSimplePoint())
     }
 
     fun reset() {
