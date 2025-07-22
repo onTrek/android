@@ -8,7 +8,6 @@ import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.api.track.deleteTrack
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,14 +30,10 @@ class TrackDetailViewModel : ViewModel() {
 
 
     // Funzione per caricare i dettagli della traccia
-    fun loadTrackDetails(trackId: String, token: String) {
+    fun loadTrackDetails(trackId: Int, token: String) {
         viewModelScope.launch {
             _trackDetailState.value = TrackDetailState.Loading
 
-            // Simulazione di una chiamata API
-            delay(500)
-
-            // Dati di esempio
             getTrack(
                 id = trackId,
                 onSuccess = { track ->
@@ -58,12 +53,9 @@ class TrackDetailViewModel : ViewModel() {
     }
 
     // Funzione per caricare l'immagine della traccia
-    fun loadTrackImage(trackId: String, token: String) {
+    fun loadTrackImage(trackId: Int, token: String) {
         viewModelScope.launch {
             _imageState.value = ImageState.Loading
-
-            // Simulazione di una chiamata API
-            delay(2000)
 
             getMapTrack(
                 id = trackId,
@@ -97,7 +89,7 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
-    fun deleteTrack(trackId: String, token: String, onSuccess: () -> Unit) {
+    fun deleteTrack(trackId: Int, token: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoadingDelete.value = true
             deleteTrack(
