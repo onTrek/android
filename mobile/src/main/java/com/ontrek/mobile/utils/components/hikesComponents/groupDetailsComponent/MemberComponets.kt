@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,61 +53,52 @@ fun MembersGroup(
         )
     }
 
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Members (${membersState.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+            Text(
+                text = "Members (${membersState.size})",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Button(onClick = { showAddMemberDialog = true }) {
+                Icon(
+                    imageVector = Icons.Default.PersonAddAlt1,
+                    contentDescription = "add member",
+                    modifier = Modifier.size(20.dp)
                 )
-
-                Button(onClick = { showAddMemberDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Default.PersonAddAlt1,
-                        contentDescription = "add member",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (membersState.isEmpty()) {
-                Text(
-                    text = "No members in this group.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            } else {
-                Column {
-                    membersState.forEach { member ->
-                        MemberItem(
-                            creator = creatorGroupMember,
-                            member = member,
-                            onRemoveClick = {
-                                viewModel.removeMember(groupId, member.id, token)
-                            }
-                        )
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 4.dp),
-                            DividerDefaults.Thickness,
-                            DividerDefaults.color
-                        )
-                    }
+        Spacer(modifier = Modifier.height(8.dp))
+        if (membersState.isEmpty()) {
+            Text(
+                text = "No members in this group.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            Column {
+                membersState.forEach { member ->
+                    MemberItem(
+                        creator = creatorGroupMember,
+                        member = member,
+                        onRemoveClick = {
+                            viewModel.removeMember(groupId, member.id, token)
+                        }
+                    )
+                    HorizontalDivider(
+                        Modifier.padding(vertical = 4.dp),
+                        DividerDefaults.Thickness,
+                        DividerDefaults.color
+                    )
                 }
             }
         }

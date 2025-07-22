@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -135,7 +134,7 @@ fun GroupDetailsScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = "Information",
+                                    text = "Group Details",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -168,7 +167,8 @@ fun GroupDetailsScreen(
                         // Sezione traccia
                         Card(
                             modifier = Modifier
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
                             shape = MaterialTheme.shapes.medium,
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ){
@@ -251,21 +251,30 @@ fun GroupDetailsScreen(
                             }
                         }
 
-                        MembersGroup(
-                            groupId = groupId,
-                            membersState = membersState,
-                            token = token,
-                            creatorGroupMember = groupInfo.created_by.username,
-                            viewModel = viewModel,
-                        )
+                        // Sezione membri del gruppo
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = true)
+                                .padding(top = 12.dp, bottom = 10.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            MembersGroup(
+                                membersState = membersState,
+                                token = token,
+                                creatorGroupMember = groupInfo.created_by.username,
+                                viewModel = viewModel,
+                                groupId = groupId,
+                            )
+                        }
 
-                        Spacer(modifier = Modifier.weight(1f))
                         // Bottone elimina gruppo
                         Button(
                             onClick = { showDeleteConfirmation = true },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 16.dp),
+                                .padding(bottom = 8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
                             Text(
