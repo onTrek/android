@@ -26,6 +26,7 @@ import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.utils.components.hikesComponents.TrackSelectionDialog
 import com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent.MembersGroup
+import com.ontrek.shared.data.TrackInfo
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -241,7 +242,10 @@ fun GroupDetailsScreen(
                                             tracks = tracks,
                                             onDismiss = { showTrackSelection = false },
                                             onTrackSelected = { track ->
-                                                viewModel.changeTrack(groupId, track.id, token)
+                                                viewModel.changeTrack(groupId, TrackInfo(
+                                                    id = track.id,
+                                                    title = track.title
+                                                ), token)
                                                 showTrackSelection = false
                                             },
                                             oldTrack = groupInfo.track.id

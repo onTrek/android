@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.hikes.changeGPXInGroup
 import com.ontrek.shared.api.hikes.deleteGroup
 import com.ontrek.shared.api.hikes.getGroupInfo
+import com.ontrek.shared.api.hikes.removeMemberFromGroup
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupInfoResponseDoc
 import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.Track
+import com.ontrek.shared.data.TrackInfo
+import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -80,14 +83,24 @@ class GroupDetailsViewModel : ViewModel() {
         }
     }
 
-    fun changeTrack(groupId: Int, trackId: Int, token: String) {
+    fun changeTrack(groupId: Int, track: TrackInfo, token: String) {
         viewModelScope.launch {
             changeGPXInGroup(
                 id = groupId,
-                trackId = trackId,
+                trackId = track.id,
                 onSuccess = { _ ->
                     _msgToast.value = "Track changed successfully"
-                    loadGroupDetails(groupId, token)
+                    _groupState.value = GroupState.Success(
+                        (groupState.value as? GroupState.Success)?.groupInfo?.copy(
+                            track = track
+                        ) ?: GroupInfoResponseDoc(
+                            description = "",
+                            members = emptyList(),
+                            created_at = "",
+                            created_by = UserMinimal(id = "", username = ""),
+                            track = track,
+                        )
+                    )
                 },
                 onError = { error ->
                     _msgToast.value = "Error changing track: $error"
@@ -99,7 +112,7 @@ class GroupDetailsViewModel : ViewModel() {
 
     fun removeMember(groupId: Int, userId: String, token: String) {
         viewModelScope.launch {
-            com.ontrek.shared.api.hikes.removeMemberFromGroup(
+            removeMemberFromGroup(
                 id = groupId,
                 userID = userId,
                 token = token,
