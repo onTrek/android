@@ -91,6 +91,9 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     var selectedFilename by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val isDevelopmentMode = false
+
+
     LaunchedEffect(userProfile.imageProfile.contentHashCode()) {
         if (userProfile.imageProfile.isNotEmpty()) {
             imageBitmap = BitmapFactory.decodeByteArray(
@@ -98,7 +101,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                 0,
                 userProfile.imageProfile.size
             )?.asImageBitmap()
-            previewImageBitmap = imageBitmap
         }
     }
 
@@ -115,9 +117,16 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     LaunchedEffect(imageBitmap) {
         modifyImageProfile = false
         preview = ByteArray(0)
-        previewImageBitmap = imageBitmap
+        previewImageBitmap = null
         selectedFilename = null
     }
+
+    LaunchedEffect(selectedFilename) {
+        if (selectedFilename != null) {
+            modifyImageProfile = true
+        }
+    }
+
 
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -167,7 +176,13 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
         }
     }
 
-    val isDevelopmentMode = false
+    LaunchedEffect(showFilePicker) {
+        if (showFilePicker) {
+            filePicker.launch("*/*")
+            showFilePicker = false
+
+        }
+    }
 
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) {
@@ -242,14 +257,12 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(64.dp)
+                                    .size(70.dp)
                                     .background(
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                         CircleShape
                                     )
-                                    .clickable {
-                                        modifyImageProfile = true
-                                    },
+                                    .clickable { showFilePicker = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (isLoadingImage) {
@@ -263,7 +276,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                         bitmap = imageBitmap!!,
                                         contentDescription = null,
                                         modifier = Modifier
-                                            .size(120.dp)
+                                            .size(160.dp)
                                             .clip(CircleShape),
                                         contentScale = ContentScale.Crop
                                     )
@@ -275,7 +288,21 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                         modifier = Modifier.size(32.dp)
                                     )
                                 }
-
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .size(26.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Edit,
+                                        contentDescription = "Edit profile image",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -374,7 +401,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                             )
                         }
                     }
-
                     TextButton(
                         onClick = { showDeleteDialog = true },
                     ) {
@@ -393,7 +419,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                         )
                     }
                 }
-
                 if (modifyImageProfile) {
                     Dialog(
                         onDismissRequest = { modifyImageProfile = false },
@@ -450,27 +475,12 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                             )
                                         }
                                     }
-                                    IconButton(
-                                        onClick = { showFilePicker = true },
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .align(Alignment.BottomEnd)
-                                            .background(
-                                                MaterialTheme.colorScheme.primary,
-                                                CircleShape
-                                            )
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Edit,
-                                            contentDescription = "Edit Image",
-                                            tint = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    }
                                 }
                             }
                             Row(
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                modifier = Modifier.fillMaxWidth()
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth().padding(8.dp)
+
                             ) {
                                 TextButton(onClick = {
                                     modifyImageProfile = false
@@ -479,12 +489,11 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                     selectedFilename = null
                                 }) {
                                     Text(
-                                        text = "Close",
+                                        text = "Cancel",
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                                 TextButton(
-                                    enabled = preview.isNotEmpty() && selectedFilename != null,
                                     onClick = {
                                         viewModel.updateProfileImage(
                                             token!!,
@@ -494,7 +503,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                     },
                                 ) {
                                     Text(
-                                        text = "Upload",
+                                        text = "Confirm",
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -524,11 +533,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
             }
         }
 
-        LaunchedEffect(showFilePicker) {
-            if (showFilePicker) {
-                filePicker.launch("*/*")
-                showFilePicker = false
-            }
-        }
+
     }
 }

@@ -68,7 +68,7 @@ class ProfileViewModel : ViewModel() {
                             id = _userProfile.value.userId,
                             onSuccess = { imageBytes ->
                                 _userProfile.update { it.copy(imageProfile = imageBytes) }
-                                _isLoadingImage .value = false
+                                _isLoadingImage.value = false
                             },
                             onError = { error ->
                                 Log.e("ProfileViewModel", "Error fetching profile image: $error")
@@ -87,7 +87,8 @@ class ProfileViewModel : ViewModel() {
                                 userId = "Error"
                             )
                         }
-                        _isLoading .value = false
+                        _isLoadingImage.value = false
+                        _isLoading.value = false
                     }
                 )
 
