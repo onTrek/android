@@ -11,13 +11,14 @@ import androidx.compose.runtime.Composable
 @Composable
 fun DeleteConfirmationDialog(
     title: String = "Delete Item",
+    text: String = "Are you sure you want to delete this? This action cannot be undone.",
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
-        text = { Text("Are you sure you want to delete this? This action cannot be undone.") },
+        text = { Text(text) },
         confirmButton = {
             Button(
                 onClick = {
