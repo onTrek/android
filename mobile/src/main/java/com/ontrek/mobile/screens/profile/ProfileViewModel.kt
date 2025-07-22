@@ -11,7 +11,6 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.shared.api.profile.deleteProfile
 import com.ontrek.shared.api.profile.getImageProfile
 import com.ontrek.shared.api.profile.getProfile

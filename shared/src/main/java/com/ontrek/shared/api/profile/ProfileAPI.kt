@@ -1,6 +1,5 @@
 package com.ontrek.shared.api.profile
 
-import android.net.Uri
 import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.MessageResponse
