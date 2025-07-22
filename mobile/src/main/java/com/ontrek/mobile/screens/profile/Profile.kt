@@ -1,6 +1,12 @@
 package com.ontrek.mobile.screens.profile
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,13 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 import com.ontrek.mobile.utils.components.BottomNavBar
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,26 +40,36 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Watch
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -62,26 +78,107 @@ import kotlinx.coroutines.flow.StateFlow
 fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
-    val showDeleteDialog = remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Osserva i dati del profilo utente
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingConnection by viewModel.isLoadingConnection.collectAsState()
     val isLoadingDeleteProfile by viewModel.isLoadingDeleteProfile.collectAsState()
+    val isLoadingImage by viewModel.isLoadingImage.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState(initial = false)
     val msgToast by viewModel.msgToastFlow.collectAsState()
     val token by tokenState.collectAsStateWithLifecycle()
+    var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var previewImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var preview by remember { mutableStateOf(ByteArray(0)) }
+    var modifyImageProfile by remember { mutableStateOf(false) }
+    var showFilePicker by remember { mutableStateOf(false) }
+    var selectedFilename by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Flag per modalità sviluppo - in un'app reale questo verrebbe dal BuildConfig
-    val isDevelopmentMode = true
+    LaunchedEffect(userProfile.imageProfile.contentHashCode()) {
+        if (userProfile.imageProfile.isNotEmpty()) {
+            imageBitmap = BitmapFactory.decodeByteArray(
+                userProfile.imageProfile,
+                0,
+                userProfile.imageProfile.size
+            )?.asImageBitmap()
+            previewImageBitmap = imageBitmap
+        }
+    }
 
-    // Effettua il fetch del profilo utente
+    LaunchedEffect(preview.contentHashCode()) {
+        if (preview.isNotEmpty()) {
+            previewImageBitmap = BitmapFactory.decodeByteArray(
+                preview,
+                0,
+                preview.size
+            )?.asImageBitmap()
+        }
+    }
+
+    LaunchedEffect(imageBitmap) {
+        modifyImageProfile = false
+        preview = ByteArray(0)
+        previewImageBitmap = imageBitmap
+        selectedFilename = null
+    }
+
+    val filePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                val fileName = viewModel.getFileNameFromUri(context, uri)
+
+                val extension =
+                    fileName?.substringAfterLast('.', missingDelimiterValue = "")?.lowercase()
+
+                if (extension == "jpg" || extension == "jpeg" || extension == "png") {
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        val imageBytes = inputStream.readBytes()
+
+                        if (imageBytes.size > 4) {
+                            val isPng =
+                                imageBytes[0] == 0x89.toByte() && imageBytes[1] == 0x50.toByte() &&
+                                        imageBytes[2] == 0x4E.toByte() && imageBytes[3] == 0x47.toByte()
+                            val isJpeg =
+                                imageBytes[0] == 0xFF.toByte() && imageBytes[1] == 0xD8.toByte()
+
+                            if (isPng || isJpeg) {
+                                selectedFilename = fileName
+                                preview = imageBytes
+                            } else {
+                                errorMessage = "File is not a valid image"
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            errorMessage = "Empty or too small file"
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    } ?: run {
+                        errorMessage = "Impossible to read the file"
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    errorMessage = "Invalid file extension: must be PNG or JPEG"
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error reading the file: ${e.message}"
+                Log.e("ImageProfileUpload", "Error reading file", e)
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val isDevelopmentMode = false
+
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) {
             viewModel.fetchUserProfile(token!!)
         } else {
-            Toast.makeText(context, "Token non valido", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Token not vaild", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -92,12 +189,13 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
         }
     }
 
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Profilo Utente")
+                    Text(text = "User profile")
                 },
                 actions = {
                     androidx.compose.material3.IconButton(
@@ -123,12 +221,11 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                // Card profilo utente
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -144,7 +241,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Avatar e username
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -155,15 +251,36 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                     .background(
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                         CircleShape
-                                    ),
+                                    )
+                                    .clickable {
+                                        modifyImageProfile = true
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
-                                )
+                                if (isLoadingImage) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else if (userProfile.imageProfile.isNotEmpty() && imageBitmap != null) {
+                                    Image(
+                                        bitmap = imageBitmap!!,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Person,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -184,7 +301,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
 
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                        // Email
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -225,124 +341,195 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     }
                 }
 
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                // Bottone per connessione al wearable
-                Button(
-                    onClick = { viewModel.sendAuthToWearable(context, token!!) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    enabled = !connectionStatus && !isLoadingConnection
-                ) {
-                    if (isLoadingConnection) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+                    Button(
+                        onClick = { viewModel.sendAuthToWearable(context, token!!) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        enabled = !connectionStatus && !isLoadingConnection
+                    ) {
+                        if (isLoadingConnection) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.Watch,
+                                contentDescription = null,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (connectionStatus) "Smartwatch connected" else "Connect smartwatch",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    TextButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    ) {
                         Icon(
-                            imageVector = Icons.Rounded.Watch,
-                            contentDescription = null
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (connectionStatus) "Dispositivo Wear connesso" else "Connetti al dispositivo Wear",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            text = "Delete profile",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
 
-
-                // Bottone per cancellare il profilo
-                TextButton(
-                    onClick = { showDeleteDialog.value = true },
-                    modifier = Modifier.padding(vertical = 8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Delete,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Elimina Profilo",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                // Dialog di conferma
-                if (showDeleteDialog.value) {
-                    AlertDialog(
-                        onDismissRequest = { showDeleteDialog.value = false },
-                        title = { Text("Conferma eliminazione") },
-                        text = { Text("Sei sicuro di voler eliminare il tuo profilo? Questa azione non può essere annullata.") },
-                        confirmButton = {
-                           Button(
-                                onClick = {
-                                    viewModel.fetchDeleteProfile(
-                                        navigateToLogin = {
-                                            // Modifica qui: naviga verso una destinazione esistente (HikesScreen)
-                                            navController.navigate("HikesScreen") {
-                                                popUpTo("profile") { inclusive = true }
-                                            }
-                                        },
-                                        token!!
-                                    )
-                                    showDeleteDialog.value = false
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                ),
-                                enabled = !isLoadingDeleteProfile
+                if (modifyImageProfile) {
+                    Dialog(
+                        onDismissRequest = { modifyImageProfile = false },
+                        properties = DialogProperties(dismissOnClickOutside = true)
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                if (isLoadingDeleteProfile) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.onError,
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Delete,
-                                        contentDescription = null,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Elimina")
+                                Text(
+                                    text = "Modify image",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (previewImageBitmap != null) {
+                                        Image(
+                                            bitmap = previewImageBitmap!!,
+                                            contentDescription = "Profile image",
+                                            modifier = Modifier
+                                                .size(160.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(160.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                                    CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Person,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(CircleShape)
+                                            )
+                                        }
+                                    }
+                                    IconButton(
+                                        onClick = { showFilePicker = true },
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .align(Alignment.BottomEnd)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                CircleShape
+                                            )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Edit,
+                                            contentDescription = "Edit Image",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
                                 }
                             }
-                        },
-                        dismissButton = {
-                            Button(
-                                onClick = { showDeleteDialog.value = false }
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Annulla")
+                                TextButton(onClick = {
+                                    modifyImageProfile = false
+                                    preview = ByteArray(0)
+                                    previewImageBitmap = imageBitmap
+                                    selectedFilename = null
+                                }) {
+                                    Text(
+                                        text = "Close",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                TextButton(
+                                    enabled = preview.isNotEmpty() && selectedFilename != null,
+                                    onClick = {
+                                        viewModel.updateProfileImage(
+                                            token!!,
+                                            preview,
+                                            selectedFilename!!
+                                        )
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Upload",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
-                    )
+                    }
                 }
             }
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun ProfilePreview() {
-    OnTrekTheme {
-        // Simula un token per il preview
-        val token = "sample_token"
-        Profile(
-            navController = androidx.navigation.compose.rememberNavController(),
-            tokenState = MutableStateFlow<String?>(token)
-        )
+            if (showDeleteDialog) {
+                DeleteConfirmationDialog(
+                    title = "Delete Profile",
+                    onConfirm = {
+                        viewModel.fetchDeleteProfile(
+                            navigateToLogin = {
+                                navController.navigate("HikesScreen") {
+                                    popUpTo("profile") { inclusive = true }
+                                }
+                            },
+                            token!!
+                        )
+                        showDeleteDialog = false
+                    },
+                    onDismiss = { showDeleteDialog = false },
+                )
+            }
+        }
+
+        LaunchedEffect(showFilePicker) {
+            if (showFilePicker) {
+                filePicker.launch("*/*")
+                showFilePicker = false
+            }
+        }
     }
 }

@@ -8,9 +8,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.shared.api.profile.deleteProfile
+import com.ontrek.shared.api.profile.getImageProfile
 import com.ontrek.shared.api.profile.getProfile
+import com.ontrek.shared.api.profile.uploadImageProfile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 
@@ -18,6 +23,7 @@ data class UserProfile(
     val username: String = "Update...",
     val email: String = "Update...",
     val userId: String = "Update...",
+    var imageProfile: ByteArray = ByteArray(0)
 )
 
 class ProfileViewModel : ViewModel() {
@@ -34,6 +40,9 @@ class ProfileViewModel : ViewModel() {
     private val _isLoadingDeleteProfile = MutableStateFlow(false)
     val isLoadingDeleteProfile = _isLoadingDeleteProfile.asStateFlow()
 
+    private val _isLoadingImage = MutableStateFlow(false)
+    val isLoadingImage = _isLoadingImage.asStateFlow()
+
     private val _connectionStatus = MutableStateFlow(false)
     val connectionStatus: StateFlow<Boolean> = _connectionStatus.asStateFlow()
 
@@ -43,7 +52,7 @@ class ProfileViewModel : ViewModel() {
     fun fetchUserProfile(token: String) {
         viewModelScope.launch {
             _isLoading.value = true
-
+            _isLoadingImage.value = true
             try {
                 getProfile(
                     token = token,
@@ -55,6 +64,20 @@ class ProfileViewModel : ViewModel() {
                                 userId = response?.id ?: "",
                             )
                         }
+                        getImageProfile(
+                            token = token,
+                            id = _userProfile.value.userId,
+                            onSuccess = { imageBytes ->
+                                _userProfile.update { it.copy(imageProfile = imageBytes) }
+                                _isLoadingImage .value = false
+                            },
+                            onError = { error ->
+                                Log.e("ProfileViewModel", "Error fetching profile image: $error")
+                                _userProfile.update { it.copy(imageProfile = ByteArray(0)) }
+                                _isLoadingImage.value = false
+                            }
+                        )
+                        _isLoading.value = false
                     },
                     onError = { error ->
                         Log.e("ProfileViewModel", "Error fetching profile: $error")
@@ -65,12 +88,12 @@ class ProfileViewModel : ViewModel() {
                                 userId = "Error"
                             )
                         }
+                        _isLoading .value = false
                     }
                 )
+
             } catch (e: Exception) {
                 Log.e("ProfileView", "Error fetching user profile", e)
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -87,7 +110,7 @@ class ProfileViewModel : ViewModel() {
                              username = "",
                              email = "",
                              userId = ""
-                         ) } // Reset profile after deletion
+                         ) }
                          _msgToast.value = "Profile deleted successfully"
                          navigateToLogin()
                      },
@@ -135,6 +158,54 @@ class ProfileViewModel : ViewModel() {
                 _isLoadingConnection.value = false
             }
         }
+    }
+
+    fun updateProfileImage(token: String, image: ByteArray, filename: String) {
+        try {
+            viewModelScope.launch {
+                _isLoadingImage.value = true
+                uploadImageProfile(
+                    token = token,
+                    imageBytes = image,
+                    filename = filename,
+                    onSuccess = {
+                        Log.d("ProfileViewModel", "Profile image updated successfully")
+                        _msgToast.value = "Profile image updated successfully"
+                        viewModelScope.launch {
+                            _userProfile.update { it.copy(imageProfile = image.copyOf()) }
+                        }
+                        _isLoadingImage.value = false
+                    },
+                    onError = { error ->
+                        Log.e("ProfileViewModel", "Error updating profile image: $error")
+                        _msgToast.value = "Error updating profile image: $error"
+                        _isLoadingImage.value = false
+                    }
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ProfileViewModel", "Error updating profile image", e)
+            _msgToast.value = "Error updating profile image: ${e.message}"
+        }
+    }
+
+    fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        var name: String? = null
+        if (uri.scheme == "content") {
+            val cursor = context.contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (index >= 0) {
+                        name = it.getString(index)
+                    }
+                }
+            }
+        }
+        if (name == null) {
+            name = uri.path?.substringAfterLast('/')
+        }
+        return name
     }
 
     fun logout() {
