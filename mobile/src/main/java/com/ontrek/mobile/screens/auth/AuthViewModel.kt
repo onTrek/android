@@ -101,6 +101,8 @@ class AuthViewModel : ViewModel() {
                             isLoading = false,
                             successMessage = "Login successful!",
                         )
+                        // Reset email and password fields after successful login
+                        .copy(email = "", password = "")
                     }
                 } else {
                     _uiState.update { it.copy(
