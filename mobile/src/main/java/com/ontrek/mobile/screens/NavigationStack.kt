@@ -10,7 +10,8 @@ import androidx.navigation.compose.rememberNavController
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.profile.Profile
 import com.ontrek.mobile.screens.friends.FriendsScreen
-import com.ontrek.mobile.screens.hike.GroupScreen
+import com.ontrek.mobile.screens.hike.HikesScreen
+import com.ontrek.mobile.screens.hike.detail.GroupDetailsScreen
 import com.ontrek.mobile.screens.track.TrackScreen
 import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 
@@ -47,7 +48,18 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Hikes.route, startDestination = Screen.Hikes.route) {
             composable(route = Screen.Hikes.route) {
-                GroupScreen(navController)
+                HikesScreen(
+                    navController = navController,
+                    token = preferencesViewModel.tokenState.value ?: ""
+                )
+            }
+            composable(route = Screen.GroupDetails.route) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+                GroupDetailsScreen(
+                    groupId = groupId.toIntOrNull() ?: 0,
+                    navController = navController,
+                    token = preferencesViewModel.tokenState.value ?: "",
+                )
             }
         }
 

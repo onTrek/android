@@ -8,6 +8,10 @@ sealed class Screen(val route: String) {
     object TrackDetail : Screen("TrackDetailScreen/{trackId}") {
         fun createRoute(trackId: String) = "TrackDetailScreen/$trackId"
     }
+
+    object GroupDetails : Screen("GroupDetailsScreen/{groupId}") {
+        fun createRoute(groupId: String) = "GroupDetailsScreen/$groupId"
+    }
 }
 
 
