@@ -504,6 +504,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
             if (showDeleteDialog) {
                 DeleteConfirmationDialog(
                     title = "Delete Profile",
+                    text = "Are you sure you want to delete your profile? This action cannot be undone.",
                     onConfirm = {
                         viewModel.fetchDeleteProfile(
                             navigateToLogin = {
