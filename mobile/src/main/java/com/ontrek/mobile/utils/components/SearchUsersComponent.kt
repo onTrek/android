@@ -1,5 +1,6 @@
 package com.ontrek.mobile.utils.components
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -14,6 +15,10 @@ import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PersonAddAlt1
+import androidx.compose.ui.text.style.TextOverflow
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchUsersDialog(
@@ -46,6 +51,7 @@ fun SearchUsersDialog(
                                 isLoading = true
                                 error = null
                                 try {
+                                    Log.d("SearchUsersDialog", "Searching for: $it on token: $token, onlyFriend: $onlyFriend")
                                     searchUsers(
                                         query = it,
                                         token = token,
@@ -67,7 +73,7 @@ fun SearchUsersDialog(
                             searchResults = emptyList()
                         }
                     },
-                    label = { Text("Search") },
+                    label = { Text( if (onlyFriend) "Search Friends" else "Search Users" ) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -88,15 +94,37 @@ fun SearchUsersDialog(
                 ) {
                     items(searchResults) { user ->
                         ListItem(
-                            headlineContent = { Text(user.username) },
+                            headlineContent = { Text(
+                                "@${user.username}",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            ) },
                             leadingContent = {
-                                Icon(Icons.Default.Person, contentDescription = "User")
+                                Icon(Icons.Default.PersonAddAlt1, contentDescription = "User")
+                            },
+                            trailingContent = {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add utente",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             },
                             modifier = Modifier.clickable {
                                 onUserSelected(user)
                                 onDismiss()
                             }
                         )
+                    }
+                    if (searchResults.isEmpty()) {
+                        item {
+                            Text(
+                                text = "No results found",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 

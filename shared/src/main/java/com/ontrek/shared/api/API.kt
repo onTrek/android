@@ -160,5 +160,5 @@ interface ApiService {
     // ------- SEARCH USER PROFILE ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("search")
-    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<UserMinimal>>
+    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendsOnly") friendsOnly: Boolean = false): Call<List<UserMinimal>>
 }

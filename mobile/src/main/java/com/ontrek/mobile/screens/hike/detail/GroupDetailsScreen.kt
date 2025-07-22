@@ -214,9 +214,7 @@ fun GroupDetailsScreen(
                                     )
 
                                     Text(
-                                        text = if (groupInfo.track != null) {
-                                            groupInfo.track.title
-                                        } else {
+                                        text = groupInfo.track.title.ifEmpty {
                                             "No track associated"
                                         },
                                         style = MaterialTheme.typography.titleMedium,
