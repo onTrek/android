@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.android.gpx.parser)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.compose.material)

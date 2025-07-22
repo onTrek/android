@@ -1,75 +1,99 @@
 package com.ontrek.wear.screens.trackselection
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
-import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
-import androidx.wear.tooling.preview.devices.WearDevices
-import com.ontrek.shared.data.Track
-import com.ontrek.wear.screens.Screen
-import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.data.DatabaseProvider
+import com.ontrek.wear.screens.trackselection.components.TrackButton
 import com.ontrek.wear.utils.components.Loading
-import com.ontrek.wear.utils.samples.sampleTrackList
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun TrackSelectionScreen(
     navController: NavHostController = rememberNavController(),
-    trackListState: StateFlow<List<Track>>,
-    fetchTrackList: (String) -> (Unit) = { _ -> },
-    loadingState: StateFlow<Boolean>,
-    errorState: StateFlow<String?>,
     tokenState: StateFlow<String?>,
 ) {
-    val trackList by trackListState.collectAsStateWithLifecycle()
-    val isLoading by loadingState.collectAsStateWithLifecycle()
-    val error by errorState.collectAsStateWithLifecycle()
+    val trackSelectionViewModel = viewModel<TrackSelectionViewModel>(
+        factory = TrackSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
+    )
+    val downloadedTracks by trackSelectionViewModel.downloadedTrackListState.collectAsStateWithLifecycle()
+    val availableTracks by trackSelectionViewModel.availableTrackListState.collectAsStateWithLifecycle()
+    val isLoadingTracks by trackSelectionViewModel.isLoadingTracks.collectAsStateWithLifecycle()
+    val isLoadingDownloads by trackSelectionViewModel.isLoadingDownloads.collectAsStateWithLifecycle()
+    val fetchError by trackSelectionViewModel.fetchError.collectAsStateWithLifecycle()
+    val downloadError by trackSelectionViewModel.downloadError.collectAsStateWithLifecycle()
+    val updateSuccess by trackSelectionViewModel.updateSuccess.collectAsStateWithLifecycle()
+    val downloadSuccess by trackSelectionViewModel.downloadSuccess.collectAsStateWithLifecycle()
+    var refresh by remember { mutableStateOf(false) }
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
-    // this because token update is asynchronous, so it could happen that a token has been provided
-    // but the viewModel has not yet fetched the data
-    // L'ho aggiunto io sto commento non chatGPT come quelli di Gioele <3
+
+    val context = LocalContext.current
+
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
+        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
     }
 
-    // Scroll to top when track list updates
-    LaunchedEffect(trackList) {
-        if (trackList.isNotEmpty()) {
-            listState.animateScrollToItem(0)
+    // Reset scroll position when download is successful
+    LaunchedEffect(downloadSuccess) {
+        if (downloadSuccess) {
+            listState.scrollToItem(0)
+            trackSelectionViewModel.resetDownloadSuccess()
+        }
+    }
+
+    // Reset scroll position when update is successful
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess && refresh) {
+            listState.animateScrollToItem(downloadedTracks.size + 2)
+            trackSelectionViewModel.resetUpdateSuccess()
+        } else if (updateSuccess) {
+            trackSelectionViewModel.resetUpdateSuccess()
+            refresh = true
+        }
+    }
+
+    // show toast message if there is a download error
+    LaunchedEffect(downloadError) {
+        if (!downloadError.isNullOrEmpty()) {
+            Toast.makeText(context, downloadError, Toast.LENGTH_LONG).show()
+            trackSelectionViewModel.resetDownloadError()
         }
     }
 
@@ -90,109 +114,117 @@ fun TrackSelectionScreen(
     ) {
 
 
-        if (isLoading) {
+        if (isLoadingDownloads) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (!error.isNullOrEmpty()) {
-            ErrorFetch(token, fetchTrackList)
-        } else if (trackList.isEmpty()) {
+        } else if (downloadedTracks.isEmpty() && availableTracks.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
             flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState),
         ) {
-            item {
-                Text(
-                    modifier = Modifier.padding(bottom = 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium,
-                    text = "My tracks"
-                )
-            }
-            items(trackList) {
-                TrackButton(it.title, navController)
-            }
-            item {
-                IconButton(
-                    onClick = {
-                        Log.d("TrackSelectionScreen", "Refresh tracks")
-                        if (!token.isNullOrEmpty()) fetchTrackList(token!!)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .fillMaxHeight(0.1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Refresh,
-                        contentDescription = "Refresh tracks",
-                        tint = MaterialTheme.colorScheme.onSurface
+            if (downloadedTracks.isNotEmpty()) {
+                item {
+                    Text(
+                        modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMedium,
+                        text = "Offline tracks"
+                    )
+                }
+                itemsIndexed(downloadedTracks) { index, track ->
+                    TrackButton(
+                        track = track,
+                        token = token ?: "",
+                        navController = navController,
+                        index = index,
+                        deleteTrack = trackSelectionViewModel::deleteTrack,
+                        onDownloadClick = trackSelectionViewModel::downloadTrack,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun TrackButton(trackName: String, navController: NavHostController) {
-    OutlinedButton(
-        onClick = {
-            navController.navigate(route = Screen.TrackScreen.route + "?text=${trackName}")
-        },
-        modifier = Modifier
-            .fillMaxWidth(0.95f),
-    ) {
-        Text(
-            text = trackName,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Left,
-            modifier = Modifier
-                .weight(0.85f)
-                .padding(8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Icon(
-            imageVector = Icons.Default.Download,
-            contentDescription = "Download track",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.15f)
-        )
-    }
-}
-
-@Composable
-fun ErrorFetch(token: String?, fetchTracks: (String) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Error,
-            contentDescription = "Error loading tracks",
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.titleSmall,
-            text = "Error loading tracks",
-            textAlign = TextAlign.Center
-        )
-        IconButton(
-            onClick = {
-                fetchTracks(token!!)
+            item {
+                Text(
+                    modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    text = "Available tracks"
+                )
             }
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Refresh,
-                contentDescription = "Retry",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
+            if (availableTracks.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
+                item {
+                    Text(
+                        text = "All your tracks are downloaded.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                itemsIndexed(availableTracks) { index, track ->
+                    TrackButton(
+                        track = track,
+                        token = token ?: "",
+                        navController = navController,
+                        index = index,
+                        deleteTrack = trackSelectionViewModel::deleteTrack,
+                        onDownloadClick = trackSelectionViewModel::downloadTrack,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            if (!fetchError.isNullOrEmpty() && !isLoadingTracks) {
+                item {
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CloudOff,
+                            contentDescription = "Error loading tracks.",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        Text(
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleSmall,
+                            text = "Error loading tracks.",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+            item {
+                if (isLoadingTracks) {
+                    Loading(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+                } else {
+                    IconButton(
+                        onClick = {
+                            Log.d("TrackSelectionScreen", "Refresh tracks")
+                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(
+                                token!!,
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh tracks",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                }
+            }
         }
     }
 }
@@ -227,20 +259,20 @@ fun EmptyList() {
     }
 }
 
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    OnTrekTheme {
-        val empty = false
-        val isLoading = false
-        val token = "sample_token"
-        val error = ""
-
-        TrackSelectionScreen(
-            trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
-            loadingState = MutableStateFlow<Boolean>(isLoading),
-            tokenState = MutableStateFlow<String?>(token),
-            errorState = MutableStateFlow<String?>(error),
-        )
-    }
-}
+//@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+//@Composable
+//fun DefaultPreview() {
+//    OnTrekTheme {
+//        val empty = false
+//        val isLoading = false
+//        val token = "sample_token"
+//        val error = ""
+//
+//        TrackSelectionScreen(
+//            trackListState = MutableStateFlow<List<Track>>(if (empty) emptyList() else sampleTrackList),
+//            loadingState = MutableStateFlow<Boolean>(isLoading),
+//            tokenState = MutableStateFlow<String?>(token),
+//            errorState = MutableStateFlow<String?>(error)
+//        )
+//    }
+//}

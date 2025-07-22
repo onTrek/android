@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,35 +41,29 @@ fun TrackItem(
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Icon(
+                imageVector = Icons.Default.Terrain,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            // Colonna per titolo e distanza
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Terrain,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                TitleTrack(
+                    title = track.title,
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
 
-                // Colonna per titolo e distanza
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    TitleTrack(
-                        title = track.title,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-
-                    // Distanza del percorso
-                    Text(
-                        text = "${track.stats.km} km",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
+                // Distanza del percorso
+                Text(
+                    text = "${track.stats.km} km",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
             }
         }
     }

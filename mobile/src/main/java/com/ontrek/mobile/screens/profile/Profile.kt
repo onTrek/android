@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -120,7 +121,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -134,7 +135,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                         .padding(vertical = 8.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 ) {
                     Column(
@@ -224,7 +225,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
 
                 // Bottone per connessione al wearable
                 Button(
@@ -259,28 +259,23 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
 
                 // Bottone per cancellare il profilo
-                Button(
+                TextButton(
                     onClick = { showDeleteDialog.value = true },
-                    modifier = Modifier
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
+                    modifier = Modifier.padding(vertical = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Delete,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Elimina Profilo",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
 

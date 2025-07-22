@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material3.CompactButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
@@ -52,7 +51,7 @@ fun Login(
             //Only for debug purposes
             CompactButton(
                 onClick = {
-                    preferencesViewModel.saveToken("3e530eef-2f77-418e-89e7-d82537c9109a") //fuck it we ball
+                    preferencesViewModel.saveToken("b35e0a16-1d06-4396-acfd-375a57c43383") //fuck it we ball
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
