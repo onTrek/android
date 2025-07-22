@@ -71,7 +71,6 @@ class ProfileViewModel : ViewModel() {
                                 _isLoadingImage.value = false
                             },
                             onError = { error ->
-                                Log.e("ProfileViewModel", "Error fetching profile image: $error")
                                 _userProfile.update { it.copy(imageProfile = ByteArray(0)) }
                                 _isLoadingImage.value = false
                             }
@@ -79,7 +78,6 @@ class ProfileViewModel : ViewModel() {
                         _isLoading.value = false
                     },
                     onError = { error ->
-                        Log.e("ProfileViewModel", "Error fetching profile: $error")
                         _userProfile.update {
                             UserProfile(
                                 username = "Error",
@@ -98,7 +96,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun fetchDeleteProfile(navigateToLogin: () -> Unit, token: String) {
+    fun fetchDeleteProfile(clearToken: () -> Unit, token: String) {
         viewModelScope.launch {
             _isLoadingDeleteProfile.value = true
 
@@ -112,7 +110,7 @@ class ProfileViewModel : ViewModel() {
                              userId = ""
                          ) }
                          _msgToast.value = "Profile deleted successfully"
-                         navigateToLogin()
+                         clearToken()
                      },
                      onError = { error ->
                          Log.e("ProfileViewModel", "Error deleting profile: $error")
@@ -208,9 +206,16 @@ class ProfileViewModel : ViewModel() {
         return name
     }
 
-    fun logout() {
+    fun logout(clearToken: () -> Unit) {
         viewModelScope.launch {
-            _msgToast.value = "This feature is not implemented yet"
+            try {
+                clearToken()
+                _userProfile.value = UserProfile() // Reset user profile
+                _msgToast.value = "Logged out successfully"
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error during logout", e)
+                _msgToast.value = "Error during logout: ${e.message}"
+            }
         }
     }
     fun resetMsgToast() {

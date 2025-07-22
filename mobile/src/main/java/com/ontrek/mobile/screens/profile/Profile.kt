@@ -65,6 +65,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import kotlinx.coroutines.flow.StateFlow
 
@@ -78,7 +79,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingConnection by viewModel.isLoadingConnection.collectAsState()
-    val isLoadingDeleteProfile by viewModel.isLoadingDeleteProfile.collectAsState()
     val isLoadingImage by viewModel.isLoadingImage.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState(initial = false)
     val msgToast by viewModel.msgToastFlow.collectAsState()
@@ -90,6 +90,8 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     var showFilePicker by remember { mutableStateOf(false) }
     var selectedFilename by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val preferencesViewModel: PreferencesViewModel =
+        viewModel(factory = PreferencesViewModel.Factory)
 
     val isDevelopmentMode = false
 
@@ -210,8 +212,11 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                 actions = {
                     IconButton(
                         onClick = {
-                            // Azione di logout
-                            viewModel.logout()
+                            viewModel.logout(
+                                clearToken = {
+                                    preferencesViewModel.clearToken()
+                                }
+                            )
                         }
                     ) {
                         Icon(
@@ -519,10 +524,8 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     text = "Are you sure you want to delete your profile? This action cannot be undone.",
                     onConfirm = {
                         viewModel.fetchDeleteProfile(
-                            navigateToLogin = {
-                                navController.navigate("HikesScreen") {
-                                    popUpTo("profile") { inclusive = true }
-                                }
+                            clearToken = {
+                                preferencesViewModel.clearToken()
                             },
                             token!!
                         )
