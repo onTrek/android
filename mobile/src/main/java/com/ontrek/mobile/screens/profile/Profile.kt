@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +25,7 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -336,7 +336,11 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     }
                 }
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
                     Button(
                         onClick = { viewModel.sendAuthToWearable(context, token!!) },
@@ -373,7 +377,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
 
                     TextButton(
                         onClick = { showDeleteDialog = true },
-                        modifier = Modifier.padding(vertical = 8.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Delete,
