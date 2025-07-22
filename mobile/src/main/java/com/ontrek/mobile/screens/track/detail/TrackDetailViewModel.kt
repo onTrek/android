@@ -151,7 +151,12 @@ class TrackDetailViewModel : ViewModel() {
     fun formatDuration(duration: String): String {
         return try {
             val parts = duration.split(":")
-            "${parts[0]}h ${parts[1]}m"
+
+            if ((parts[0] == "00" && parts[1] == "00") || (parts.size < 2)) {
+                "--:--"
+            } else {
+                "${parts[0]}h ${parts[1]}m"
+            }
         } catch (e: Exception) {
             duration
         }
