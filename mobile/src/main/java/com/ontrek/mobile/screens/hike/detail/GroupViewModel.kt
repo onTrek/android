@@ -129,7 +129,7 @@ class GroupDetailsViewModel : ViewModel() {
 
     fun addMember(userId: String, groupId: Int, token: String) {
         viewModelScope.launch {
-            Log.d("GroupDetailsViewModel", "Adding member with ID: $userId to group ID: $groupId")
+            Log.d("GroupDetailsViewModel", "Adding member with ID: $userId to group ID: $groupId ")
         }
     }
 
