@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
@@ -41,6 +43,9 @@ fun GroupDetailsScreen(
     val membersState by viewModel.membersState.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
+    val preferencesViewModel: PreferencesViewModel =
+        viewModel(factory = PreferencesViewModel.Factory)
+    val currentUserId = preferencesViewModel.currentUserState.collectAsState().value ?: ""
 
     val context = LocalContext.current
 
@@ -107,16 +112,33 @@ fun GroupDetailsScreen(
                         // Dialoghi di conferma
                         if (showDeleteConfirmation) {
                             DeleteConfirmationDialog(
-                                title = "Delete Group",
+                                title = if (currentUserId != groupInfo.created_by.id) {
+                                    "Leave Group"
+                                } else {
+                                    "Delete Group"
+                                },
+                                description = if (currentUserId != groupInfo.created_by.id) {
+                                    "Are you sure you want to leave this group? You will no longer have access to its content."
+                                } else {
+                                    "Are you sure you want to delete this group? This action cannot be undone."
+                                },
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    viewModel.deleteGroup(
-                                        groupId = groupId,
-                                        token = token,
-                                        onSuccess = {
-                                            navController.navigateUp()
-                                        }
-                                    )
+                                    if (currentUserId != groupInfo.created_by.id) {
+                                        Toast.makeText(
+                                            context,
+                                            "Feature da implementare",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        viewModel.deleteGroup(
+                                            groupId = groupId,
+                                            token = token,
+                                            onSuccess = {
+                                                navController.navigateUp()
+                                            }
+                                        )
+                                    }
                                 }
                             )
                         }
@@ -250,9 +272,10 @@ fun GroupDetailsScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             MembersGroup(
+                                currentUserID = currentUserId,
+                                owner = groupInfo.created_by.id,
                                 membersState = membersState,
                                 token = token,
-                                creatorGroupMember = groupInfo.created_by.username,
                                 viewModel = viewModel,
                                 groupId = groupId,
                             )
@@ -266,15 +289,28 @@ fun GroupDetailsScreen(
                                 .padding(bottom = 8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = MaterialTheme.colorScheme.onError,
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
+                            if (currentUserId != groupInfo.created_by.id) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                                    contentDescription = "Leave Group",
+                                    tint = MaterialTheme.colorScheme.onError,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Group",
+                                    tint = MaterialTheme.colorScheme.onError,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            }
 
                             Text(
-                                text = "Delete Group",
+                                text = if (currentUserId == groupInfo.created_by.id) {
+                                    "Delete Group"
+                                } else {
+                                    "Leave Group"
+                                },
                                 color = MaterialTheme.colorScheme.onError
                             )
                         }
