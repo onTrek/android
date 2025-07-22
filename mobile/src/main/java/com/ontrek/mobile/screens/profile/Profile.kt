@@ -193,7 +193,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                     Text(text = "User profile")
                 },
                 actions = {
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = {
                             // Azione di logout
                             viewModel.logout()
