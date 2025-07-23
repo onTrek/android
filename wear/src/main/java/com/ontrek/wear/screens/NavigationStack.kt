@@ -39,7 +39,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         composable(route = Screen.TrackSelectionScreen.route) {
             TrackSelectionScreen(
                 navController = navController,
-                tokenState = preferencesViewModel.tokenState
             )
         }
         composable(
