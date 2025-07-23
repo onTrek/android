@@ -29,7 +29,7 @@ import kotlin.math.sin
  * If the distance to the user is below this threshold, the point is considered surpassed.
  * This value is used to filter out points that are near from the user.
  */
-const val trackPointThreshold = 10
+const val trackPointThreshold = 15
 
 /* * The minimum rotation angle to consider the direction changed.
     * If the angle between the current direction and the new direction is above this threshold,
@@ -37,17 +37,11 @@ const val trackPointThreshold = 10
  */
 const val degreesThreshold: Double = 5.0
 
-/* * The distance threshold to consider the user on track.
- * If the user is within this distance from the track, they are considered on track.
- * This value is used to determine if the user is close enough to the track to be considered on track.
- */
-const val trackDistanceThreshold: Double = 100.0
-
 /* * The distance threshold to notify the user when they are going off track.
  * If the user is above this distance from the track, they will be notified that they are going off track.
  * This value is used to alert the user when they are deviating too far from the track.
  */
-const val notificationTrackDistanceThreshold: Double = trackDistanceThreshold / 2
+const val notificationTrackDistanceThreshold: Double = 25.0
 
 class TrackScreenViewModel : ViewModel() {
 
@@ -76,6 +70,7 @@ class TrackScreenViewModel : ViewModel() {
     // States only used inside the viewModel functions
     private val nextTrackPoint =
         MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
+    private val probablePointIndex = MutableStateFlow<Int?>(null) // Track point for direction calculation, used to avoid recomputing the same point
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
@@ -141,11 +136,13 @@ class TrackScreenViewModel : ViewModel() {
                 (trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE)
             val isNearTrackValue =
                 nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Nearest point: ${nearestPoint.index}, distance: ${nearestPoint.distanceToUser}")
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Nearest point: ${nearestPoint.index}, distance to user: ${nearestPoint.distanceToUser}")
             if (isNearTrackValue) {
-                nextTrackPoint.value = findNextTrackPoint(
-                    currentLocation, trackPoints.value, false, nextTrackPoint.value?.index
+                val finderResult = findNextTrackPoint(
+                    currentLocation, trackPoints.value, null
                 )
+                nextTrackPoint.value = finderResult.nextTrackPoint
+                probablePointIndex.value = finderResult.nextProbablePoint
                 Log.d(
                     "TRACK_SCREEN_VIEW_MODEL",
                     "Starting from ${nextTrackPoint.value?.index ?: "unknown"}"
@@ -165,32 +162,28 @@ class TrackScreenViewModel : ViewModel() {
     fun elaboratePosition(currentLocation: Location) {
         position.value = currentLocation
 
-        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
-        //TODO() HOW!?!?!?!?!
-        val simplifyAlgorithm = _distanceFromTrack.value!! < trackDistanceThreshold
-        //Log.d(
-        //    "ON_TRACK_DISTANCE",
-        //    "Distance from track: ${_distanceFromTrack.value}"
-        //)
-
         val oldIndex = nextTrackPoint.value?.index
-        nextTrackPoint.value =
-            findNextTrackPoint(currentLocation, trackPoints.value, simplifyAlgorithm, nextTrackPoint.value?.index)
+
+        val finderResult = findNextTrackPoint(currentLocation, trackPoints.value, probablePointIndex.value)
+        nextTrackPoint.value = finderResult.nextTrackPoint
+        probablePointIndex.value = finderResult.nextProbablePoint
+
+
         val newIndex = nextTrackPoint.value!!.index
+
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
             if (isAtStartup) isAtStartup = false
             progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-
-            //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
-            //elaborateDirection(0.0F)
         }
 
+        //ONLY FOR DEBUG PURPOSES, REMOVE IN PRODUCTION
+        elaborateDirection(0.0F)
         computeIfOnTrack(currentLocation)
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
-        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation)
+        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation, trackPoints.value, nextTrackPoint.value?.index ?: 0)
 
         val distance = if (isAtStartup) getDistanceTo(currentLocation.toSimplePoint(),
             nextTrackPoint.value!!.toSimplePoint()) else _distanceFromTrack.value!!
@@ -200,7 +193,7 @@ class TrackScreenViewModel : ViewModel() {
             Log.d("ON_TRACK_COMPUTATION", "At startup, using initial threshold: $initialThreshold, distance: $distance, notification threshold: $notificationTrackDistanceThreshold")
             initialThreshold
         } else {
-            Log.d("ON_TRACK_COMPUTATION", "distance: $distance")
+            //Log.d("ON_TRACK_COMPUTATION", "distance: $distance")
             notificationTrackDistanceThreshold
         }
 
@@ -209,7 +202,7 @@ class TrackScreenViewModel : ViewModel() {
         if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
-            Log.d("ON_TRACK_COMPUTATION", "User is off track, notifying")
+            Log.d("ON_TRACK_COMPUTATION", "User is off track, notifying, distance from track: $distance")
         } else if (!_isOffTrack.value) {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
@@ -245,27 +238,6 @@ class TrackScreenViewModel : ViewModel() {
             lastPublishedDirection.value = angle
             arrowDirection.value = angle.toFloat()
         }
-    }
-
-    fun computeDistanceFromTrack(currentLocation: Location): Double {
-        val nextPoint = trackPoints.value[nextTrackPoint.value!!.index]
-        var previousPoint = trackPoints.value[nextPoint.index - 1]
-
-        while (trackPoints.value[previousPoint.index + 1].distanceToPrevious < trackPointThreshold) {
-            previousPoint = trackPoints.value.getOrNull(previousPoint.index - 1) ?: break
-        }
-
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Next point index: ${nextPoint.index}, Previous point: ${previousPoint.index}")
-
-        val previousPointDistance = getDistanceTo(
-            currentLocation.toSimplePoint(), previousPoint.toSimplePoint()
-        )
-        val nextPointDistance = getDistanceTo(
-            currentLocation.toSimplePoint(),
-            nextPoint.toSimplePoint()
-        )
-
-        return previousPointDistance + nextPointDistance - getDistanceTo(previousPoint.toSimplePoint(), nextPoint.toSimplePoint())
     }
 
     fun reset() {
