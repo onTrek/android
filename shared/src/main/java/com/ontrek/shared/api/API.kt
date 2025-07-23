@@ -6,6 +6,7 @@ import com.ontrek.shared.data.Signup
 import com.ontrek.shared.data.TokenResponse
 import com.ontrek.shared.data.Friend
 import com.ontrek.shared.data.FriendRequest
+import com.ontrek.shared.data.Hikes
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.data.Profile
 import retrofit2.Call
@@ -89,6 +90,10 @@ interface ApiService {
     @GET("/gpx/{id}/download")
     fun downloadGPX(@Header("Bearer") token: String, @Path("id") gpxID: Int): Call<ResponseBody>
 
+    // ------- HIKES ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("groups/")
+    fun getGroups(@Header("Bearer") token: String): Call<List<Hikes>>
 
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
