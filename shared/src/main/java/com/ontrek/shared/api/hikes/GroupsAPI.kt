@@ -96,7 +96,7 @@ fun createGroup(
         override fun onResponse(call: Call<GroupID>, response: Response<GroupID>) {
             if (response.isSuccessful) {
                 val data = response.body()
-                Log.d("API Group", "API Success: $data")
+                Log.d("API Group Create", "API Success: $data")
                 onSuccess(data)
             } else {
                 Log.e("API Group", "API Error: ${response.code()}")

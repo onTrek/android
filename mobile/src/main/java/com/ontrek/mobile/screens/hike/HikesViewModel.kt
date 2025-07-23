@@ -3,6 +3,10 @@ package com.ontrek.mobile.screens.hike
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import com.ontrek.mobile.screens.Screen
 import com.ontrek.shared.api.hikes.createGroup
 import com.ontrek.shared.api.hikes.getGroups
 import com.ontrek.shared.api.track.getTracks
@@ -67,13 +71,15 @@ class HikesViewModel : ViewModel() {
         description: String,
         trackId: Int,
         token: String,
+        navController: NavHostController
     ) {
         viewModelScope.launch {
             createGroup(
                 group = GroupIDCreation(description = description, file_id = trackId),
                 onSuccess = { groupId ->
                     _msgToast.value = "Group created successfully"
-                    loadGroups(token)
+                    Log.d("HikesViewModel", "Group created with ID: $groupId")
+                    navController.navigate(Screen.GroupDetails.createRoute(groupId?.group_id ?: 0))
                 },
                 onError = { error ->
                     _msgToast.value = error

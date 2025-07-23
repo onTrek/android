@@ -132,7 +132,7 @@ fun MemberItem(
             onDismiss = { showDialogRemove = false },
             onConfirm = onRemoveClick,
             title = "Remove Member",
-            description = "Are you sure you want to remove @${member.username} from the group?"
+            text = "Are you sure you want to remove @${member.username} from the group?"
         )
     }
 

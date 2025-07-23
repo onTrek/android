@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
@@ -101,7 +100,9 @@ fun HikesScreen(navController: NavHostController, token: String) {
                                 GroupItem(
                                     group = group,
                                     onItemClick = {
-                                        navController.navigate("GroupDetailsScreen/${group.group_id}")
+                                        navController.navigate(
+                                            Screen.GroupDetails.createRoute(group.group_id)
+                                        )
                                     }
                                 )
                             }
@@ -122,7 +123,8 @@ fun HikesScreen(navController: NavHostController, token: String) {
                         viewModel.addGroup(
                             description = description,
                             trackId = trackId,
-                            token = token
+                            token = token,
+                            navController = navController
                         )
                         addDialog.value = false
                     },
