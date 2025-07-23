@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ontrek.wear.data.PreferencesViewModel
+import com.ontrek.wear.screens.hikeselection.HikeSelectionScreen
 import com.ontrek.wear.screens.homepage.Homepage
 import com.ontrek.wear.screens.sos.SOSScreen
 import com.ontrek.wear.screens.track.TrackScreen
@@ -29,7 +30,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                     navController.navigate(Screen.TrackSelectionScreen.route)
                 },
                 onNavigateToHikes = {
-                    // TODO: Implement navigation to Hikes screen when available
+                    navController.navigate(Screen.HikeSelectionScreen.route)
                 },
                 onLogout = {
                     preferencesViewModel.clearToken()
@@ -38,6 +39,12 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         }
         composable(route = Screen.TrackSelectionScreen.route) {
             TrackSelectionScreen(
+                navController = navController,
+                tokenState = preferencesViewModel.tokenState
+            )
+        }
+        composable(route = Screen.HikeSelectionScreen.route) {
+            HikeSelectionScreen(
                 navController = navController,
                 tokenState = preferencesViewModel.tokenState
             )
