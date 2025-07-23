@@ -50,4 +50,10 @@ class PreferencesViewModel(
             preferencesStore.saveCurrentUser(userId)
         }
     }
+
+    fun clearToken() {
+        viewModelScope.launch {
+            preferencesStore.clearToken()
+        }
+    }
 }

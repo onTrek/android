@@ -64,6 +64,15 @@ interface ApiService {
     @DELETE ("/profile")
     fun deleteProfile(@Header("Bearer") token: String): Call<MessageResponse>
 
+    @Multipart
+    @PUT("/profile/image")
+    fun uploadImageProfile(@Header("Bearer") token: String, @Part imageFile: MultipartBody.Part): Call<MessageResponse>
+
+    // ------- USERS ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/users/{id}/image")
+    fun getImageProfile(@Header("Bearer") token: String, @Path("id") id: String): Call<ResponseBody>
+
     // ------- GPX ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/")

@@ -85,13 +85,13 @@ class AuthViewModel : ViewModel() {
         }
 
         // Controllo se l'email è valida
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
             _uiState.update { it.copy(errorMessage = "Invalid email format") }
             return
         }
 
         login(
-            loginBody = Login(email, password),
+            loginBody = Login(email.trim(), password),
             onSuccess = { response ->
                 val token = response?.token ?: ""
                 if (token.isNotEmpty()) {
@@ -102,6 +102,8 @@ class AuthViewModel : ViewModel() {
                             isLoading = false,
                             successMessage = "Login successful!",
                         )
+                        // Reset email and password fields after successful login
+                        .copy(email = "", password = "")
                     }
                 } else {
                     _uiState.update { it.copy(
@@ -138,13 +140,13 @@ class AuthViewModel : ViewModel() {
         val password = currentState.password
         val passwordRepeat = currentState.passwordRepeat
 
-        if (email.isEmpty() || username.isEmpty() || password.isEmpty()) {
+        if (email.trim().isEmpty() || username.trim().isEmpty() || password.isEmpty()) {
             _uiState.update { it.copy(errorMessage = "All fields are required") }
             return
         }
 
         // Controllo se l'email è valida
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
             _uiState.update { it.copy(errorMessage = "Invalid email format") }
             return
         }
@@ -155,7 +157,7 @@ class AuthViewModel : ViewModel() {
         }
 
         signup(
-            signupBody = com.ontrek.shared.data.Signup(email, username, password),
+            signupBody = com.ontrek.shared.data.Signup(email.trim(), username.trim(), password),
             onSuccess = { response ->
                 _uiState.update {
                     it.copy(
