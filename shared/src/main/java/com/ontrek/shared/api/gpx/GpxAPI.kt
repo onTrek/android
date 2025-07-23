@@ -9,12 +9,11 @@ import retrofit2.Response
 
 
 fun downloadGpx(
-    token: String,
     gpxID: Int,
     onSuccess: (ByteArray) -> Unit,
     onError: (String) -> Unit
 ) {
-    RetrofitClient.api.downloadGPX(token, gpxID).enqueue(object : Callback<ResponseBody> {
+    RetrofitClient.api.downloadGPX(gpxID).enqueue(object : Callback<ResponseBody> {
         override fun onResponse(
             call: Call<ResponseBody>,
             response: Response<ResponseBody>

@@ -46,7 +46,6 @@ import com.ontrek.mobile.utils.components.friendsComponents.Username
 @Composable
 fun SearchTab(
     viewModel: FriendsViewModel,
-    token: String
 ) {
     val searchState by viewModel.searchState.collectAsState()
     val sentRequestsState by viewModel.sentFriendRequests.collectAsState()
@@ -55,7 +54,7 @@ fun SearchTab(
 
     // Carica le richieste inviate
     LaunchedEffect(Unit) {
-        viewModel.loadSentFriendRequests(token)
+        viewModel.loadSentFriendRequests()
     }
 
     Column(
@@ -72,7 +71,7 @@ fun SearchTab(
                 onValueChange = {
                     query = it
                     isSearching = it.isNotEmpty()
-                    viewModel.onSearchQueryChange(it, token)
+                    viewModel.onSearchQueryChange(it)
                 },
                 label = { Text("Search Users") },
                 modifier = Modifier.fillMaxWidth(),
@@ -99,7 +98,7 @@ fun SearchTab(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        viewModel.sendFriendRequest(user, token)
+                                        viewModel.sendRequest(user)
                                         query = ""
                                         isSearching = false
                                     }

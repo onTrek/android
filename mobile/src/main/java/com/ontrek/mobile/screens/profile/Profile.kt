@@ -71,7 +71,9 @@ import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
+fun Profile(
+    navController: NavHostController
+) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -82,7 +84,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val isLoadingImage by viewModel.isLoadingImage.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState(initial = false)
     val msgToast by viewModel.msgToastFlow.collectAsState()
-    val token by tokenState.collectAsStateWithLifecycle()
     var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var previewImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var preview by remember { mutableStateOf(ByteArray(0)) }
@@ -92,6 +93,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
+    val token = preferencesViewModel.tokenState.collectAsStateWithLifecycle().value
 
     val isDevelopmentMode = false
 
@@ -188,7 +190,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
 
     LaunchedEffect(token) {
         if (!token.isNullOrEmpty()) {
-            viewModel.fetchUserProfile(token!!)
+            viewModel.fetchUserProfile()
         } else {
             Toast.makeText(context, "Token not vaild", Toast.LENGTH_SHORT).show()
         }
@@ -501,7 +503,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                 TextButton(
                                     onClick = {
                                         viewModel.updateProfileImage(
-                                            token!!,
                                             preview,
                                             selectedFilename!!
                                         )
@@ -527,7 +528,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                             clearToken = {
                                 preferencesViewModel.clearToken()
                             },
-                            token!!
                         )
                         showDeleteDialog = false
                     },

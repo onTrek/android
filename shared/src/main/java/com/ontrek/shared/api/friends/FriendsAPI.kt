@@ -41,8 +41,8 @@ fun deleteFriend(id: String, onSuccess: (String) -> Unit, onError: (String) -> U
     })
 }
 
-fun searchUsers(token: String, query: String, friendOnly: Boolean = false, onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.searchUser(token, query, friendOnly).enqueue(object : retrofit2.Callback<List<Friend>> {
+fun searchUsers(query: String, friendOnly: Boolean = false, onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.searchUser(query, friendOnly).enqueue(object : retrofit2.Callback<List<Friend>> {
         override fun onResponse(call: retrofit2.Call<List<Friend>>, response: retrofit2.Response<List<Friend>>) {
             if (response.isSuccessful) {
                 onSuccess(response.body())

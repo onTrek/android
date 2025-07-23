@@ -14,7 +14,6 @@ import retrofit2.http.POST
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
-import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.PUT
 import retrofit2.http.Query
@@ -27,20 +26,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Streaming
-
-// object RetrofitClient {
-//    private val okHttpClient = OkHttpClient.Builder()
-//        .addInterceptor(AuthInterceptor()) // Sostituisci YourInterceptor con la tua classe di interceptor
-//        .build()
-//
-//    private val retrofit = Retrofit.Builder()
-//        .baseUrl("http://ontrek.popipopi.win:3000/")
-//        .client(okHttpClient)
-//        .addConverterFactory(GsonConverterFactory.create())
-//        .build()
-//
-//    val api: ApiService = retrofit.create(ApiService::class.java)
-//}
 
 object RetrofitClient {
     private lateinit var tokenProvider: TokenProvider
@@ -79,44 +64,44 @@ interface ApiService {
     // --------- PROFILE ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/profile")
-    fun getProfile(@Header("Bearer") token: String): Call<Profile>
+    fun getProfile(): Call<Profile>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE ("/profile")
-    fun deleteProfile(@Header("Bearer") token: String): Call<MessageResponse>
+    fun deleteProfile(): Call<MessageResponse>
 
     @Multipart
     @PUT("/profile/image")
-    fun uploadImageProfile(@Header("Bearer") token: String, @Part imageFile: MultipartBody.Part): Call<MessageResponse>
+    fun uploadImageProfile(@Part imageFile: MultipartBody.Part): Call<MessageResponse>
 
     // ------- USERS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/users/{id}/image")
-    fun getImageProfile(@Header("Bearer") token: String, @Path("id") id: String): Call<ResponseBody>
+    fun getImageProfile(@Path("id") id: String): Call<ResponseBody>
 
     // ------- GPX ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/")
-    fun getTracks(@Header("Bearer") token: String): Call<List<Track>>
+    fun getTracks(): Call<List<Track>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/{id}")
-    fun getTrack(@Header("Bearer") token: String, @Path("id") id: String): Call<Track>
+    fun getTrack(@Path("id") id: String): Call<Track>
 
     @Multipart
     @POST("gpx/")
-    fun uploadTrack(@Header("Bearer") token: String, @Part("title") title: RequestBody, @Part gpxFile: MultipartBody.Part): Call<MessageResponse>
+    fun uploadTrack(@Part("title") title: RequestBody, @Part gpxFile: MultipartBody.Part): Call<MessageResponse>
 
     @DELETE("gpx/{id}")
-    fun deleteTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<MessageResponse>
+    fun deleteTrack(@Path("id") id: String, ): Call<MessageResponse>
 
     @Streaming
     @GET("gpx/{id}/map")
-    fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
+    fun getMapTrack(@Path("id") id: String, ): Call<ResponseBody>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/gpx/{id}/download")
-    fun downloadGPX(@Header("Bearer") token: String, @Path("id") gpxID: Int): Call<ResponseBody>
+    fun downloadGPX(@Path("id") gpxID: Int): Call<ResponseBody>
 
 
     // ------- FRIENDS ---------
@@ -130,26 +115,26 @@ interface ApiService {
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("search")
-    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
+    fun searchUser(@Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
 
     // ------- FRIEND REQUESTS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/requests/received/")
-    fun getFriendRequests(@Header("Bearer") token: String): Call<List<FriendRequest>>
+    fun getFriendRequests(): Call<List<FriendRequest>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/requests/sent/")
-    fun getSentFriendRequests(@Header("Bearer") token: String): Call<List<FriendRequest>>
+    fun getSentFriendRequests(): Call<List<FriendRequest>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @PUT("friends/requests/{id}")
-    fun acceptFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+    fun acceptFriendRequest(@Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("friends/requests/{id}")
-    fun postFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+    fun postFriendRequest(@Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("friends/requests/{id}")
-    fun deleteFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+    fun deleteFriendRequest(@Path("id") id: String): Call<MessageResponse>
 }

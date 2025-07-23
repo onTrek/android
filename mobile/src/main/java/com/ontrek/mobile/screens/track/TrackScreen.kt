@@ -41,7 +41,9 @@ import com.ontrek.mobile.utils.components.trackComponents.TrackItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackScreen(navController: NavHostController, token: String) {
+fun TrackScreen(
+    navController: NavHostController
+) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val viewModel: TrackViewModel = viewModel()
     val context = LocalContext.current
@@ -124,13 +126,13 @@ fun TrackScreen(navController: NavHostController, token: String) {
     ) { innerPadding ->
 
         LaunchedEffect(Unit) {
-            viewModel.loadTracks(token)
+            viewModel.loadTracks()
         }
 
         PullToRefreshBox(
             isRefreshing = isLoading,
             onRefresh = {
-                viewModel.loadTracks(token)
+                viewModel.loadTracks()
             },
             modifier = Modifier
                 .fillMaxSize()
@@ -177,10 +179,9 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 onDismissRequest = { showAddTrackDialog = false },
                 onTrackAdded = {
                     showAddTrackDialog = false
-                    viewModel.loadTracks(token)
+                    viewModel.loadTracks()
                     Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
                 },
-                token = token,
                 fileUri = selectedFileUri!!,
             )
         }

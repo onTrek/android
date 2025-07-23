@@ -48,13 +48,12 @@ class ProfileViewModel : ViewModel() {
     private val _msgToast = MutableStateFlow("")
     val msgToastFlow: StateFlow<String> = _msgToast.asStateFlow()
 
-    fun fetchUserProfile(token: String) {
+    fun fetchUserProfile() {
         viewModelScope.launch {
             _isLoading.value = true
             _isLoadingImage.value = true
             try {
                 getProfile(
-                    token = token,
                     onSuccess = { response ->
                         _userProfile.update {
                             UserProfile(
@@ -64,7 +63,6 @@ class ProfileViewModel : ViewModel() {
                             )
                         }
                         getImageProfile(
-                            token = token,
                             id = _userProfile.value.userId,
                             onSuccess = { imageBytes ->
                                 _userProfile.update { it.copy(imageProfile = imageBytes) }
@@ -96,13 +94,12 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun fetchDeleteProfile(clearToken: () -> Unit, token: String) {
+    fun fetchDeleteProfile(clearToken: () -> Unit) {
         viewModelScope.launch {
             _isLoadingDeleteProfile.value = true
 
             try {
                  deleteProfile(
-                     token = token,
                      onSuccess = {
                          _userProfile.update { UserProfile(
                              username = "",
@@ -158,12 +155,11 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun updateProfileImage(token: String, image: ByteArray, filename: String) {
+    fun updateProfileImage(image: ByteArray, filename: String) {
         try {
             viewModelScope.launch {
                 _isLoadingImage.value = true
                 uploadImageProfile(
-                    token = token,
                     imageBytes = image,
                     filename = filename,
                     onSuccess = {

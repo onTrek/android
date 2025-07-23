@@ -17,8 +17,7 @@ import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val preferencesViewModel: PreferencesViewModel =
-        viewModel(factory = PreferencesViewModel.Factory)
+
     NavHost(
         navController = navController,
         startDestination = TopLevelScreen.Hikes.route,
@@ -27,20 +26,19 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Profile.route, startDestination = Screen.Profile.route) {
             composable(route = Screen.Profile.route) {
-                Profile(navController, preferencesViewModel.tokenState)
+                Profile(navController)
             }
         }
 
         navigation(route = TopLevelScreen.Tracks.route, startDestination = Screen.Tracks.route) {
             composable(route = Screen.Tracks.route) {
-                TrackScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
+                TrackScreen(navController)
             }
             composable(route = Screen.TrackDetail.route) { backStackEntry ->
                 val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
                 TrackDetailScreen(
                     trackId = trackId,
-                    navController = navController,
-                    token = preferencesViewModel.tokenState.value ?: ""
+                    navController = navController
                 )
             }
         }
@@ -54,7 +52,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         navigation(route = TopLevelScreen.Friends.route, startDestination = Screen.Friends.route) {
             composable(route = Screen.Friends.route) {
                 FriendsScreen(
-                    token = preferencesViewModel.tokenState.value ?: "",
                     navController = navController
                 )
             }

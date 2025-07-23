@@ -44,7 +44,7 @@ class FriendsViewModel : ViewModel() {
     val isCharge: StateFlow<Boolean> = _isCharge
 
     // Carica la lista degli amici
-    fun loadFriends(token: String) {
+    fun loadFriends() {
         viewModelScope.launch {
             _friendsState.value = FriendsState.Loading
             getFriends(
@@ -58,11 +58,10 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    fun loadSentFriendRequests(token: String) {
+    fun loadSentFriendRequests() {
         viewModelScope.launch {
             _sentFriendRequests.value = SentRequestsState.Loading
             getSentFriendRequest(
-                token = token,
                 onSuccess = { requests ->
                     _sentFriendRequests.value = SentRequestsState.Success(requests ?: emptyList())
                 },
@@ -74,11 +73,10 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Carica le richieste di amicizia
-    fun loadFriendRequests(token: String) {
+    fun loadFriendRequests() {
         viewModelScope.launch {
             _requestsState.value = RequestsState.Loading
             getFriendRequests(
-                token = token,
                 onSuccess = { requests ->
                     _requestsState.value = RequestsState.Success(requests ?: emptyList())
                 },
@@ -90,18 +88,18 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Aggiorna la query di ricerca
-    fun onSearchQueryChange(query: String, token: String) {
+    fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
         if (query.isEmpty()) {
             _searchState.value = SearchState.Initial
             return
         }
 
-        search(query, token)
+        search(query)
     }
 
     // Cerca utenti in base alla query
-    private fun search(query: String, token: String) {
+    private fun search(query: String) {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
 
@@ -113,7 +111,6 @@ class FriendsViewModel : ViewModel() {
 
             // Chiamata all'API reale
             searchUsers(
-                token = token,
                 query = query,
                 onSuccess = { users ->
                     _searchState.value = if (users.isNullOrEmpty()) {
@@ -129,11 +126,10 @@ class FriendsViewModel : ViewModel() {
         }
     }
     // Invia richiesta di amicizia
-    fun sendFriendRequest(user: Friend, token: String) {
+    fun sendRequest(user: Friend) {
         viewModelScope.launch {
             // Simulazione chiamata API
             sendFriendRequest(
-                token = token,
                 id = user.id,
                 onSuccess = { message ->
                     _msgToast.value = message
@@ -153,11 +149,10 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Accetta richiesta di amicizia
-    fun acceptRequest(user: FriendRequest, token: String) {
+    fun acceptRequest(user: FriendRequest) {
         viewModelScope.launch {
             // Simulazione chiamata API
             acceptFriendRequest(
-                token = token,
                 id = user.id,
                 onSuccess = { message ->
                     _msgToast.value = message
@@ -176,11 +171,10 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Rifiuta richiesta di amicizia
-    fun rejectFriendRequest(requestId: String, token: String) {
+    fun rejectFriendRequest(requestId: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             deleteFriendRequest(
-                token = token,
                 id = requestId,
                 onSuccess = { message ->
                     _msgToast.value = message
@@ -194,7 +188,7 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Elimina amicizia
-    fun removeFriend(friendId: String, token: String) {
+    fun removeFriend(friendId: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
             deleteFriend(

@@ -14,8 +14,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, token: String) {
-    RetrofitClient.api.getTracks(token).enqueue(object : Callback<List<Track>> {
+fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getTracks().enqueue(object : Callback<List<Track>> {
         override fun onResponse(call: Call<List<Track>>, response: Response<List<Track>>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -41,10 +41,9 @@ fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, toke
 fun getTrack(
     id: String,
     onSuccess: (Track?) -> Unit,
-    onError: (String) -> Unit,
-    token: String
+    onError: (String) -> Unit
 ) {
-    RetrofitClient.api.getTrack(token, id).enqueue(object : Callback<Track> {
+    RetrofitClient.api.getTrack(id).enqueue(object : Callback<Track> {
         override fun onResponse(call: Call<Track>, response: Response<Track>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -69,13 +68,12 @@ fun uploadTrack(
     fileName: String,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
     val titlePart = titleTrack.toRequestBody(MultipartBody.FORM)
     val requestFile = gpxFileBytes.toRequestBody("application/gpx+xml".toMediaTypeOrNull(), 0, gpxFileBytes.size)
     val filePart = MultipartBody.Part.createFormData("file", fileName, requestFile)
-    Log.d("API Track", "Uploading track: $titleTrack with token: $token")
-    RetrofitClient.api.uploadTrack(token, titlePart, filePart).enqueue(object : Callback<MessageResponse> {
+
+    RetrofitClient.api.uploadTrack(titlePart, filePart).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Upload Success: ${response.body()}")
@@ -106,9 +104,8 @@ fun deleteTrack(
     id: String,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.deleteTrack(id, token).enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.deleteTrack(id).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Delete Success: ${response.body()}")
@@ -130,9 +127,8 @@ fun getMapTrack(
     id: String,
     onSuccess: (ResponseBody?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.getMapTrack(id,  token).enqueue(object : Callback<ResponseBody> {
+    RetrofitClient.api.getMapTrack(id).enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Map Download Success")

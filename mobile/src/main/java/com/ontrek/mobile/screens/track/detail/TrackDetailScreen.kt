@@ -41,7 +41,6 @@ import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 fun TrackDetailScreen(
     trackId: String,
     navController: NavHostController,
-    token: String
 ) {
     val viewModel: TrackDetailViewModel = viewModel()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -65,8 +64,8 @@ fun TrackDetailScreen(
     }
 
     LaunchedEffect(trackId) {
-        viewModel.loadTrackDetails(trackId, token)
-        viewModel.loadTrackImage(trackId, token)
+        viewModel.loadTrackDetails(trackId)
+        viewModel.loadTrackImage(trackId)
     }
 
     LaunchedEffect(msgToast) {
@@ -132,7 +131,6 @@ fun TrackDetailScreen(
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
                                     viewModel.deleteTrack(track.id.toString(),
-                                        token,
                                         onSuccess = {
                                             navController.navigateUp()
                                         },

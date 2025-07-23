@@ -23,7 +23,6 @@ import java.net.URLDecoder
 fun AddTrackDialog(
     onDismissRequest: () -> Unit,
     onTrackAdded: () -> Unit,
-    token: String,
     fileUri: Uri
 ) {
     var title by remember { mutableStateOf("") }
@@ -137,7 +136,6 @@ fun AddTrackDialog(
                                                 isUploading = false
                                                 errorMessage = error
                                             },
-                                            token = token
                                         )
                                     } ?: run {
                                         isUploading = false

@@ -26,12 +26,12 @@ class TrackDetailViewModel : ViewModel() {
     private val _isLoadingDelete = MutableStateFlow(false)
     val isLoadingDelete: StateFlow<Boolean> = _isLoadingDelete
 
-    private val _msgToast = MutableStateFlow<String>("")
+    private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
 
 
     // Funzione per caricare i dettagli della traccia
-    fun loadTrackDetails(trackId: String, token: String) {
+    fun loadTrackDetails(trackId: String) {
         viewModelScope.launch {
             _trackDetailState.value = TrackDetailState.Loading
 
@@ -52,13 +52,12 @@ class TrackDetailViewModel : ViewModel() {
                     Log.e("TrackDetailViewModel", "Error loading track: $errorMessage")
                     _trackDetailState.value = TrackDetailState.Error(errorMessage)
                 },
-                token = token
             )
         }
     }
 
     // Funzione per caricare l'immagine della traccia
-    fun loadTrackImage(trackId: String, token: String) {
+    fun loadTrackImage(trackId: String) {
         viewModelScope.launch {
             _imageState.value = ImageState.Loading
 
@@ -67,7 +66,6 @@ class TrackDetailViewModel : ViewModel() {
 
             getMapTrack(
                 id = trackId,
-                token = token,
                 onSuccess = { responseBody ->
                     // Usa un thread IO per leggere la risposta
                     viewModelScope.launch(Dispatchers.IO) {
@@ -97,7 +95,7 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
-    fun deleteTrack(trackId: String, token: String, onSuccess: () -> Unit) {
+    fun deleteTrack(trackId: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoadingDelete.value = true
             deleteTrack(
@@ -109,7 +107,6 @@ class TrackDetailViewModel : ViewModel() {
                 onError = { errorMsg ->
                     _msgToast.value = errorMsg
                 },
-                token = token
             )
             _isLoadingDelete.value = false
         }

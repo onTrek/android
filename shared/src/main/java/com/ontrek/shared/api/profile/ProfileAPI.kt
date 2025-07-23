@@ -12,8 +12,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-fun getProfile(token : String, onSuccess : (Profile?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.getProfile(token).enqueue(object : Callback<Profile> {
+fun getProfile(onSuccess : (Profile?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getProfile().enqueue(object : Callback<Profile> {
         override fun onResponse(call: Call<Profile>, response: Response<Profile>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -35,11 +35,10 @@ fun getProfile(token : String, onSuccess : (Profile?) -> Unit, onError: (String)
     })
 }
 
-fun getImageProfile(token: String,
-                    id: String,
+fun getImageProfile(id: String,
                     onSuccess: (ByteArray) -> Unit,
                     onError: (String) -> Unit) {
-    RetrofitClient.api.getImageProfile(token, id).enqueue(object: Callback<ResponseBody> {
+    RetrofitClient.api.getImageProfile(id).enqueue(object: Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
                 val body = response.body()
@@ -65,7 +64,6 @@ fun getImageProfile(token: String,
 }
 
 fun uploadImageProfile(
-    token: String,
     imageBytes: ByteArray,
     filename: String,
     onSuccess: (String) -> Unit,
@@ -73,7 +71,7 @@ fun uploadImageProfile(
 ) {
     val requestFile = imageBytes.toRequestBody("image/*".toMediaTypeOrNull(), 0, imageBytes.size)
     val filePart = MultipartBody.Part.createFormData("file", filename, requestFile)
-    RetrofitClient.api.uploadImageProfile(token, filePart).enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.uploadImageProfile(filePart).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()?.message ?: "Image updated successfully"
@@ -92,8 +90,8 @@ fun uploadImageProfile(
     })
 }
 
-fun deleteProfile(token: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.deleteProfile(token).enqueue(object : Callback<MessageResponse> {
+fun deleteProfile(onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.deleteProfile().enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()?.message ?: "Profile deleted successfully"

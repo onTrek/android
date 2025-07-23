@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity(){
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
-                // Inizializza l'API client con il token corrente
                 RetrofitClient.initialize(preferencesViewModel)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
