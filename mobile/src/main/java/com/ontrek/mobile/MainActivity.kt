@@ -16,14 +16,10 @@ import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.NavigationStack
 import com.ontrek.mobile.screens.auth.AuthScreen
 import com.ontrek.mobile.ui.theme.OnTrekTheme
-import com.ontrek.shared.api.ApiClient
-import com.ontrek.shared.api.APIRepositoryFactory
+import com.ontrek.shared.api.RetrofitClient
 
 class MainActivity : ComponentActivity(){
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
-    companion object {
-        lateinit var apiFactory: APIRepositoryFactory
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +28,8 @@ class MainActivity : ComponentActivity(){
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
-
-                val apiClient = ApiClient(preferencesViewModel)
-                apiFactory = APIRepositoryFactory(apiClient)
+                // Inizializza l'API client con il token corrente
+                RetrofitClient.initialize(preferencesViewModel)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

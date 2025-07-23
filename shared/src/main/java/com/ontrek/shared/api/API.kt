@@ -19,6 +19,7 @@ import retrofit2.http.Headers
 import retrofit2.http.PUT
 import retrofit2.http.Query
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.DELETE
@@ -27,15 +28,43 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Streaming
 
+// object RetrofitClient {
+//    private val okHttpClient = OkHttpClient.Builder()
+//        .addInterceptor(AuthInterceptor()) // Sostituisci YourInterceptor con la tua classe di interceptor
+//        .build()
+//
+//    private val retrofit = Retrofit.Builder()
+//        .baseUrl("http://ontrek.popipopi.win:3000/")
+//        .client(okHttpClient)
+//        .addConverterFactory(GsonConverterFactory.create())
+//        .build()
+//
+//    val api: ApiService = retrofit.create(ApiService::class.java)
+//}
+
 object RetrofitClient {
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("http://ontrek.popipopi.win:3000/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    private lateinit var tokenProvider: TokenProvider
 
-    val api: ApiService = retrofit.create(ApiService::class.java)
+    fun initialize(tokenProvider: TokenProvider) {
+        this.tokenProvider = tokenProvider
+    }
+
+    private val okHttpClient by lazy {
+        OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(tokenProvider))
+            .build()
+    }
+
+    private val retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("http://ontrek.popipopi.win:3000/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val api: ApiService by lazy { retrofit.create(ApiService::class.java) }
 }
-
 interface ApiService {
 
     // ------- AUTH ---------
