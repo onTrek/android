@@ -35,7 +35,6 @@ import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
 import androidx.core.graphics.toColorInt
 import com.ontrek.mobile.screens.friends.friendsComponents.Username
-import com.ontrek.shared.data.UserMinimal
 
 @Composable
 fun MembersGroup(
@@ -134,6 +133,7 @@ fun MemberItem(
             onDismiss = { showDialogRemove = false },
             onConfirm = onRemoveClick,
             title = "Remove Member",
+            textButton = "Remove",
             text = "Are you sure you want to remove @${member.username} from the group?"
         )
     }
