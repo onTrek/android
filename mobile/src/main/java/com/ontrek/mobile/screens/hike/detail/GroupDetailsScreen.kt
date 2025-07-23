@@ -24,8 +24,8 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
-import com.ontrek.mobile.utils.components.hikesComponents.TrackSelectionDialog
-import com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent.MembersGroup
+import com.ontrek.mobile.screens.hike.hikesComponents.TrackSelectionDialog
+import com.ontrek.mobile.screens.hike.hikesComponents.groupDetailsComponent.MembersGroup
 import com.ontrek.shared.data.TrackInfo
 import java.time.Instant
 import java.time.ZoneId
@@ -56,6 +56,7 @@ fun GroupDetailsScreen(
     LaunchedEffect(groupId) {
         viewModel.loadGroupDetails(groupId, token)
         viewModel.loadTracks(token)
+        viewModel.setNavController(navController)
     }
 
     LaunchedEffect(msgToast) {

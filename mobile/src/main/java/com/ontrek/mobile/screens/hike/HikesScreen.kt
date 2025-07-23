@@ -23,7 +23,7 @@ import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
-import com.ontrek.mobile.utils.components.hikesComponents.AddGroup
+import com.ontrek.mobile.screens.hike.hikesComponents.AddGroup
 import com.ontrek.shared.data.GroupDoc
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,4 +1,4 @@
-package com.ontrek.mobile.utils.components.hikesComponents.groupDetailsComponent
+package com.ontrek.mobile.screens.hike.hikesComponents.groupDetailsComponent
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable

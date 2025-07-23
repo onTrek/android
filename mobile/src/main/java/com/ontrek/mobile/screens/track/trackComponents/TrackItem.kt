@@ -1,4 +1,4 @@
-package com.ontrek.mobile.utils.components.trackComponents
+package com.ontrek.mobile.screens.track.trackComponents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

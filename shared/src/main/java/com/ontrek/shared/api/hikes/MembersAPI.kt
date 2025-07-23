@@ -33,13 +33,13 @@ fun addMemberInGroup(
 }
 
 fun removeMemberFromGroup(
-    id: Int,
+    groupID: Int,
     userID: String? = null,
     token: String,
     onSuccess: () -> Unit,
     onError: (String) -> Unit,
 ) {
-    RetrofitClient.api.removeMemberFromGroup(token, id, userID).enqueue(object : Callback<Void> {
+    RetrofitClient.api.removeMemberFromGroup(token, groupID, userID).enqueue(object : Callback<Void> {
         override fun onResponse(call: Call<Void>, response: Response<Void>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member", "API Success")

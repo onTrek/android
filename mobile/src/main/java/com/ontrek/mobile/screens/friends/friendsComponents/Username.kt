@@ -1,4 +1,4 @@
-package com.ontrek.mobile.utils.components.trackComponents
+package com.ontrek.mobile.screens.friends.friendsComponents
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -7,9 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
-fun TitleTrack(title: String, modifier: Modifier = Modifier) {
+fun Username(username: String, modifier: Modifier = Modifier) {
     Text(
-        text = title,
+        text = "@${username}",
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,

@@ -41,7 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.ontrek.mobile.screens.friends.FriendsViewModel
-import com.ontrek.mobile.utils.components.friendsComponents.Username
+import com.ontrek.mobile.screens.friends.friendsComponents.Username
 
 @Composable
 fun SearchTab(

@@ -3,6 +3,8 @@ package com.ontrek.mobile.screens.hike.detail
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.ontrek.shared.api.hikes.changeGPXInGroup
 import com.ontrek.shared.api.hikes.deleteGroup
 import com.ontrek.shared.api.hikes.getGroupInfo
@@ -30,6 +32,11 @@ class GroupDetailsViewModel : ViewModel() {
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
+
+    private var navController: NavController? = null
+    fun setNavController(navController: NavController) {
+        this.navController = navController
+    }
 
     fun loadGroupDetails(groupId: Int, token: String) {
         _groupState.value = GroupState.Loading
@@ -113,15 +120,35 @@ class GroupDetailsViewModel : ViewModel() {
     fun removeMember(groupId: Int, userId: String, token: String) {
         viewModelScope.launch {
             removeMemberFromGroup(
-                id = groupId,
+                groupID = groupId,
                 userID = userId,
                 token = token,
                 onSuccess = {
                     _msgToast.value = "Member removed successfully"
-                    loadGroupDetails(groupId, token)
+                    deleteMemberInTheList(userId)
                 },
                 onError = { error ->
                     _msgToast.value = "Error removing member: $error"
+                }
+            )
+        }
+    }
+
+    private fun deleteMemberInTheList(userId: String) {
+        _membersState.value = _membersState.value.filter { it.id != userId }
+    }
+
+    fun leaveGroup(groupId: Int, token: String) {
+        viewModelScope.launch {
+            removeMemberFromGroup(
+                groupID = groupId,
+                token = token,
+                onSuccess = {
+                    _msgToast.value = "You have left the group successfully"
+                    navController?.navigateUp()
+                },
+                onError = { error ->
+                    _msgToast.value = "Error leaving group: $error"
                 }
             )
         }
