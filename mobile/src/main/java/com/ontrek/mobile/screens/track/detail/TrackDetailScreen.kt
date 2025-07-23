@@ -33,6 +33,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
+import com.ontrek.shared.utils.formatDate
+import com.ontrek.shared.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -238,7 +240,7 @@ fun TrackDetailScreen(
                                 TrackInfoRow(
                                     icon = Icons.Default.DateRange,
                                     label = "Upload Date",
-                                    value = viewModel.formatDate(track.upload_date)
+                                    value = formatDate(track.upload_date)
                                 )
 
                                 // Distanza
@@ -252,7 +254,7 @@ fun TrackDetailScreen(
                                 TrackInfoRow(
                                     icon = Icons.Default.Timer,
                                     label = "Duration",
-                                    value = viewModel.formatDuration(track.stats.duration)
+                                    value = formatDuration(track.stats.duration)
                                 )
 
                                 // Sezione Elevazione

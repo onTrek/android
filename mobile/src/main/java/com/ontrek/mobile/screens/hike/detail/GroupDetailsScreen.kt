@@ -27,9 +27,7 @@ import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.screens.hike.hikesComponents.TrackSelectionDialog
 import com.ontrek.mobile.screens.hike.hikesComponents.groupDetailsComponent.MembersGroup
 import com.ontrek.shared.data.TrackInfo
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.ontrek.shared.utils.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,7 +177,7 @@ fun GroupDetailsScreen(
                                 InfoCardRow(
                                     icon = Icons.Default.Update,
                                     label = "Created on",
-                                    value = formatDate(groupInfo.created_at),
+                                    value = formatDate(groupInfo.created_at, time = true),
                                 )
                             }
 
@@ -321,13 +319,5 @@ fun GroupDetailsScreen(
                 }
             }
         }
-    }
-}
-private fun formatDate(dateString: String): String {
-    return try {
-        val instant = Instant.parse(dateString)
-        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault()).format(instant)
-    } catch (e: Exception) {
-        dateString
     }
 }
