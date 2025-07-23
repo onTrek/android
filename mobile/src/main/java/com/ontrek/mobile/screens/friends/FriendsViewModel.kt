@@ -2,11 +2,10 @@ package com.ontrek.mobile.screens.friends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ontrek.mobile.MainActivity
 import com.ontrek.shared.api.friends.acceptFriendRequest
-import com.ontrek.shared.api.friends.deleteFriend
 import com.ontrek.shared.api.friends.deleteFriendRequest
 import com.ontrek.shared.api.friends.getFriendRequests
-import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.api.friends.getSentFriendRequest
 import com.ontrek.shared.api.friends.searchUsers
 import com.ontrek.shared.api.friends.sendFriendRequest
@@ -43,12 +42,14 @@ class FriendsViewModel : ViewModel() {
     private val _isCharge = MutableStateFlow(false)
     val isCharge: StateFlow<Boolean> = _isCharge
 
+    val apiService = MainActivity.apiFactory.friendRepository
+
     // Carica la lista degli amici
     fun loadFriends(token: String) {
         viewModelScope.launch {
             _friendsState.value = FriendsState.Loading
-            getFriends(
-                token = token,
+
+            apiService.getFriends(
                 onSuccess = { friends ->
                     _friendsState.value = FriendsState.Success(friends ?: emptyList())
                 },
@@ -198,8 +199,7 @@ class FriendsViewModel : ViewModel() {
     fun removeFriend(friendId: String, token: String) {
         viewModelScope.launch {
             // Simulazione chiamata API
-            deleteFriend(
-                token = token,
+            apiService.deleteFriend(
                 id = friendId,
                 onSuccess = { message ->
                     _msgToast.value = message

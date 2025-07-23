@@ -93,11 +93,11 @@ interface ApiService {
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/")
-    fun getFriends(@Header("Bearer") token: String): Call<List<Friend>>
+    fun getFriends(): Call<List<Friend>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("friends/{id}")
-    fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+    fun deleteFriend(@Path("id") id: String): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("search")
