@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.runtime.Composable
@@ -79,9 +80,9 @@ fun Homepage(
 
             item {
                 MenuChoice(
-                    title = "Hikes",
+                    title = "Hike groups",
                     subtitle = "Adventures with friends",
-                    icon = Icons.Default.Hiking,
+                    icon = Icons.Default.Groups,
                     onClick = onNavigateToHikes
                 )
             }
@@ -90,7 +91,7 @@ fun Homepage(
                 MenuChoice(
                     title = "Tracks",
                     subtitle = "Explore nature by yourself",
-                    icon = Icons.Default.Landscape,
+                    icon = Icons.Default.Hiking,
                     onClick = onNavigateToTracks
                 )
             }
