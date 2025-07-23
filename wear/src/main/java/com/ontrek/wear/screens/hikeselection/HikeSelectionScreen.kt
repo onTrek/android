@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
+import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Button
@@ -83,7 +84,7 @@ fun HikeSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (availableHikes.isEmpty() && !isLoadingTracks && fetchError.isNullOrEmpty()) {
+        } else if (availableHikes.isEmpty() && fetchError.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -95,10 +96,10 @@ fun HikeSelectionScreen(
                     modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleMedium,
-                    text = "Available hikes"
+                    text = "Hike groups",
                 )
             }
-            itemsIndexed(availableHikes) { index, hike ->
+            items(availableHikes) { hike ->
                 Button(
                     onClick = {
                         Log.d("HikeSelectionScreen", "Selected hike: ${hike.description}")
@@ -110,51 +111,31 @@ fun HikeSelectionScreen(
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Hiking,
-                            contentDescription = "Hike Icon",
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Text(
-                            text = hike.description,
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    Text(
+                        text = hike.description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
             item {
-                if (isLoading) {
-                    Loading(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    )
-                } else {
-                    IconButton(
-                        onClick = {
-                            Log.d("HikeSelectionScreen", "Refresh hikes")
-                            if (!token.isNullOrEmpty()) hikeSelectionViewModel.fetchHikesList(
-                                token!!,
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.1f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Refresh,
-                            contentDescription = "Refresh hikes",
-                            tint = MaterialTheme.colorScheme.onSurface
+                IconButton(
+                    onClick = {
+                        Log.d("HikeSelectionScreen", "Refresh hikes")
+                        if (!token.isNullOrEmpty()) hikeSelectionViewModel.fetchHikesList(
+                            token!!,
                         )
-                    }
-
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = "Refresh hikes",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
