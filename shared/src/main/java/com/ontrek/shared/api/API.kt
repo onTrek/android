@@ -9,6 +9,7 @@ import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.GroupID
 import com.ontrek.shared.data.GroupIDCreation
 import com.ontrek.shared.data.GroupInfoResponseDoc
+import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.Track
 import retrofit2.Call
 import retrofit2.http.GET
@@ -151,8 +152,8 @@ interface ApiService {
 
     // ------- GROUP MEMBERS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
-    @PUT("/groups/{id}/members")
-    fun addMemberToGroup(@Header("Bearer") token: String, @Path("id") id: Int): Call<Void>
+    @PUT("/groups/{id}/members/{user}")
+    fun addMemberToGroup(@Header("Bearer") token: String, @Path("id") groupID: Int, @Path("user") userID: String): Call<GroupMember>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @PUT("/groups/{id}/members/location")

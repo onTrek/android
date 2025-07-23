@@ -7,10 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
-fun Username(username: String, modifier: Modifier = Modifier) {
+fun Username(username: String, modifier: Modifier = Modifier, style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.titleMedium) {
     Text(
         text = "@${username}",
-        style = MaterialTheme.typography.titleMedium,
+        style = style,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

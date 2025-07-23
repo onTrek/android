@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.hike.hikesComponents.groupDetailsComponent
+package com.ontrek.mobile.screens.hike.hikesComponents
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
@@ -34,6 +34,8 @@ import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
 import androidx.core.graphics.toColorInt
+import com.ontrek.mobile.screens.friends.friendsComponents.Username
+import com.ontrek.shared.data.UserMinimal
 
 @Composable
 fun MembersGroup(
@@ -151,8 +153,8 @@ fun MemberItem(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Text(
-            text = member.username,
+        Username(
+            username = member.username,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
@@ -163,7 +165,7 @@ fun MemberItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
-        } else if (currentUserID != owner) {
+        } else if (currentUserID == owner) {
             Box(
                 modifier = Modifier
                     .clickable(

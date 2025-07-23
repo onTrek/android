@@ -25,7 +25,7 @@ import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.mobile.screens.hike.hikesComponents.TrackSelectionDialog
-import com.ontrek.mobile.screens.hike.hikesComponents.groupDetailsComponent.MembersGroup
+import com.ontrek.mobile.screens.hike.hikesComponents.MembersGroup
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.utils.formatDate
 
@@ -288,7 +288,11 @@ fun GroupDetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                            colors = if (currentUserId != groupInfo.created_by.id) {
+                                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                            } else {
+                                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                            }
                         ) {
                             if (currentUserId != groupInfo.created_by.id) {
                                 Icon(

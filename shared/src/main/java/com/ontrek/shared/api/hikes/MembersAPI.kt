@@ -5,27 +5,30 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import com.ontrek.shared.api.RetrofitClient
+import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
 
 fun addMemberInGroup(
-    id: Int,
-    onSuccess: () -> Unit,
+    groupID: Int,
+    userID: String,
+    onSuccess: (GroupMember?) -> Unit,
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.addMemberToGroup(token, id).enqueue(object : Callback<Void> {
-        override fun onResponse(call: Call<Void>, response: Response<Void>) {
+    RetrofitClient.api.addMemberToGroup(token, groupID, userID).enqueue(object : Callback<GroupMember> {
+        override fun onResponse(call: Call<GroupMember>, response: Response<GroupMember>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member", "API Success")
-                onSuccess()
+                val groupMember = response.body()
+                onSuccess(groupMember)
             } else {
                 Log.e("API Group Member", "API Error: ${response.code()}")
                 onError("API Error: ${response.code()}")
             }
         }
 
-        override fun onFailure(call: Call<Void>, t: Throwable) {
+        override fun onFailure(call: Call<GroupMember>, t: Throwable) {
             Log.e("API Group Member", "API Error: ${t.toString()}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }

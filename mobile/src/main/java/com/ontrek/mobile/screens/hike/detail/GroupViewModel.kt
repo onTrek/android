@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.ontrek.shared.api.hikes.addMemberInGroup
 import com.ontrek.shared.api.hikes.changeGPXInGroup
 import com.ontrek.shared.api.hikes.deleteGroup
 import com.ontrek.shared.api.hikes.getGroupInfo
@@ -156,7 +157,22 @@ class GroupDetailsViewModel : ViewModel() {
 
     fun addMember(userId: String, groupId: Int, token: String) {
         viewModelScope.launch {
-            Log.d("GroupDetailsViewModel", "Adding member with ID: $userId to group ID: $groupId ")
+            if (_membersState.value.any { it.id == userId }) {
+                _msgToast.value = "User is already a member of the group"
+                return@launch
+            }
+            addMemberInGroup(
+                userID = userId,
+                groupID = groupId,
+                token = token,
+                onSuccess = { newMember ->
+                    _msgToast.value = "Member added successfully"
+                    _membersState.value = _membersState.value + listOfNotNull(newMember)
+                },
+                onError = { error ->
+                    _msgToast.value = "Error adding member: $error"
+                }
+            )
         }
     }
 
