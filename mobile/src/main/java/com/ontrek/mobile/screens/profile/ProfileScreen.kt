@@ -67,7 +67,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,11 +188,7 @@ fun Profile(
     }
 
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) {
-            viewModel.fetchUserProfile()
-        } else {
-            Toast.makeText(context, "Token not vaild", Toast.LENGTH_SHORT).show()
-        }
+        viewModel.fetchUserProfile()
     }
 
     LaunchedEffect(msgToast) {
