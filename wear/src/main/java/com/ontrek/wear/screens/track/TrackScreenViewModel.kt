@@ -183,7 +183,7 @@ class TrackScreenViewModel : ViewModel() {
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
-        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation, trackPoints.value, nextTrackPoint.value?.index ?: 0)
+        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
 
         val distance = if (isAtStartup) getDistanceTo(currentLocation.toSimplePoint(),
             nextTrackPoint.value!!.toSimplePoint()) else _distanceFromTrack.value!!

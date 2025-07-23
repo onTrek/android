@@ -13,14 +13,14 @@ import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs
 import kotlin.math.min
 
-fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int?): NextTrackPoint {
+fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int?): NextTrackPoint {
     val threadSafePosition = currentLocation
-    val probableNextPoint = if (actualPointIndex == null) {
+    val probableNextPoint = if (probablePointIndex == null) {
         val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
         val nearestPoint = nearestPoints[0]
         if (nearestPoint.index > trackPoints.size - min(7, trackPoints.size)) nearestPoints.find { it.index < 5 } ?: nearestPoint else nearestPoint
     } else {
-        extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
+        extractNearestPoint(currentLocation, trackPoints, probablePointIndex)
     }
 
     Log.d("TrackScreenUtils", "Probable next point: ${probableNextPoint.index}, with distance ${probableNextPoint.distanceToUser}")
@@ -85,17 +85,18 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
     return NextTrackPoint(probableNextPoint.index,trackPoints[W])
 }
 
-fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int) : NearPoint {
+fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int) : NearPoint {
     val threadSafePosition = position
 
     //So if we have an actualPointIndex of 2, the array becomes [2, 3, 4, 5, ..., 0, 1]
-    val trackPointsLooper = trackPoints.subList(actualPointIndex, trackPoints.size) + trackPoints.subList(0, actualPointIndex)
+    val trackPointsLooper = trackPoints.subList(probablePointIndex, trackPoints.size) + trackPoints.subList(0, probablePointIndex)
 
-    var bestPointDistanceFromTrack = Double.MAX_VALUE
-    var pointIndex = actualPointIndex
+    var bestPointDistanceFromTrack = computeDistanceFromTrack(threadSafePosition, trackPoints, probablePointIndex)
+    var pointIndex = probablePointIndex
+    var pointUnderThresholdFound = false
 
     for (point in trackPointsLooper) {
-        if (point.index == 0) {
+        if (point.index == 0 || point.index == probablePointIndex) {
             continue // Skip the first and last points
         }
         val distanceOfPointInExam = computeDistanceFromTrack(threadSafePosition, trackPoints, point.index)
@@ -103,14 +104,11 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, actua
         if (distanceOfPointInExam <= bestPointDistanceFromTrack) {
             bestPointDistanceFromTrack = distanceOfPointInExam
             pointIndex = point.index
+        } else if (pointUnderThresholdFound) {
+            break
         }
         if (bestPointDistanceFromTrack <= notificationTrackDistanceThreshold) {
-            if (point.index == actualPointIndex) {
-                // I want to evaluate at least the next point
-                continue
-            } else {
-                break
-            }
+            pointUnderThresholdFound = true
         }
     }
 
@@ -124,11 +122,7 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, actua
 
 fun computeDistanceFromTrack(currentLocation: Location, trackPoints: List<TrackPoint>, analysisPointIndex: Int): Double {
     val nextPoint = trackPoints[analysisPointIndex]
-    var previousPoint = trackPoints[analysisPointIndex - 1]
-
-    while (trackPoints[previousPoint.index + 1].distanceToPrevious < trackPointThreshold) {
-        previousPoint = trackPoints.getOrNull(previousPoint.index - 1) ?: break
-    }
+    val previousPoint = trackPoints[analysisPointIndex - 1]
 
     val previousPointDistance = getDistanceTo(
         currentLocation.toSimplePoint(), previousPoint.toSimplePoint()
