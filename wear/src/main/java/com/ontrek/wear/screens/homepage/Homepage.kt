@@ -88,7 +88,7 @@ fun Homepage(
 
             item {
                 MenuChoice(
-                    title = "Your tracks",
+                    title = "Hike alone",
                     subtitle = "Explore nature by yourself",
                     icon = Icons.Default.Hiking,
                     onClick = onNavigateToTracks
