@@ -36,12 +36,6 @@ class HikeSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _isLoadingHikes = MutableStateFlow(false)
     val isLoadingHikes: StateFlow<Boolean> = _isLoadingHikes
 
-    private val _updateSuccess = MutableStateFlow(false)
-    val updateSuccess: StateFlow<Boolean> = _updateSuccess
-
-    private val _downloadSuccess = MutableStateFlow(false)
-    val downloadSuccess: StateFlow<Boolean> = _downloadSuccess
-
 
     fun fetchHikesList(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")
@@ -75,7 +69,6 @@ class HikeSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                 )
             }
             _fetchError.value = null
-            _updateSuccess.value = true
         } else {
             Log.e("WearOS", "Data is null")
         }

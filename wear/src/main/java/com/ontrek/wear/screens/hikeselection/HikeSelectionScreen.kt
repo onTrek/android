@@ -3,13 +3,11 @@ package com.ontrek.wear.screens.hikeselection
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Hiking
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
@@ -28,7 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
@@ -55,7 +52,6 @@ fun HikeSelectionScreen(
     val isLoading by hikeSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val fetchError by hikeSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val availableHikes by hikeSelectionViewModel.availableHikesListState.collectAsStateWithLifecycle()
-    val isLoadingTracks by hikeSelectionViewModel.isLoadingHikes.collectAsStateWithLifecycle()
 
 
     val token by tokenState.collectAsStateWithLifecycle()
