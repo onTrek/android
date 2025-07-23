@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.hikes.getGroups
-import com.ontrek.shared.data.Hikes
+import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.wear.data.AppDatabase
 import kotlinx.coroutines.delay
@@ -49,7 +49,7 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         }
     }
 
-    fun updateGroups(data: List<Hikes>?) {
+    fun updateGroups(data: List<GroupDoc>?) {
         Log.d("WearOS", "Data updated: $data")
         if (data != null) {
             _groupsListState.value = data.map { group ->
@@ -58,7 +58,7 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                     description = group.description,
                     created_at = group.created_at,
                     created_by = group.created_by,
-                    member_number = group.member_number,
+                    member_number = group.members_number,
                     track = TrackInfo(
                         id = group.track.id,
                         title = group.track.title
