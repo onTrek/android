@@ -32,7 +32,7 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
 
     // Simplify the case where the user is at the first point
     if (probableNextPointIndex == 0) {
-        return NextTrackPoint(probableNextPoint.index, trackPoints[1])
+        return NextTrackPoint(1, trackPoints[1])
     }
     if (probableNextPointIndex == trackPoints.size - 1) {
         // If we are at the last point, we can stop
@@ -110,6 +110,8 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, proba
         if (bestPointDistanceFromTrack <= notificationTrackDistanceThreshold) {
             pointUnderThresholdFound = true
         }
+        //If we found a point under the threshold, we don't need to search in the starting points
+        if (pointUnderThresholdFound && point.index == trackPoints.size - 1) break
     }
 
     return NearPoint(
