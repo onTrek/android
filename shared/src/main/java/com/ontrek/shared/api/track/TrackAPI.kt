@@ -4,10 +4,8 @@ import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Track
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -39,7 +37,7 @@ fun getTracks(onSuccess: (List<Track>?) -> Unit, onError: (String) -> Unit, toke
 
 
 fun getTrack(
-    id: String,
+    id: Int,
     onSuccess: (Track?) -> Unit,
     onError: (String) -> Unit,
     token: String
@@ -83,15 +81,15 @@ fun uploadTrack(
             } else {
                 Log.e("API Track", "Upload Error: ${response.message()}")
                 var msg = "Upload Error: ${response.code()}"
-                when (response.code()) {
-                    400 -> msg += "Bad Request: ${response.message()}"
-                    401 -> msg += "Unauthorized: ${response.message()}"
-                    403 -> msg += "Forbidden: ${response.message()}"
-                    404 -> msg += "Not Found: ${response.message()}"
-                    500 -> msg += "Internal Server Error: ${response.message()}"
-                    else -> msg += "Unexpected Error: ${response.message()}"
+                msg += when (response.code()) {
+                    400 -> "Bad Request: ${response.message()}"
+                    401 -> "Unauthorized: ${response.message()}"
+                    403 -> "Forbidden: ${response.message()}"
+                    404 -> "Not Found: ${response.message()}"
+                    500 -> "Internal Server Error: ${response.message()}"
+                    else -> "Unexpected Error: ${response.message()}"
                 }
-                onError("Upload Error: ${response.message()}")
+                onError("Upload Error: $msg")
             }
         }
 
@@ -103,12 +101,12 @@ fun uploadTrack(
 }
 
 fun deleteTrack(
-    id: String,
+    id: Int,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.deleteTrack(id, token).enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.deleteTrack(token, id).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Delete Success: ${response.body()}")
@@ -127,12 +125,12 @@ fun deleteTrack(
 }
 
 fun getMapTrack(
-    id: String,
+    id: Int,
     onSuccess: (ResponseBody?) -> Unit,
     onError: (String) -> Unit,
     token: String
 ) {
-    RetrofitClient.api.getMapTrack(id,  token).enqueue(object : Callback<ResponseBody> {
+    RetrofitClient.api.getMapTrack(token,  id).enqueue(object : Callback<ResponseBody> {
         override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
             if (response.isSuccessful) {
                 Log.d("API Track", "Map Download Success")

@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
@@ -39,7 +38,7 @@ import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackDetailScreen(
-    trackId: String,
+    trackId: Int,
     navController: NavHostController,
     token: String
 ) {
@@ -131,7 +130,7 @@ fun TrackDetailScreen(
                                 title = "Delete Track",
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    viewModel.deleteTrack(track.id.toString(),
+                                    viewModel.deleteTrack(track.id,
                                         token,
                                         onSuccess = {
                                             navController.navigateUp()
