@@ -117,6 +117,7 @@ fun GroupDetailsScreen(
                                 } else {
                                     "Delete Group"
                                 },
+                                textButton = "Confirm",
                                 text = if (currentUserId != groupInfo.created_by.id) {
                                     "Are you sure you want to leave this group? You will no longer have access to its content."
                                 } else {
