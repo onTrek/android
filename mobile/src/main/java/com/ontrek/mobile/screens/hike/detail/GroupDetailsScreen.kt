@@ -125,11 +125,10 @@ fun GroupDetailsScreen(
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
                                     if (currentUserId != groupInfo.created_by.id) {
-                                        Toast.makeText(
-                                            context,
-                                            "Feature da implementare",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        viewModel.leaveGroup(
+                                            groupId = groupId,
+                                            token = token
+                                        )
                                     } else {
                                         viewModel.deleteGroup(
                                             groupId = groupId,
