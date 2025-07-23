@@ -92,7 +92,7 @@ fun HikeSelectionScreen(
                     modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleMedium,
-                    text = "Hike groups",
+                    text = "Hiking groups",
                 )
             }
             items(availableHikes) { hike ->

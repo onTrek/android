@@ -79,7 +79,7 @@ fun Homepage(
 
             item {
                 MenuChoice(
-                    title = "Hike groups",
+                    title = "Hiking groups",
                     subtitle = "Adventures with friends",
                     icon = Icons.Default.Groups,
                     onClick = onNavigateToHikes
@@ -88,7 +88,7 @@ fun Homepage(
 
             item {
                 MenuChoice(
-                    title = "Tracks",
+                    title = "Your tracks",
                     subtitle = "Explore nature by yourself",
                     icon = Icons.Default.Hiking,
                     onClick = onNavigateToTracks
