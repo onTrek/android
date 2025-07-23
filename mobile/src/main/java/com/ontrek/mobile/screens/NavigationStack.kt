@@ -39,7 +39,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             composable(route = Screen.TrackDetail.route) { backStackEntry ->
                 val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
                 TrackDetailScreen(
-                    trackId = trackId,
+                    trackId = trackId.toIntOrNull() ?: 0,
                     navController = navController,
                     token = preferencesViewModel.tokenState.value ?: ""
                 )

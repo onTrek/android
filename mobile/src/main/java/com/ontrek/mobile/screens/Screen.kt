@@ -19,7 +19,7 @@ sealed class TopLevelScreen(route: String, val title: String) : Screen(route) {
     object Profile : TopLevelScreen("ProfileSection", "Profile")
     object Friends : TopLevelScreen("FriendsSection", "Friends")
     object Tracks : TopLevelScreen("TracksSection", "Tracks")
-    object Hikes : TopLevelScreen("HikesSection", "Hikes")
+    object Hikes : TopLevelScreen("HikesSection", "Groups")
 
 }
 

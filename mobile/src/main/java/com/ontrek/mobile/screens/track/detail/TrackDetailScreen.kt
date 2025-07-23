@@ -39,7 +39,7 @@ import com.ontrek.shared.utils.formatDuration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackDetailScreen(
-    trackId: String,
+    trackId: Int,
     navController: NavHostController,
     token: String
 ) {
@@ -127,7 +127,7 @@ fun TrackDetailScreen(
                                 title = "Delete Track",
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    viewModel.deleteTrack(track.id.toString(),
+                                    viewModel.deleteTrack(track.id,
                                         token,
                                         onSuccess = {
                                             navController.navigateUp()

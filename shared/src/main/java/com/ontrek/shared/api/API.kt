@@ -81,18 +81,18 @@ interface ApiService {
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("gpx/{id}")
-    fun getTrack(@Header("Bearer") token: String, @Path("id") id: String): Call<Track>
+    fun getTrack(@Header("Bearer") token: String, @Path("id") id: Int): Call<Track>
 
     @Multipart
     @POST("gpx/")
     fun uploadTrack(@Header("Bearer") token: String, @Part("title") title: RequestBody, @Part gpxFile: MultipartBody.Part): Call<MessageResponse>
 
     @DELETE("gpx/{id}")
-    fun deleteTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<MessageResponse>
+    fun deleteTrack(@Header("Bearer") token: String, @Path("id") id: Int): Call<MessageResponse>
 
     @Streaming
     @GET("gpx/{id}/map")
-    fun getMapTrack(@Path("id") id: String, @Header("Bearer") token: String): Call<ResponseBody>
+    fun getMapTrack(@Header("Bearer") token: String, @Path("id") id: Int): Call<ResponseBody>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/gpx/{id}/download")
