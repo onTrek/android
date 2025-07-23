@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.hike
+package com.ontrek.mobile.screens.group
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -23,14 +23,14 @@ import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
-import com.ontrek.mobile.screens.hike.hikesComponents.AddGroup
+import com.ontrek.mobile.screens.group.components.AddGroup
 import com.ontrek.shared.data.GroupDoc
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HikesScreen(navController: NavHostController, token: String) {
+fun GroupsScreen(navController: NavHostController, token: String) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    val viewModel: HikesViewModel = viewModel()
+    val viewModel: GroupsViewModel = viewModel()
     val context = LocalContext.current
 
     val listGroup by viewModel.listGroup.collectAsState()
@@ -57,7 +57,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("Hikes") },
+                title = { Text("Hiking Groups") },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -78,13 +78,13 @@ fun HikesScreen(navController: NavHostController, token: String) {
                 .padding(innerPadding)
         ) {
             when (listGroup) {
-                is HikesViewModel.GroupsState.Loading -> {
+                is GroupsViewModel.GroupsState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is HikesViewModel.GroupsState.Success -> {
-                    val groups = (listGroup as HikesViewModel.GroupsState.Success).groups
+                is GroupsViewModel.GroupsState.Success -> {
+                    val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups
                     if (groups.isEmpty()) {
                         EmptyComponent (
                             title = "No Groups Found",
@@ -109,9 +109,9 @@ fun HikesScreen(navController: NavHostController, token: String) {
                         }
                     }
                 }
-                is HikesViewModel.GroupsState.Error -> {
+                is GroupsViewModel.GroupsState.Error -> {
                     ErrorViewComponent(
-                        errorMsg = (listGroup as HikesViewModel.GroupsState.Error).message
+                        errorMsg = (listGroup as GroupsViewModel.GroupsState.Error).message
                     )
                 }
             }
@@ -128,7 +128,7 @@ fun HikesScreen(navController: NavHostController, token: String) {
                         )
                         addDialog.value = false
                     },
-                    isLoading = listGroup is HikesViewModel.GroupsState.Loading,
+                    isLoading = listGroup is GroupsViewModel.GroupsState.Loading,
                     tracks = tracks
                 )
             }

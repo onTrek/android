@@ -1,15 +1,13 @@
-package com.ontrek.mobile.screens.hike.detail
+package com.ontrek.mobile.screens.group.detail
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.ontrek.shared.api.hikes.addMemberInGroup
-import com.ontrek.shared.api.hikes.changeGPXInGroup
-import com.ontrek.shared.api.hikes.deleteGroup
-import com.ontrek.shared.api.hikes.getGroupInfo
-import com.ontrek.shared.api.hikes.removeMemberFromGroup
+import com.ontrek.shared.api.groups.addMemberInGroup
+import com.ontrek.shared.api.groups.changeGPXInGroup
+import com.ontrek.shared.api.groups.deleteGroup
+import com.ontrek.shared.api.groups.getGroupInfo
+import com.ontrek.shared.api.groups.removeMemberFromGroup
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupInfoResponseDoc
 import com.ontrek.shared.data.GroupMember

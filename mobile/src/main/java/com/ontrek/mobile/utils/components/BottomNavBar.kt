@@ -50,7 +50,7 @@ fun BottomNavBar(navController: NavController) {
     val topLevelRoutes = listOf(
 
         BottomNavItem(
-            topLevelScreen = TopLevelScreen.Hikes,
+            topLevelScreen = TopLevelScreen.Groups,
             selectedIcon = Icons.Filled.Groups,
             unselectedIcon = Icons.Outlined.Groups,
         ),

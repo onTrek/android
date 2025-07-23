@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.hike.hikesComponents
+package com.ontrek.mobile.screens.group.components
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
@@ -29,12 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ontrek.mobile.screens.hike.detail.GroupDetailsViewModel
+import com.ontrek.mobile.screens.group.detail.GroupDetailsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
 import androidx.core.graphics.toColorInt
-import com.ontrek.mobile.screens.friends.friendsComponents.Username
+import com.ontrek.mobile.screens.friends.components.Username
 
 @Composable
 fun MembersGroup(

@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.friends.friendsComponents
+package com.ontrek.mobile.screens.friends.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

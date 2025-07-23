@@ -1,14 +1,12 @@
-package com.ontrek.mobile.screens.hike
+package com.ontrek.mobile.screens.group
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.shared.api.hikes.createGroup
-import com.ontrek.shared.api.hikes.getGroups
+import com.ontrek.shared.api.groups.createGroup
+import com.ontrek.shared.api.groups.getGroups
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.GroupIDCreation
@@ -17,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HikesViewModel : ViewModel() {
+class GroupsViewModel : ViewModel() {
     sealed class GroupsState {
         object Loading : GroupsState()
         data class Success(val groups: List<GroupDoc>) : GroupsState()
@@ -78,7 +76,7 @@ class HikesViewModel : ViewModel() {
                 group = GroupIDCreation(description = description, file_id = trackId),
                 onSuccess = { groupId ->
                     _msgToast.value = "Group created successfully"
-                    Log.d("HikesViewModel", "Group created with ID: $groupId")
+                    Log.d("GroupsViewModel", "Group created with ID: $groupId")
                     navController.navigate(Screen.GroupDetails.createRoute(groupId?.group_id ?: 0))
                 },
                 onError = { error ->

@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.hike.detail
+package com.ontrek.mobile.screens.group.detail
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -24,8 +24,8 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
-import com.ontrek.mobile.screens.hike.hikesComponents.TrackSelectionDialog
-import com.ontrek.mobile.screens.hike.hikesComponents.MembersGroup
+import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
+import com.ontrek.mobile.screens.group.components.MembersGroup
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.utils.formatDate
 

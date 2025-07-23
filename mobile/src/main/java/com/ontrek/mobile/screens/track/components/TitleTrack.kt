@@ -1,4 +1,4 @@
-package com.ontrek.mobile.screens.track.trackComponents
+package com.ontrek.mobile.screens.track.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

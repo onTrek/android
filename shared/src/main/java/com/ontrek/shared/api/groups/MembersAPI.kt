@@ -1,4 +1,4 @@
-package com.ontrek.shared.api.hikes
+package com.ontrek.shared.api.groups
 
 import android.util.Log
 import retrofit2.Call
