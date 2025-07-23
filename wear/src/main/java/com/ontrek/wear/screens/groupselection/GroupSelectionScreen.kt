@@ -1,4 +1,4 @@
-package com.ontrek.wear.screens.hikeselection
+package com.ontrek.wear.screens.groupselection
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -41,24 +41,24 @@ import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun HikeSelectionScreen(
+fun GroupSelectionScreen(
     navController: NavHostController = rememberNavController(),
     tokenState: StateFlow<String?>,
 ) {
-    val hikeSelectionViewModel = viewModel<HikeSelectionViewModel>(
-        factory = HikeSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
+    val groupSelectionViewModel = viewModel<GroupSelectionViewModel>(
+        factory = GroupSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
     )
 
-    val isLoading by hikeSelectionViewModel.isLoading.collectAsStateWithLifecycle()
-    val fetchError by hikeSelectionViewModel.fetchError.collectAsStateWithLifecycle()
-    val availableHikes by hikeSelectionViewModel.availableHikesListState.collectAsStateWithLifecycle()
+    val isLoading by groupSelectionViewModel.isLoading.collectAsStateWithLifecycle()
+    val fetchError by groupSelectionViewModel.fetchError.collectAsStateWithLifecycle()
+    val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
 
 
     val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
     LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) hikeSelectionViewModel.fetchHikesList(token!!)
+        if (!token.isNullOrEmpty()) groupSelectionViewModel.fetchGroupsList(token!!)
     }
 
 
@@ -80,7 +80,7 @@ fun HikeSelectionScreen(
 
         if (isLoading) {
             Loading(modifier = Modifier.fillMaxSize())
-        } else if (availableHikes.isEmpty() && fetchError.isNullOrEmpty()) {
+        } else if (groups.isEmpty() && fetchError.isNullOrEmpty()) {
             EmptyList()
         } else ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -95,10 +95,10 @@ fun HikeSelectionScreen(
                     text = "Hiking groups",
                 )
             }
-            items(availableHikes) { hike ->
+            items(groups) { group ->
                 Button(
                     onClick = {
-                        Log.d("HikeSelectionScreen", "Selected hike: ${hike.description}")
+                        Log.d("GroupSelectionScreen", "Selected group: ${group.description}")
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -108,7 +108,7 @@ fun HikeSelectionScreen(
                     ),
                 ) {
                     Text(
-                        text = hike.description,
+                        text = group.description,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -118,8 +118,8 @@ fun HikeSelectionScreen(
             item {
                 IconButton(
                     onClick = {
-                        Log.d("HikeSelectionScreen", "Refresh hikes")
-                        if (!token.isNullOrEmpty()) hikeSelectionViewModel.fetchHikesList(
+                        Log.d("GroupSelectionScreen", "Refresh groups")
+                        if (!token.isNullOrEmpty()) groupSelectionViewModel.fetchGroupsList(
                             token!!,
                         )
                     },
@@ -129,7 +129,7 @@ fun HikeSelectionScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Refresh,
-                        contentDescription = "Refresh hikes",
+                        contentDescription = "Refresh groups",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -148,18 +148,18 @@ fun EmptyList() {
     ) {
         Icon(
             imageVector = Icons.Outlined.Warning,
-            contentDescription = "No hikes available",
+            contentDescription = "No groups available",
             tint = MaterialTheme.colorScheme.error
         )
         Text(
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.titleSmall,
-            text = "No hikes available.",
+            text = "No groups available.",
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp)
         )
         Text(
-            text = "Please join a hike to see it here or create a new one.",
+            text = "Please join a group to see it here or create a new one.",
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
