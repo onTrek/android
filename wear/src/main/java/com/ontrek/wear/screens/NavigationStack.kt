@@ -29,7 +29,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 onNavigateToTracks = {
                     navController.navigate(Screen.TrackSelectionScreen.route)
                 },
-                onNavigateToHikes = {
+                onNavigateToGroups = {
                     navController.navigate(Screen.GroupSelectionScreen.route)
                 },
                 onLogout = {

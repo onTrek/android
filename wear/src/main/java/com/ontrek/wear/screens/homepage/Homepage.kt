@@ -40,7 +40,7 @@ import com.ontrek.wear.theme.OnTrekTheme
 @Composable
 fun Homepage(
     onNavigateToTracks: () -> Unit,
-    onNavigateToHikes: () -> Unit,
+    onNavigateToGroups: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val listState = rememberScalingLazyListState()
@@ -82,7 +82,7 @@ fun Homepage(
                     title = "Hiking groups",
                     subtitle = "Adventures with friends",
                     icon = Icons.Default.Groups,
-                    onClick = onNavigateToHikes
+                    onClick = onNavigateToGroups
                 )
             }
 
@@ -224,6 +224,6 @@ fun LogoutConfirmationDialog(
 @Composable
 fun HomepagePreview() {
     OnTrekTheme {
-        Homepage(onNavigateToTracks = {}, onNavigateToHikes = {}, onLogout = {})
+        Homepage(onNavigateToTracks = {}, onNavigateToGroups = {}, onLogout = {})
     }
 }
