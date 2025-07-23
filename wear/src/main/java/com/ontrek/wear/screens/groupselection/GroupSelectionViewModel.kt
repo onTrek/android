@@ -8,7 +8,6 @@ import com.ontrek.shared.api.hikes.getGroups
 import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.wear.data.AppDatabase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -40,10 +39,9 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
 
         viewModelScope.launch {
-            delay(1000) // Simulate network delay
             getGroups(
                 token = token,
-                onSuccess =  ::updateGroups,
+                onSuccess = ::updateGroups,
                 onError = ::setError
             )
         }
