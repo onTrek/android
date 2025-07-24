@@ -2,7 +2,6 @@ package com.ontrek.mobile.screens.group
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +15,6 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -94,17 +93,18 @@ fun GroupsScreen(navController: NavHostController, token: String) {
             )
         }
     ) { innerPadding ->
-        Box(
+
+        PullToRefreshBox(
+            isRefreshing = listGroup is GroupsViewModel.GroupsState.Loading,
+            onRefresh = {
+                viewModel.loadGroups(token)
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             when (listGroup) {
-                is GroupsViewModel.GroupsState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                is GroupsViewModel.GroupsState.Loading -> { }
 
                 is GroupsViewModel.GroupsState.Success -> {
                     val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups
