@@ -28,6 +28,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -51,11 +54,12 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     val viewModel: GroupsViewModel = viewModel()
     val context = LocalContext.current
 
-    val listGroup by viewModel.listGroup.collectAsStateWithLifecycle()
+    val listGroupState by viewModel.listGroup.collectAsStateWithLifecycle()
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
-    val cachedGroups by viewModel.cachedGroups.collectAsStateWithLifecycle()
+
+    var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
 
     LaunchedEffect(isCharged) {
         viewModel.loadGroups(token)
@@ -65,6 +69,12 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         if (msgToast.isNotEmpty()) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
             viewModel.resetMsgToast()
+        }
+    }
+
+    LaunchedEffect(listGroupState) {
+        if (listGroupState is GroupsViewModel.GroupsState.Success) {
+            groups = (listGroupState as GroupsViewModel.GroupsState.Success).groups
         }
     }
 
@@ -96,7 +106,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     ) { innerPadding ->
 
         PullToRefreshBox(
-            isRefreshing = listGroup is GroupsViewModel.GroupsState.Loading,
+            isRefreshing = listGroupState is GroupsViewModel.GroupsState.Loading,
             onRefresh = {
                 viewModel.loadGroups(token)
             },
@@ -104,35 +114,9 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (listGroup) {
-                is GroupsViewModel.GroupsState.Loading -> {
-                    if (cachedGroups.isEmpty()) {
-                        EmptyComponent(
-                            title = "No Groups Found",
-                            description = "You haven't created any groups yet.",
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            items(cachedGroups) { group ->
-                                GroupItem(
-                                    group = group,
-                                    onItemClick = {
-                                        navController.navigate(
-                                            Screen.GroupDetails.createRoute(group.group_id)
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
+            when (listGroupState) {
+                is GroupsViewModel.GroupsState.Loading,
                 is GroupsViewModel.GroupsState.Success -> {
-                    val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups
                     if (groups.isEmpty()) {
                         EmptyComponent(
                             title = "No Groups Found",
@@ -160,7 +144,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
 
                 is GroupsViewModel.GroupsState.Error -> {
                     ErrorViewComponent(
-                        errorMsg = (listGroup as GroupsViewModel.GroupsState.Error).message
+                        errorMsg = (listGroupState as GroupsViewModel.GroupsState.Error).message
                     )
                 }
             }
