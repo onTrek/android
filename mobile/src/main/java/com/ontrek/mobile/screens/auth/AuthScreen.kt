@@ -70,6 +70,7 @@ fun AuthScreen() {
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.clearMsgToast()
         }
     }
 

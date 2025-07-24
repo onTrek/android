@@ -20,7 +20,7 @@ fun login(loginBody : Login, onSuccess : (LoginResponse?) -> Unit, onError: (Str
                 onSuccess(data)
             } else {
                 Log.e("Auth", "API Error: ${response.code()}, ${response.errorBody()}")
-                onError("${response.code()}")
+                onError("${response.message()} (Code: ${response.code()})")
             }
         }
 
@@ -43,7 +43,7 @@ fun signup(signupBody : Signup, onSuccess : (MessageResponse?) -> Unit, onError:
                 onSuccess(data)
             } else {
                 Log.e("Auth", "API Error: ${response.code()}, ${response.errorBody()}")
-                onError("${response.code()}")
+                onError("${response.message()} (Code: ${response.code()})")
             }
         }
 

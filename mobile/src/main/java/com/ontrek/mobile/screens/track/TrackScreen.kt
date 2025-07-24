@@ -91,6 +91,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.clearMsgToast() // Clear the message after showing it
         }
     }
 

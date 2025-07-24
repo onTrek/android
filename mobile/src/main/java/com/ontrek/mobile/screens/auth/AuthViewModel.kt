@@ -10,6 +10,7 @@ import com.ontrek.shared.api.auth.signup
 import com.ontrek.shared.data.AuthMode
 import com.ontrek.shared.data.AuthUIData
 import com.ontrek.shared.data.Login
+import com.ontrek.shared.data.Signup
 import kotlinx.coroutines.launch
 
 
@@ -116,7 +117,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             _authState.update { it.copy(isLoading = true) }
             signup(
-                signupBody = com.ontrek.shared.data.Signup(email.trim(), username.trim(), password),
+                signupBody = Signup(email.trim(), username.trim(), password),
                 onSuccess = { response ->
                     _msgToast.value = "Signup successful! Please log in."
                     _authState.update { it.copy(authMode = AuthMode.LOGIN, username = "", password = "", passwordRepeat = "")}
@@ -129,6 +130,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun clearMsgToast() {
+        _msgToast.value = ""
+    }
 
     sealed class AuthState {
         object Loading : AuthState()

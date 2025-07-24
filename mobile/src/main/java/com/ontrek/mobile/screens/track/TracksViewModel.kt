@@ -33,6 +33,10 @@ class TrackViewModel : ViewModel() {
         }
     }
 
+    fun clearMsgToast() {
+        _msgToast.value = ""
+    }
+
     sealed class TracksState {
         data class Success(val tracks: List<Track>) : TracksState()
         data class Error(val message: String) : TracksState()

@@ -95,7 +95,7 @@ class GroupsViewModel : ViewModel() {
         }
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
     }
 
