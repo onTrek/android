@@ -55,6 +55,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
+    val cachedGroups by viewModel.cachedGroups.collectAsStateWithLifecycle()
 
     LaunchedEffect(isCharged) {
         viewModel.loadGroups(token)
@@ -104,7 +105,31 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 .padding(innerPadding)
         ) {
             when (listGroup) {
-                is GroupsViewModel.GroupsState.Loading -> { }
+                is GroupsViewModel.GroupsState.Loading -> {
+                    if (cachedGroups.isEmpty()) {
+                        EmptyComponent(
+                            title = "No Groups Found",
+                            description = "You haven't created any groups yet.",
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            items(cachedGroups) { group ->
+                                GroupItem(
+                                    group = group,
+                                    onItemClick = {
+                                        navController.navigate(
+                                            Screen.GroupDetails.createRoute(group.group_id)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
 
                 is GroupsViewModel.GroupsState.Success -> {
                     val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups

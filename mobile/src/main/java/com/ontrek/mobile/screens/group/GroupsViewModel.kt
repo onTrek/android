@@ -40,8 +40,14 @@ class GroupsViewModel : ViewModel() {
     private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
     val tracks: StateFlow<TrackState> = _tracks
 
+    private val _cachedGroups = MutableStateFlow<List<GroupDoc>>(emptyList())
+    val cachedGroups: StateFlow<List<GroupDoc>> = _cachedGroups
+
 
     fun loadGroups(token: String) {
+        _cachedGroups.value = _listGroup.value.let {
+            if (it is GroupsState.Success) it.groups else emptyList()
+        }
         _listGroup.value = GroupsState.Loading
         viewModelScope.launch {
             getGroups(
