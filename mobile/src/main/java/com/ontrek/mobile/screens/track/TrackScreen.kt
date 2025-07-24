@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Hiking
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -40,6 +39,7 @@ import com.ontrek.mobile.screens.track.components.TrackItem
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.shared.data.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,8 +48,9 @@ fun TrackScreen(navController: NavHostController, token: String) {
     val viewModel: TrackViewModel = viewModel()
     val context = LocalContext.current
 
-    val tracks by viewModel.tracksState.collectAsState()
+    val tracksState by viewModel.tracksState.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
+    var tracks by remember { mutableStateOf<List<Track>>(emptyList()) }
     var showAddTrackDialog by remember { mutableStateOf(false) }
     var showFilePicker by remember { mutableStateOf(false) }
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
@@ -106,6 +107,12 @@ fun TrackScreen(navController: NavHostController, token: String) {
         viewModel.loadTracks(token)
     }
 
+    LaunchedEffect(tracksState) {
+        if (tracksState is TrackViewModel.TracksState.Success) {
+            tracks = (tracksState as TrackViewModel.TracksState.Success).tracks
+        }
+    }
+
     if (showAddTrackDialog) {
         AddTrackDialog(
             onDismissRequest = { showAddTrackDialog = false },
@@ -148,7 +155,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
         }
     ) { innerPadding ->
         PullToRefreshBox(
-            isRefreshing = tracks is TrackViewModel.TracksState.Loading,
+            isRefreshing = tracksState is TrackViewModel.TracksState.Loading,
             onRefresh = {
                 viewModel.loadTracks(token)
             },
@@ -156,18 +163,19 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (val currentState = tracks) {
-                is TrackViewModel.TracksState.Loading -> {
-                    CircularProgressIndicator()
-                }
-
+            when (val currentState = tracksState) {
+                is TrackViewModel.TracksState.Loading,
                 is TrackViewModel.TracksState.Success -> {
-                    if (currentState.tracks.isEmpty()) {
-                        EmptyComponent(
-                            title = "No Tracks Found",
-                            description = "You haven't added any tracks yet.",
-                            icon = Icons.Default.Hiking
-                        )
+
+                    // Show empty state only if the state is Success and tracks are empty
+                    if (currentState is TrackViewModel.TracksState.Success) {
+                        if (currentState.tracks.isEmpty()) {
+                            EmptyComponent(
+                                title = "No Tracks Found",
+                                description = "You haven't added any tracks yet.",
+                                icon = Icons.Default.Hiking
+                            )
+                        }
                     }
 
                     LazyColumn(
@@ -175,7 +183,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
                             .fillMaxSize()
                             .padding(horizontal = 16.dp)
                     ) {
-                        items(currentState.tracks) { track ->
+                        items(tracks) { track ->
                             TrackItem(
                                 track = track,
                                 onItemClick = {
