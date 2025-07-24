@@ -168,15 +168,14 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 is TrackViewModel.TracksState.Success -> {
 
                     // Show empty state only if the state is Success and tracks are empty
-                    if (currentState is TrackViewModel.TracksState.Success) {
-                        if (currentState.tracks.isEmpty()) {
-                            EmptyComponent(
-                                title = "No Tracks Found",
-                                description = "You haven't added any tracks yet.",
-                                icon = Icons.Default.Hiking
-                            )
-                        }
+                    if (currentState is TrackViewModel.TracksState.Success && currentState.tracks.isEmpty()) {
+                        EmptyComponent(
+                            title = "No Tracks Found",
+                            description = "You haven't added any tracks yet.",
+                            icon = Icons.Default.Hiking
+                        )
                     }
+
 
                     LazyColumn(
                         modifier = Modifier
