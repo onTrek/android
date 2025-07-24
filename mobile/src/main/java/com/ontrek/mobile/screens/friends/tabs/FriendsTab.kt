@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.screens.friends.components.Username
+import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.UserMinimal
 
 @Composable
@@ -55,19 +58,18 @@ fun FriendsTab(
             }
             is FriendsViewModel.FriendsState.Error -> {
                 val errorState = friendsState as FriendsViewModel.FriendsState.Error
-                Text(
-                    text = errorState.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+                ErrorViewComponent(
+                    errorMsg = errorState.message,
                 )
             }
             is FriendsViewModel.FriendsState.Success -> {
                 val friends = (friendsState as FriendsViewModel.FriendsState.Success).friends
 
                 if (friends.isEmpty()) {
-                    Text(
-                        text = "There are no friends to display",
-                        modifier = Modifier.align(Alignment.Center)
+                    EmptyComponent(
+                        title = "There are no friends yet",
+                        description = "You can search for friends and add them.",
+                        icon = Icons.Default.PersonSearch,
                     )
                 } else {
                     LazyColumn(

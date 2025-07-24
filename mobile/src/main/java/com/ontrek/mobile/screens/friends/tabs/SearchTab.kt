@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.screens.friends.components.Username
+import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 
 @Composable
 fun SearchTab(
@@ -52,9 +55,10 @@ fun SearchTab(
     val sentRequestsState by viewModel.sentFriendRequests.collectAsState()
     var query by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
+    val charge by viewModel.isCharge.collectAsState()
 
     // Carica le richieste inviate
-    LaunchedEffect(Unit) {
+    LaunchedEffect(charge) {
         viewModel.loadSentFriendRequests(token)
     }
 
@@ -168,21 +172,18 @@ fun SearchTab(
                     }
                 }
                 is FriendsViewModel.SentRequestsState.Error -> {
-                    Text(
-                        (sentRequestsState as FriendsViewModel.SentRequestsState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp)
+                    ErrorViewComponent(
+                        errorMsg = (sentRequestsState as FriendsViewModel.SentRequestsState.Error).message,
                     )
                 }
                 is FriendsViewModel.SentRequestsState.Success -> {
                     val requests = (sentRequestsState as FriendsViewModel.SentRequestsState.Success).requests
                     if (requests.isEmpty()) {
-                        Box(Modifier.fillMaxSize()) {
-                            Text(
-                                "There are no sent friend requests",
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
+                        EmptyComponent(
+                            title = "There are no sent friend requests",
+                            description = "You can wait for friend requests or send your own.",
+                            icon = Icons.Default.PersonSearch,
+                        )
                     } else {
                         LazyColumn(
                             contentPadding = PaddingValues(8.dp),

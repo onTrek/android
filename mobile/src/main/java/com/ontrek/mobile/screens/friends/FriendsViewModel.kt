@@ -145,6 +145,7 @@ class FriendsViewModel : ViewModel() {
                             date = System.currentTimeMillis().toString()
                         )
                     )
+                    setIsCharge()
                 },
                 onError = { error ->
                     _msgToast.value = error

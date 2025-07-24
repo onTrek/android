@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.screens.friends.components.Username
+import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.FriendRequest
 import java.time.Duration
 import java.time.Instant
@@ -28,8 +31,9 @@ fun RequestsTab(
     token: String
 ) {
     val requestsState by viewModel.requestsState.collectAsState()
+    val charge by viewModel.isCharge.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(charge) {
         viewModel.loadFriendRequests(token)
     }
 
@@ -42,19 +46,18 @@ fun RequestsTab(
             }
             is FriendsViewModel.RequestsState.Error -> {
                 val errorState = requestsState as FriendsViewModel.RequestsState.Error
-                Text(
-                    text = errorState.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+                ErrorViewComponent(
+                    errorMsg = errorState.message
                 )
             }
             is FriendsViewModel.RequestsState.Success -> {
                 val requests = (requestsState as FriendsViewModel.RequestsState.Success).requests
 
                 if (requests.isEmpty()) {
-                    Text(
-                        text = "Don't have any friend requests",
-                        modifier = Modifier.align(Alignment.Center)
+                    EmptyComponent(
+                        title = "There are no friend requests",
+                        description = "You can wait for friend requests or send your own.",
+                        icon = Icons.Default.PersonSearch,
                     )
                 } else {
                     LazyColumn(
