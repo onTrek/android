@@ -9,7 +9,6 @@ import com.ontrek.shared.api.friends.getFriendRequests
 import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.api.friends.getSentFriendRequest
 import com.ontrek.shared.api.friends.sendFriendRequest
-import com.ontrek.shared.api.search.searchUsers
 import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,14 +24,6 @@ class FriendsViewModel : ViewModel() {
     // Stato delle richieste di amicizia
     private val _requestsState = MutableStateFlow<RequestsState>(RequestsState.Loading)
     val requestsState: StateFlow<RequestsState> = _requestsState
-
-    // Stato della ricerca utenti
-    private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
-    val searchState: StateFlow<SearchState> = _searchState
-
-    // Query di ricerca
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
@@ -90,45 +81,6 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Aggiorna la query di ricerca
-    fun onSearchQueryChange(query: String, token: String) {
-        _searchQuery.value = query
-        if (query.isEmpty()) {
-            _searchState.value = SearchState.Initial
-            return
-        }
-
-        search(query, token)
-    }
-
-    // Cerca utenti in base alla query
-    private fun search(query: String, token: String) {
-        viewModelScope.launch {
-            _searchState.value = SearchState.Loading
-
-            // Se la query è troppo corta, ritorna subito
-            if (query.length < 2) {
-                _searchState.value = SearchState.Initial
-                return@launch
-            }
-
-            // Chiamata all'API reale
-            searchUsers(
-                token = token,
-                query = query,
-                onSuccess = { users ->
-                    _searchState.value = if (users.isNullOrEmpty()) {
-                        SearchState.Empty
-                    } else {
-                        SearchState.Success(users)
-                    }
-                },
-                onError = { error ->
-                    _searchState.value = SearchState.Error(error)
-                }
-            )
-        }
-    }
     // Invia richiesta di amicizia
     fun sendFriendRequest(user: UserMinimal, token: String) {
         viewModelScope.launch {
@@ -279,15 +231,6 @@ class FriendsViewModel : ViewModel() {
         object Loading : SentRequestsState()
         data class Success(val requests: List<FriendRequest>) : SentRequestsState()
         data class Error(val message: String) : SentRequestsState()
-    }
-
-    // Stati della ricerca
-    sealed class SearchState {
-        object Initial : SearchState()
-        object Loading : SearchState()
-        object Empty : SearchState()
-        data class Success(val users: List<UserMinimal>) : SearchState()
-        data class Error(val message: String) : SearchState()
     }
 
     fun resetMsgToast() {
