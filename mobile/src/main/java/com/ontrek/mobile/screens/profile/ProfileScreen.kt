@@ -75,6 +75,8 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
 
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -92,8 +94,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
-
-    val showLogoutDialog = remember { mutableStateOf(false) }
 
     val isDevelopmentMode = false
 
@@ -214,7 +214,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                 actions = {
                     IconButton(
                         onClick = {
-                            showLogoutDialog.value = true
+                            showLogoutDialog = true
                         }
                     ) {
                         Icon(
@@ -237,7 +237,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
-            if (showLogoutDialog.value) {
+            if (showLogoutDialog) {
                 DeleteConfirmationDialog(
                     title = "Logout",
                     text = "Are you sure you want to logout?",
@@ -248,9 +248,9 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                                 preferencesViewModel.clearToken()
                             }
                         )
-                        showLogoutDialog.value = false
+                        showLogoutDialog = false
                     },
-                    onDismiss = { showLogoutDialog.value = false },
+                    onDismiss = { showLogoutDialog = false },
                 )
             }
 
