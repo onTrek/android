@@ -37,6 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -61,6 +64,8 @@ fun AuthScreen() {
     val context = LocalContext.current
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
+    var passwordVisibility by remember { mutableStateOf(false) }
+    var passwordRepeatVisibility by remember { mutableStateOf(false) }
 
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
@@ -96,9 +101,7 @@ fun AuthScreen() {
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = {
-                    viewModel.authState.value.let { currentState ->
-                        viewModel.authState.value = currentState.copy(email = it)
-                    }
+                    viewModel.updateState(email = it)
                 },
                 label = { Text("Email") },
                 leadingIcon = {
@@ -128,9 +131,7 @@ fun AuthScreen() {
                     OutlinedTextField(
                         value = uiState.username,
                         onValueChange = {
-                            viewModel.authState.value.let { currentState ->
-                                viewModel.authState.value = currentState.copy(username = it)
-                            }
+                            viewModel.updateState(username = it)
                         },
                         label = { Text("Username") },
                         leadingIcon = {
@@ -155,9 +156,7 @@ fun AuthScreen() {
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = {
-                    viewModel.authState.value.let { currentState ->
-                        viewModel.authState.value = currentState.copy(password = it)
-                    }
+                    viewModel.updateState(password = it)
                 },
                 label = { Text("Password") },
                 leadingIcon = {
@@ -170,20 +169,18 @@ fun AuthScreen() {
                 trailingIcon = {
                     IconButton(
                         onClick = {
-                            viewModel.authState.value.let { currentState ->
-                                viewModel.authState.value = currentState.copy(passwordVisible = !currentState.passwordVisible)
-                            }
+                             passwordVisibility = !passwordVisibility
                         },
                         enabled = !uiState.isLoading
                     ) {
                         Icon(
-                            imageVector = if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            imageVector = if (passwordVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle password visibility",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -204,9 +201,7 @@ fun AuthScreen() {
                     OutlinedTextField(
                         value = uiState.passwordRepeat,
                         onValueChange = {
-                            viewModel.authState.value.let { currentState ->
-                                viewModel.authState.value = currentState.copy(passwordRepeat = it)
-                            }
+                            viewModel.updateState(passwordRepeat = it)
                         },
                         label = { Text("Repeat password") },
                         leadingIcon = {
@@ -219,20 +214,18 @@ fun AuthScreen() {
                         trailingIcon = {
                             IconButton(
                                 onClick = {
-                                    viewModel.authState.value.let { currentState ->
-                                        viewModel.authState.value = currentState.copy(passwordRepeatVisible = !currentState.passwordRepeatVisible)
-                                    }
+                                    passwordRepeatVisibility = !passwordRepeatVisibility
                                 },
                                 enabled = !uiState.isLoading
                             ) {
                                 Icon(
-                                    imageVector = if (uiState.passwordRepeatVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    imageVector = if (passwordRepeatVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = "Toggle repeat password visibility",
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         },
-                        visualTransformation = if (uiState.passwordRepeatVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (passwordRepeatVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
@@ -278,11 +271,9 @@ fun AuthScreen() {
             // Testo e azione per cambiare modalità
             TextButton(
                 onClick = {
-                    viewModel.authState.value.let { currentState ->
-                        val newMode = if (currentState.authMode == AuthMode.LOGIN)
-                            AuthMode.SIGNUP else AuthMode.LOGIN
-                        viewModel.authState.value = currentState.copy(authMode = newMode)
-                    }
+                    viewModel.updateState(
+                        authMode = if (uiState.authMode == AuthMode.LOGIN) AuthMode.SIGNUP else AuthMode.LOGIN
+                    )
                 },
                 modifier = Modifier
                     .padding(bottom = 10.dp)

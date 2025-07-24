@@ -15,10 +15,30 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
 
-    val authState = MutableStateFlow(AuthUIData())
+    private val _authState = MutableStateFlow(AuthUIData())
+    val authState: StateFlow<AuthUIData> = _authState
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
+
+    fun updateState(
+        email: String = _authState.value.email,
+        username: String = _authState.value.username,
+        password: String = _authState.value.password,
+        passwordRepeat: String = _authState.value.passwordRepeat,
+        authMode: AuthMode = _authState.value.authMode
+    ) {
+        _authState.update {
+            it.copy(
+                email = email,
+                username = username,
+                password = password,
+                passwordRepeat = passwordRepeat,
+                authMode = authMode
+            )
+        }
+    }
+
 
     // Funzione per il login
     fun loginFunc(saveToken: (String) -> Unit, saveCurrentUser: (String) -> Unit) {
@@ -38,7 +58,7 @@ class AuthViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            authState.update { it.copy(isLoading = true) }
+            _authState.update { it.copy(isLoading = true) }
             login(
                 loginBody = Login(email.trim(), password),
                 onSuccess = { response ->
@@ -46,7 +66,7 @@ class AuthViewModel : ViewModel() {
                     if (token.isNotEmpty()) {
                         saveToken(token)
                         saveCurrentUser(response?.id ?: "")
-                        authState.update { AuthUIData() }
+                        _authState.update { AuthUIData() }
                     } else {
                         _msgToast.value = "Login failed, please try again"
                     }
@@ -55,7 +75,7 @@ class AuthViewModel : ViewModel() {
                     _msgToast.value = "Login failed: $error"
                 }
             )
-            authState.update { it.copy(isLoading = false) }
+            _authState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -94,18 +114,18 @@ class AuthViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            authState.update { it.copy(isLoading = true) }
+            _authState.update { it.copy(isLoading = true) }
             signup(
                 signupBody = com.ontrek.shared.data.Signup(email.trim(), username.trim(), password),
                 onSuccess = { response ->
                     _msgToast.value = "Signup successful! Please log in."
-                    authState.update { it.copy(authMode = AuthMode.LOGIN, username = "", password = "", passwordRepeat = "")}
+                    _authState.update { it.copy(authMode = AuthMode.LOGIN, username = "", password = "", passwordRepeat = "")}
                 },
                 onError = { error ->
                     _msgToast.value = "Signup failed: $error"
                 }
             )
-            authState.update { it.copy(isLoading = false) }
+            _authState.update { it.copy(isLoading = false) }
         }
     }
 

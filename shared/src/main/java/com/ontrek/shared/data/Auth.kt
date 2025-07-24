@@ -28,7 +28,5 @@ data class AuthUIData(
     val password: String = "",
     val passwordRepeat: String = "",
     val authMode: AuthMode = AuthMode.LOGIN,
-    val passwordVisible: Boolean = false,
-    val passwordRepeatVisible: Boolean = false,
     val isLoading: Boolean = false,
 )
