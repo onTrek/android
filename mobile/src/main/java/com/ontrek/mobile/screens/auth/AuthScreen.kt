@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -66,6 +68,7 @@ fun AuthScreen() {
         viewModel(factory = PreferencesViewModel.Factory)
     var passwordVisibility by remember { mutableStateOf(false) }
     var passwordRepeatVisibility by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     if (msgToast.isNotEmpty()) {
         LaunchedEffect(msgToast) {
@@ -83,7 +86,8 @@ fun AuthScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
