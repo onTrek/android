@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -110,7 +111,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                     val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups
                     if (groups.isEmpty()) {
                         EmptyComponent(
-                            icon = Icons.Default.Group,
+                            icon = Icons.Default.Groups,
                             title = "No Groups Found",
                             description = "You haven't created any groups yet.",
                         )
