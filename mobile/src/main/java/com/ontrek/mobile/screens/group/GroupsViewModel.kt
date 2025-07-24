@@ -21,7 +21,13 @@ class GroupsViewModel : ViewModel() {
         data class Success(val groups: List<GroupDoc>) : GroupsState()
         data class Error(val message: String) : GroupsState()
     }
-    
+
+    sealed class TrackState {
+        object Loading : TrackState()
+        data class Success(val tracks: List<Track>) : TrackState()
+        data class Error(val message: String) : TrackState()
+    }
+
     private val _listGroup = MutableStateFlow<GroupsState>(GroupsState.Success(emptyList()))
     val listGroup: StateFlow<GroupsState> = _listGroup
 
@@ -31,8 +37,9 @@ class GroupsViewModel : ViewModel() {
     private val _isCharged = MutableStateFlow(false)
     val isCharged: StateFlow<Boolean> = _isCharged
 
-    private val _tracks = MutableStateFlow<List<Track>>(emptyList())
-    val tracks: StateFlow<List<Track>> = _tracks
+    private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
+    val tracks: StateFlow<TrackState> = _tracks
+
 
     fun loadGroups(token: String) {
         _listGroup.value = GroupsState.Loading
@@ -51,13 +58,14 @@ class GroupsViewModel : ViewModel() {
     }
 
     fun loadTracks(token: String) {
-        _tracks.value = emptyList()
+        _tracks.value = TrackState.Loading
         viewModelScope.launch {
             getTracks(
                 onSuccess = { tracksList ->
-                    _tracks.value = tracksList ?: emptyList()
+                    _tracks.value = TrackState.Success(tracksList ?: emptyList())
                 },
                 onError = { error ->
+                    _tracks.value = TrackState.Error(error)
                     _msgToast.value = error
                 },
                 token = token

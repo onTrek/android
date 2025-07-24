@@ -3,6 +3,7 @@ package com.ontrek.mobile.screens.group.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.ontrek.mobile.screens.group.GroupsViewModel.TrackState
 import com.ontrek.shared.api.groups.addMemberInGroup
 import com.ontrek.shared.api.groups.changeGPXInGroup
 import com.ontrek.shared.api.groups.deleteGroup
@@ -11,7 +12,6 @@ import com.ontrek.shared.api.groups.removeMemberFromGroup
 import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupInfoResponseDoc
 import com.ontrek.shared.data.GroupMember
-import com.ontrek.shared.data.Track
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +26,8 @@ class GroupDetailsViewModel : ViewModel() {
     private val _membersState = MutableStateFlow<List<GroupMember>>(emptyList())
     val membersState: StateFlow<List<GroupMember>> = _membersState
 
-    private val _tracks = MutableStateFlow<List<Track>>(emptyList())
-    val tracks: StateFlow<List<Track>> = _tracks
+    private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
+    val tracks: StateFlow<TrackState> = _tracks
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
@@ -46,8 +46,7 @@ class GroupDetailsViewModel : ViewModel() {
                     if (groupInfo != null) {
                         _groupState.value = GroupState.Success(groupInfo)
                         _membersState.value = groupInfo.members
-                    }
-                    else {
+                    } else {
                         _groupState.value = GroupState.Error("Group not found")
                     }
                 },
@@ -60,12 +59,14 @@ class GroupDetailsViewModel : ViewModel() {
     }
 
     fun loadTracks(token: String) {
+        _tracks.value = TrackState.Loading
         viewModelScope.launch {
             getTracks(
                 onSuccess = { trackList ->
-                    _tracks.value = trackList ?: emptyList()
+                    _tracks.value = TrackState.Success(trackList ?: emptyList())
                 },
                 onError = { error ->
+                    _tracks.value = TrackState.Error(error)
                     _msgToast.value = "Error loading tracks: $error"
                 },
                 token = token

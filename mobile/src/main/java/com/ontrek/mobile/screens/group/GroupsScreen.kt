@@ -13,14 +13,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,20 +28,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.mobile.screens.group.components.AddGroup
+import com.ontrek.mobile.screens.group.components.AddGroupButton
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
@@ -56,15 +52,13 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     val viewModel: GroupsViewModel = viewModel()
     val context = LocalContext.current
 
-    val listGroup by viewModel.listGroup.collectAsState()
-    val msgToast by viewModel.msgToast.collectAsState("")
-    val addDialog = remember { mutableStateOf(false) }
-    val tracks by viewModel.tracks.collectAsState()
-    val isCharged by viewModel.isCharged.collectAsState()
+    val listGroup by viewModel.listGroup.collectAsStateWithLifecycle()
+    val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
+    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
+    val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
 
     LaunchedEffect(isCharged) {
         viewModel.loadGroups(token)
-        viewModel.loadTracks(token)
     }
 
     LaunchedEffect(msgToast) {
@@ -86,13 +80,18 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         },
         bottomBar = { BottomNavBar(navController) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    addDialog.value = true
-                },
-            ) {
-                Icon(Icons.Default.GroupAdd, contentDescription = "Add Groups")
-            }
+            AddGroupButton(
+                tracks = tracks,
+                loadTracks = { viewModel.loadTracks(token) },
+                onCreateGroup = { description, trackId ->
+                    viewModel.addGroup(
+                        description = description,
+                        trackId = trackId,
+                        token = token,
+                        navController = navController
+                    )
+                }
+            )
         }
     ) { innerPadding ->
         Box(
@@ -139,23 +138,6 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                         errorMsg = (listGroup as GroupsViewModel.GroupsState.Error).message
                     )
                 }
-            }
-
-            if (addDialog.value) {
-                AddGroup(
-                    onDismiss = { addDialog.value = false },
-                    onCreateGroup = { description, trackId ->
-                        viewModel.addGroup(
-                            description = description,
-                            trackId = trackId,
-                            token = token,
-                            navController = navController
-                        )
-                        addDialog.value = false
-                    },
-                    isLoading = listGroup is GroupsViewModel.GroupsState.Loading,
-                    tracks = tracks
-                )
             }
         }
     }

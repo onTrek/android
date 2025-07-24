@@ -1,15 +1,48 @@
 package com.ontrek.mobile.screens.group.detail
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -20,12 +53,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.Screen
+import com.ontrek.mobile.screens.group.components.MembersGroup
+import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
-import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
-import com.ontrek.mobile.screens.group.components.MembersGroup
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.utils.formatDate
 
@@ -53,7 +86,6 @@ fun GroupDetailsScreen(
 
     LaunchedEffect(groupId) {
         viewModel.loadGroupDetails(groupId, token)
-        viewModel.loadTracks(token)
         viewModel.setNavController(navController)
     }
 
@@ -95,13 +127,16 @@ fun GroupDetailsScreen(
                 is GroupDetailsViewModel.GroupState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is GroupDetailsViewModel.GroupState.Error -> {
-                   ErrorViewComponent(
+                    ErrorViewComponent(
                         errorMsg = (groupState as GroupDetailsViewModel.GroupState.Error).message
-                   )
+                    )
                 }
+
                 is GroupDetailsViewModel.GroupState.Success -> {
-                    val groupInfo = (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo
+                    val groupInfo =
+                        (groupState as GroupDetailsViewModel.GroupState.Success).groupInfo
 
                     Column(
                         modifier = Modifier
@@ -185,7 +220,7 @@ fun GroupDetailsScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 10.dp, top = 4.dp),
                             ) {
                                 Text(
                                     text = "Track",
@@ -206,7 +241,7 @@ fun GroupDetailsScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Terrain,
+                                        imageVector = Icons.Outlined.Route,
                                         contentDescription = "Associated Track",
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(28.dp)
@@ -237,6 +272,7 @@ fun GroupDetailsScreen(
                                     if (showTrackSelection) {
                                         TrackSelectionDialog(
                                             tracks = tracks,
+                                            loadTracks = { viewModel.loadTracks(token) },
                                             onDismiss = { showTrackSelection = false },
                                             onTrackSelected = { track ->
                                                 viewModel.changeTrack(groupId, TrackInfo(
@@ -250,7 +286,13 @@ fun GroupDetailsScreen(
                                     }
 
                                     IconButton(
-                                        onClick = { navController.navigate(Screen.TrackDetail.createRoute(groupInfo.track.id.toString()))}
+                                        onClick = {
+                                            navController.navigate(
+                                                Screen.TrackDetail.createRoute(
+                                                    groupInfo.track.id.toString()
+                                                )
+                                            )
+                                        }
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Info,
@@ -283,41 +325,39 @@ fun GroupDetailsScreen(
                         }
 
                         // Bottone elimina gruppo
-                        Button(
+                        TextButton(
                             onClick = { showDeleteConfirmation = true },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp),
-                            colors = if (currentUserId != groupInfo.created_by.id) {
-                                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                            } else {
-                                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                            }
                         ) {
-                            if (currentUserId != groupInfo.created_by.id) {
+                            if (currentUserId == groupInfo.created_by.id) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                                    contentDescription = "Leave Group",
-                                    tint = MaterialTheme.colorScheme.onError,
+                                    imageVector = Icons.Default.Delete,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    contentDescription = "Delete Group",
                                     modifier = Modifier.size(ButtonDefaults.IconSize)
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete Group",
-                                    tint = MaterialTheme.colorScheme.onError,
+                                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    contentDescription = "Leave Group",
                                     modifier = Modifier.size(ButtonDefaults.IconSize)
                                 )
                             }
 
-                            Text(
-                                text = if (currentUserId == groupInfo.created_by.id) {
-                                    "Delete Group"
-                                } else {
-                                    "Leave Group"
-                                },
-                                color = MaterialTheme.colorScheme.onError
-                            )
+                            if (currentUserId == groupInfo.created_by.id) {
+                                Text(
+                                    text = "Delete Group",
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            } else {
+                                Text(
+                                    text = "Leave Group",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                )
+                            }
                         }
                     }
                 }
