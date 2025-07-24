@@ -21,9 +21,7 @@ import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.FriendRequest
-import java.time.Duration
-import java.time.Instant
-import java.time.format.DateTimeParseException
+import com.ontrek.shared.utils.formatTimeAgo
 
 @Composable
 fun RequestsTab(
@@ -31,11 +29,6 @@ fun RequestsTab(
     token: String
 ) {
     val requestsState by viewModel.requestsState.collectAsState()
-    val charge by viewModel.isCharge.collectAsState()
-
-    LaunchedEffect(charge) {
-        viewModel.loadFriendRequests(token)
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (requestsState) {
@@ -161,23 +154,5 @@ fun RequestItem(
                 }
             }
         }
-    }
-}
-
-// Funzione per formattare il tempo passato
-fun formatTimeAgo(timestamp: String): String {
-    return try {
-        val time = Instant.parse(timestamp)
-        val now = Instant.now()
-        val diff =  Duration.between(time, now).toMillis()
-
-        when {
-            diff < 60_000 -> "Adesso"
-            diff < 3_600_000 -> "${diff / 60_000} minuti fa"
-            diff < 86_400_000 -> "${diff / 3_600_000} ore fa"
-            else -> "${diff / 86_400_000} giorni fa"
-        }
-    } catch (e: DateTimeParseException) {
-        ""
     }
 }
