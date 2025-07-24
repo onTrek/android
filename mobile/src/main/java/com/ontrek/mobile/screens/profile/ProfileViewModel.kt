@@ -68,7 +68,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun fetchDeleteProfile(clearToken: () -> Unit, token: String) {
+    fun deleteProfile(clearToken: () -> Unit, token: String) {
         viewModelScope.launch {
             _userProfile.value = UserProfileState.Loading
             _imageProfile.value = UserImageState.Loading

@@ -209,7 +209,7 @@ fun ProfileScreen(navController: NavHostController, tokenState: StateFlow<String
                     text = "Are you sure you want to delete your profile? This action cannot be undone.",
                     onConfirm = {
                         if (token != null) {
-                            viewModel.fetchDeleteProfile(
+                            viewModel.deleteProfile(
                                 clearToken = { preferencesViewModel.clearToken() },
                                 token!!
                             )
