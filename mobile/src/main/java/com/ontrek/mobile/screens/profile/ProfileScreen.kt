@@ -93,6 +93,8 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
 
+    val showLogoutDialog = remember { mutableStateOf(false) }
+
     val isDevelopmentMode = false
 
 
@@ -212,11 +214,7 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                 actions = {
                     IconButton(
                         onClick = {
-                            viewModel.logout(
-                                clearToken = {
-                                    preferencesViewModel.clearToken()
-                                }
-                            )
+                            showLogoutDialog.value = true
                         }
                     ) {
                         Icon(
@@ -238,6 +236,41 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+
+            if (showLogoutDialog.value) {
+                DeleteConfirmationDialog(
+                    title = "Logout",
+                    text = "Are you sure you want to logout?",
+                    textButton = "Logout",
+                    onConfirm = {
+                        viewModel.logout(
+                            clearToken = {
+                                preferencesViewModel.clearToken()
+                            }
+                        )
+                        showLogoutDialog.value = false
+                    },
+                    onDismiss = { showLogoutDialog.value = false },
+                )
+            }
+
+            if (showDeleteDialog) {
+                DeleteConfirmationDialog(
+                    title = "Delete Profile",
+                    text = "Are you sure you want to delete your profile? This action cannot be undone.",
+                    onConfirm = {
+                        viewModel.fetchDeleteProfile(
+                            clearToken = {
+                                preferencesViewModel.clearToken()
+                            },
+                            token!!
+                        )
+                        showDeleteDialog = false
+                    },
+                    onDismiss = { showDeleteDialog = false },
+                )
+            }
+
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
@@ -516,23 +549,6 @@ fun Profile(navController: NavHostController, tokenState: StateFlow<String?>) {
                         }
                     }
                 }
-            }
-
-            if (showDeleteDialog) {
-                DeleteConfirmationDialog(
-                    title = "Delete Profile",
-                    text = "Are you sure you want to delete your profile? This action cannot be undone.",
-                    onConfirm = {
-                        viewModel.fetchDeleteProfile(
-                            clearToken = {
-                                preferencesViewModel.clearToken()
-                            },
-                            token!!
-                        )
-                        showDeleteDialog = false
-                    },
-                    onDismiss = { showDeleteDialog = false },
-                )
             }
         }
 
