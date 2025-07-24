@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -184,10 +186,12 @@ fun GroupDetailsScreen(
                                 loadTracks = { viewModel.loadTracks(token) },
                                 onDismiss = { showTrackSelection = false },
                                 onTrackSelected = { track ->
-                                    viewModel.changeTrack(groupId, TrackInfo(
-                                        id = track.id,
-                                        title = track.title
-                                    ), token)
+                                    viewModel.changeTrack(
+                                        groupId, TrackInfo(
+                                            id = track.id,
+                                            title = track.title
+                                        ), token
+                                    )
                                     showTrackSelection = false
                                 },
                                 oldTrack = groupInfo.track.id
@@ -236,7 +240,12 @@ fun GroupDetailsScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, bottom = 10.dp, top = 4.dp),
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 10.dp,
+                                        top = 4.dp
+                                    ),
                             ) {
                                 Text(
                                     text = "Track",
@@ -348,6 +357,8 @@ fun GroupDetailsScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize)
                                 )
                             }
+
+                            Spacer(modifier = Modifier.width(8.dp))
 
                             if (currentUserId == groupInfo.created_by.id) {
                                 Text(

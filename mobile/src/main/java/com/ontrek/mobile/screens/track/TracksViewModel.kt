@@ -9,34 +9,37 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class TrackViewModel : ViewModel() {
-    private val _tracks = MutableStateFlow<List<Track>>(emptyList())
-    val tracks: StateFlow<List<Track>> = _tracks
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _msgToast = MutableStateFlow<String>("")
+    private val _tracksState = MutableStateFlow<TracksState>(TracksState.Loading)
+    val tracksState: StateFlow<TracksState> = _tracksState
+    private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
 
     fun loadTracks(token: String) {
-        _isLoading.value = true
+        _tracksState.value = TracksState.Loading
         viewModelScope.launch {
             getTracks(
                 onSuccess = { tracks ->
-                    _tracks.value = tracks ?: emptyList()
-                    _isLoading.value = false
+                    if (tracks != null && tracks.isNotEmpty()) {
+                        _tracksState.value = TracksState.Success(tracks)
+                    } else {
+                        _tracksState.value = TracksState.Success(emptyList())
+                    }
                 },
                 onError = { errorMsg ->
                     _msgToast.value = errorMsg
-                    _isLoading.value = false
                 },
                 token = token
             )
         }
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
     }
 
+    sealed class TracksState {
+        data class Success(val tracks: List<Track>) : TracksState()
+        data class Error(val message: String) : TracksState()
+        object Loading : TracksState()
+    }
 }

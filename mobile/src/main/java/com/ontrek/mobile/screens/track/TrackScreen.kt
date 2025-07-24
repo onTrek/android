@@ -11,12 +11,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -37,10 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
-import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.screens.track.components.AddTrackDialog
 import com.ontrek.mobile.screens.track.components.TrackItem
+import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.shared.data.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,9 +48,9 @@ fun TrackScreen(navController: NavHostController, token: String) {
     val viewModel: TrackViewModel = viewModel()
     val context = LocalContext.current
 
-    val tracks by viewModel.tracks.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val tracksState by viewModel.tracksState.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
+    var tracks by remember { mutableStateOf<List<Track>>(emptyList()) }
     var showAddTrackDialog by remember { mutableStateOf(false) }
     var showFilePicker by remember { mutableStateOf(false) }
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
@@ -90,11 +89,41 @@ fun TrackScreen(navController: NavHostController, token: String) {
         }
     }
 
-    LaunchedEffect(msgToast) {
-        if (msgToast.isNotEmpty()) {
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
-            viewModel.resetMsgToast()
+            viewModel.clearMsgToast()
         }
+    }
+
+    LaunchedEffect(showFilePicker) {
+        if (showFilePicker) {
+            filePicker.launch("*/*")
+            showFilePicker = false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadTracks(token)
+    }
+
+    LaunchedEffect(tracksState) {
+        if (tracksState is TrackViewModel.TracksState.Success) {
+            tracks = (tracksState as TrackViewModel.TracksState.Success).tracks
+        }
+    }
+
+    if (showAddTrackDialog) {
+        AddTrackDialog(
+            onDismissRequest = { showAddTrackDialog = false },
+            onTrackAdded = {
+                showAddTrackDialog = false
+                viewModel.loadTracks(token)
+                Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
+            },
+            token = token,
+            fileUri = selectedFileUri!!,
+        )
     }
 
     Scaffold(
@@ -125,13 +154,8 @@ fun TrackScreen(navController: NavHostController, token: String) {
             }
         }
     ) { innerPadding ->
-
-        LaunchedEffect(Unit) {
-            viewModel.loadTracks(token)
-        }
-
         PullToRefreshBox(
-            isRefreshing = isLoading,
+            isRefreshing = tracksState is TrackViewModel.TracksState.Loading,
             onRefresh = {
                 viewModel.loadTracks(token)
             },
@@ -139,16 +163,21 @@ fun TrackScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when {
-                tracks.isEmpty() && !isLoading -> {
-                    EmptyComponent(
-                        icon = Icons.Default.Terrain,
-                        title = "No Tracks Found",
-                        description = "You haven't insert any track yet.",
-                    )
-                }
+            when (val currentState = tracksState) {
+                is TrackViewModel.TracksState.Loading,
+                is TrackViewModel.TracksState.Success -> {
 
-                else -> {
+                    // Show empty state only if the state is Success and tracks are empty
+                    if (currentState is TrackViewModel.TracksState.Success) {
+                        if (currentState.tracks.isEmpty()) {
+                            EmptyComponent(
+                                title = "No Tracks Found",
+                                description = "You haven't added any tracks yet.",
+                                icon = Icons.Default.Hiking
+                            )
+                        }
+                    }
+
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -163,29 +192,14 @@ fun TrackScreen(navController: NavHostController, token: String) {
                             )
                         }
                     }
+                }
 
+                is TrackViewModel.TracksState.Error -> {
+                    ErrorViewComponent(
+                        errorMsg = currentState.message
+                    )
                 }
             }
-        }
-
-        LaunchedEffect(showFilePicker) {
-            if (showFilePicker) {
-                filePicker.launch("*/*")
-                showFilePicker = false
-            }
-        }
-
-        if (showAddTrackDialog) {
-            AddTrackDialog(
-                onDismissRequest = { showAddTrackDialog = false },
-                onTrackAdded = {
-                    showAddTrackDialog = false
-                    viewModel.loadTracks(token)
-                    Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
-                },
-                token = token,
-                fileUri = selectedFileUri!!,
-            )
         }
     }
 }

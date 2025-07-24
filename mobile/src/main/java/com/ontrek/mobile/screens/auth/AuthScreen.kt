@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +39,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -47,31 +51,29 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.mobile.R
 import com.ontrek.mobile.data.PreferencesViewModel
-import com.ontrek.mobile.ui.theme.OnTrekTheme
+import com.ontrek.shared.data.AuthMode
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen() {
     val viewModel = viewModel<AuthViewModel>()
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.authState.collectAsState()
+    val msgToast by viewModel.msgToast.collectAsState()
     val context = LocalContext.current
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
+    var passwordVisibility by remember { mutableStateOf(false) }
+    var passwordRepeatVisibility by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
-
-    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
-        if (uiState.errorMessage != null || uiState.successMessage != null) {
-            Toast.makeText(
-                context,
-                uiState.errorMessage ?: uiState.successMessage ?: "",
-                Toast.LENGTH_SHORT
-            ).show()
-            viewModel.clearMessages()
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
+            Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.clearMsgToast()
         }
     }
 
@@ -103,7 +105,9 @@ fun AuthScreen() {
             // Campo email
             OutlinedTextField(
                 value = uiState.email,
-                onValueChange = { viewModel.updateEmail(it) },
+                onValueChange = {
+                    viewModel.updateState(email = it)
+                },
                 label = { Text("Email") },
                 leadingIcon = {
                     Icon(
@@ -131,7 +135,9 @@ fun AuthScreen() {
                 Column {
                     OutlinedTextField(
                         value = uiState.username,
-                        onValueChange = { viewModel.updateUsername(it) },
+                        onValueChange = {
+                            viewModel.updateState(username = it)
+                        },
                         label = { Text("Username") },
                         leadingIcon = {
                             Icon(
@@ -154,7 +160,9 @@ fun AuthScreen() {
             // Campo password
             OutlinedTextField(
                 value = uiState.password,
-                onValueChange = { viewModel.updatePassword(it) },
+                onValueChange = {
+                    viewModel.updateState(password = it)
+                },
                 label = { Text("Password") },
                 leadingIcon = {
                     Icon(
@@ -165,17 +173,19 @@ fun AuthScreen() {
                 },
                 trailingIcon = {
                     IconButton(
-                        onClick = { viewModel.togglePasswordVisibility() },
+                        onClick = {
+                             passwordVisibility = !passwordVisibility
+                        },
                         enabled = !uiState.isLoading
                     ) {
                         Icon(
-                            imageVector = if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            imageVector = if (passwordVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle password visibility",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -195,7 +205,9 @@ fun AuthScreen() {
                 Column {
                     OutlinedTextField(
                         value = uiState.passwordRepeat,
-                        onValueChange = { viewModel.updatePasswordRepeat(it) },
+                        onValueChange = {
+                            viewModel.updateState(passwordRepeat = it)
+                        },
                         label = { Text("Repeat password") },
                         leadingIcon = {
                             Icon(
@@ -206,17 +218,19 @@ fun AuthScreen() {
                         },
                         trailingIcon = {
                             IconButton(
-                                onClick = { viewModel.togglePasswordRepeatVisibility() },
+                                onClick = {
+                                    passwordRepeatVisibility = !passwordRepeatVisibility
+                                },
                                 enabled = !uiState.isLoading
                             ) {
                                 Icon(
-                                    imageVector = if (uiState.passwordRepeatVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    imageVector = if (passwordRepeatVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = "Toggle repeat password visibility",
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         },
-                        visualTransformation = if (uiState.passwordRepeatVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (passwordRepeatVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
@@ -258,9 +272,14 @@ fun AuthScreen() {
                     Text(if (uiState.authMode == AuthMode.LOGIN) "Login" else "Sign up")
                 }
             }
+
             // Testo e azione per cambiare modalità
             TextButton(
-                onClick = { viewModel.switchAuthMode() },
+                onClick = {
+                    viewModel.updateState(
+                        authMode = if (uiState.authMode == AuthMode.LOGIN) AuthMode.SIGNUP else AuthMode.LOGIN
+                    )
+                },
                 modifier = Modifier
                     .padding(bottom = 10.dp)
                     .align(Alignment.End),
@@ -269,14 +288,5 @@ fun AuthScreen() {
                 Text(if (uiState.authMode == AuthMode.LOGIN) "Sign up" else "Log in")
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun AuthScreenPreview() {
-    OnTrekTheme {
-        AuthScreen()
     }
 }
