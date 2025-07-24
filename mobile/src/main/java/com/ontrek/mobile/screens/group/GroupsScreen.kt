@@ -115,10 +115,10 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (listGroupState) {
+            when (val currentState = listGroupState) {
                 is GroupsViewModel.GroupsState.Loading,
                 is GroupsViewModel.GroupsState.Success -> {
-                    if (groups.isEmpty()) {
+                    if (currentState is GroupsViewModel.GroupsState.Success && currentState.groups.isEmpty()) {
                         EmptyComponent(
                             icon = Icons.Default.Groups,
                             title = "No Groups Found",
