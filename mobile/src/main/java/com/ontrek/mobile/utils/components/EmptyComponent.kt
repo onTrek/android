@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,26 +21,33 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun EmptyComponent(
+    fillMaxSize: Boolean = true,
     title: String = "No Data",
     description: String = "There are no items to display.",
     icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.AddToPhotos
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .then(if (fillMaxSize) Modifier.fillMaxSize() else Modifier.fillMaxWidth()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = "No Icon",
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.then(
+                if (fillMaxSize) Modifier.size(64.dp) else Modifier.size(48.dp)
+            ),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium
+            style = if (fillMaxSize) {
+                MaterialTheme.typography.headlineMedium
+            } else {
+                MaterialTheme.typography.titleLarge
+            },
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

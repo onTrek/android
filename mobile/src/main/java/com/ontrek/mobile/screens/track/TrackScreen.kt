@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.screens.track.components.AddTrackDialog
 import com.ontrek.mobile.screens.track.components.TrackItem
+import com.ontrek.mobile.utils.components.EmptyComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,10 +141,10 @@ fun TrackScreen(navController: NavHostController, token: String) {
         ) {
             when {
                 tracks.isEmpty() && !isLoading -> {
-                    Text(
-                        text = "No tracks available",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.align(Alignment.Center)
+                    EmptyComponent(
+                        icon = Icons.Default.Terrain,
+                        title = "No Tracks Found",
+                        description = "You haven't insert any track yet.",
                     )
                 }
 

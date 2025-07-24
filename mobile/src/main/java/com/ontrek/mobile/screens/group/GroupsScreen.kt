@@ -110,6 +110,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                     val groups = (listGroup as GroupsViewModel.GroupsState.Success).groups
                     if (groups.isEmpty()) {
                         EmptyComponent(
+                            icon = Icons.Default.Group,
                             title = "No Groups Found",
                             description = "You haven't created any groups yet.",
                         )

@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
@@ -33,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.ontrek.mobile.screens.group.GroupsViewModel
+import com.ontrek.mobile.utils.components.EmptyComponent
 import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.Track
 
@@ -47,7 +50,6 @@ fun TrackSelectionDialog(
     var selectedTrack by remember { mutableStateOf<Track?>(null) }
 
     LaunchedEffect(Unit) {
-        // Load tracks when the dialog is first shown
         loadTracks()
     }
 
@@ -61,7 +63,8 @@ fun TrackSelectionDialog(
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = "Select a track",
@@ -87,18 +90,18 @@ fun TrackSelectionDialog(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp
                         )
-                        Text(
-                            text = "Loading tracks...",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
                     }
                 } else if (tracks is GroupsViewModel.TrackState.Error) {
                     ErrorViewComponent(tracks.message)
                 } else {
                     val tracks = (tracks as GroupsViewModel.TrackState.Success).tracks
                     if (tracks.isEmpty()) {
-                        Text("No tracks available.\nPlease add a track first.")
+                        EmptyComponent(
+                            fillMaxSize = false,
+                            icon = Icons.Default.Route,
+                            title = "No tracks available",
+                            description = "Please add a track to continue."
+                        )
                     } else {
                         LazyColumn(
                             Modifier
