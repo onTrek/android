@@ -178,6 +178,22 @@ fun GroupDetailsScreen(
                             )
                         }
 
+                        if (showTrackSelection && currentUserId == groupInfo.created_by.id) {
+                            TrackSelectionDialog(
+                                tracks = tracks,
+                                loadTracks = { viewModel.loadTracks(token) },
+                                onDismiss = { showTrackSelection = false },
+                                onTrackSelected = { track ->
+                                    viewModel.changeTrack(groupId, TrackInfo(
+                                        id = track.id,
+                                        title = track.title
+                                    ), token)
+                                    showTrackSelection = false
+                                },
+                                oldTrack = groupInfo.track.id
+                            )
+                        }
+
                         // Sezione informazioni generali
                         Card(
                             modifier = Modifier
@@ -259,30 +275,16 @@ fun GroupDetailsScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
 
-                                    IconButton(
-                                        onClick = { showTrackSelection = true }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Change Track",
-                                            tint = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-
-                                    if (showTrackSelection) {
-                                        TrackSelectionDialog(
-                                            tracks = tracks,
-                                            loadTracks = { viewModel.loadTracks(token) },
-                                            onDismiss = { showTrackSelection = false },
-                                            onTrackSelected = { track ->
-                                                viewModel.changeTrack(groupId, TrackInfo(
-                                                    id = track.id,
-                                                    title = track.title
-                                                ), token)
-                                                showTrackSelection = false
-                                            },
-                                            oldTrack = groupInfo.track.id
-                                        )
+                                    if (currentUserId == groupInfo.created_by.id) {
+                                        IconButton(
+                                            onClick = { showTrackSelection = true }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Change Track",
+                                                tint = MaterialTheme.colorScheme.secondary
+                                            )
+                                        }
                                     }
 
                                     IconButton(
