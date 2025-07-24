@@ -20,14 +20,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun EmptyComponent(
+    fillMaxSize: Boolean = true,
     title: String = "No Data",
     description: String = "There are no items to display.",
     icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.AddToPhotos
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .then(if (fillMaxSize) Modifier.fillMaxSize() else Modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
