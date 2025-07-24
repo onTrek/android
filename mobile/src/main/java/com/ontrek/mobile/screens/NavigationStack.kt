@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.ontrek.mobile.data.PreferencesViewModel
-import com.ontrek.mobile.screens.profile.Profile
+import com.ontrek.mobile.screens.profile.ProfileScreen
 import com.ontrek.mobile.screens.friends.FriendsScreen
 import com.ontrek.mobile.screens.group.GroupsScreen
 import com.ontrek.mobile.screens.group.detail.GroupDetailsScreen
@@ -28,7 +28,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Profile.route, startDestination = Screen.Profile.route) {
             composable(route = Screen.Profile.route) {
-                Profile(navController, preferencesViewModel.tokenState)
+                ProfileScreen(navController, preferencesViewModel.tokenState)
             }
         }
 
