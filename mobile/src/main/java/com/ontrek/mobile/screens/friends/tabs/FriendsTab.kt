@@ -1,6 +1,8 @@
 package com.ontrek.mobile.screens.friends.tabs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,13 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,9 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.friendsComponents.Username
-import com.ontrek.shared.data.Friend
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.ontrek.mobile.screens.friends.components.Username
+import com.ontrek.shared.data.UserMinimal
 
 @Composable
 fun FriendsTab(
@@ -92,7 +90,7 @@ fun FriendsTab(
 
 @Composable
 fun FriendItem(
-    friend: Friend,
+    friend: UserMinimal,
     onRemoveFriend: () -> Unit
 ) {
 

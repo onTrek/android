@@ -33,7 +33,6 @@ class TrackViewModel : ViewModel() {
                 token = token
             )
         }
-
     }
 
     fun resetMsgToast() {

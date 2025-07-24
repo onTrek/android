@@ -234,9 +234,13 @@ fun AuthScreen() {
             Button(
                 onClick = {
                     if (uiState.authMode == AuthMode.LOGIN) {
-                        viewModel.loginFunc(saveToken = { token ->
-                            preferencesViewModel.saveToken(token)
-                        })
+                        viewModel.loginFunc(
+                            saveToken = { token ->
+                                preferencesViewModel.saveToken(token)
+                            },
+                            saveCurrentUser = { userId ->
+                                preferencesViewModel.saveCurrentUser(userId)
+                            })
                     } else {
                         viewModel.signUpFunc()
                     }

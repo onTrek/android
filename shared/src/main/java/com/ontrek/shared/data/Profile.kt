@@ -5,3 +5,8 @@ data class Profile(
     val username: String,
     val id: String,
 )
+
+data class UserMinimal(
+    val id: String,
+    val username: String,
+)

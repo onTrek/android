@@ -33,7 +33,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.*
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.trackComponents.TitleTrack
+import com.ontrek.shared.utils.formatDate
+import com.ontrek.shared.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,13 +83,9 @@ fun TrackDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    TitleTrack(
-                        title = when (trackDetailState) {
-                            is TrackDetailViewModel.TrackDetailState.Success ->
-                                (trackDetailState as TrackDetailViewModel.TrackDetailState.Success).track.title
-                            else -> "Track Details"
-                        },
-                        modifier = Modifier.fillMaxWidth(0.8f) // Occupa il 80% della larghezza
+                    Text(
+                        text = "Details",
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -164,7 +161,7 @@ fun TrackDetailScreen(
                                             val event = awaitPointerEvent()
                                         } while (event.changes.any { it.pressed })
 
-                                        scale.value = 1f
+                                        scale.floatValue = 1f
                                         offset.value = Offset.Zero
                                     }
                                 }
@@ -243,7 +240,7 @@ fun TrackDetailScreen(
                                 TrackInfoRow(
                                     icon = Icons.Default.DateRange,
                                     label = "Upload Date",
-                                    value = viewModel.formatDate(track.upload_date)
+                                    value = formatDate(track.upload_date)
                                 )
 
                                 // Distanza
@@ -257,7 +254,7 @@ fun TrackDetailScreen(
                                 TrackInfoRow(
                                     icon = Icons.Default.Timer,
                                     label = "Duration",
-                                    value = viewModel.formatDuration(track.stats.duration)
+                                    value = formatDuration(track.stats.duration)
                                 )
 
                                 // Sezione Elevazione
@@ -290,15 +287,15 @@ fun TrackDetailScreen(
 
                                 // Altitudine Massima
                                 TrackInfoRow(
-                                    icon = Icons.Default.Terrain,
-                                    label = "Max Height",
+                                    icon = Icons.Default.KeyboardDoubleArrowUp,
+                                    label = "Max Altitude",
                                     value = "${track.stats.max_altitude} m"
                                 )
 
                                 // Altitudine Minima
                                 TrackInfoRow(
-                                    icon = Icons.Default.Terrain,
-                                    label = "Min Height",
+                                    icon = Icons.Default.KeyboardDoubleArrowDown,
+                                    label = "Min Altitude",
                                     value = "${track.stats.min_altitude} m"
                                 )
                             }

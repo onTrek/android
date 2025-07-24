@@ -129,26 +129,6 @@ class TrackDetailViewModel : ViewModel() {
         data class Error(val message: String) : ImageState()
     }
 
-    // Formatta la data per la visualizzazione
-    fun formatDate(dateString: String): String {
-        return try {
-            val instant = Instant.parse(dateString)
-            DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(java.time.ZoneId.systemDefault()).format(instant)
-        } catch (e: Exception) {
-            dateString
-        }
-    }
-
-    // Formatta la durata per la visualizzazione
-    fun formatDuration(duration: String): String {
-        return try {
-            val parts = duration.split(":")
-            "${parts[0]}h ${parts[1]}m"
-        } catch (e: Exception) {
-            duration
-        }
-    }
-
     fun resetMsgToast() {
         _msgToast.value = ""
     }

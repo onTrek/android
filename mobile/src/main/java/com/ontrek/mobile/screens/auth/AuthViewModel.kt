@@ -74,7 +74,7 @@ class AuthViewModel : ViewModel() {
     }
 
     // Funzione per il login
-    fun loginFunc(saveToken: (String) -> Unit) {
+    fun loginFunc(saveToken: (String) -> Unit, saveCurrentUser: (String) -> Unit) {
         val currentState = _uiState.value
         val email = currentState.email
         val password = currentState.password
@@ -96,6 +96,7 @@ class AuthViewModel : ViewModel() {
                 val token = response?.token ?: ""
                 if (token.isNotEmpty()) {
                     saveToken(token)
+                    saveCurrentUser(response?.id ?: "")
                     _uiState.update {
                         it.copy(
                             isLoading = false,

@@ -1,19 +1,18 @@
-package com.ontrek.wear.screens.hikeselection
+package com.ontrek.wear.screens.groupselection
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ontrek.shared.api.hikes.getGroups
-import com.ontrek.shared.data.Hikes
+import com.ontrek.shared.api.groups.getGroups
+import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.wear.data.AppDatabase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-data class HikeUI(
+data class GroupUI(
     val group_id: Int,
     val description: String,
     val created_at: String,
@@ -22,7 +21,7 @@ data class HikeUI(
     val track: TrackInfo
 )
 
-class HikeSelectionViewModel(private val db: AppDatabase) : ViewModel() {
+class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -30,41 +29,37 @@ class HikeSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _fetchError = MutableStateFlow<String?>(null)
     val fetchError: StateFlow<String?> = _fetchError
 
-    private val _availableHikesListState = MutableStateFlow<List<HikeUI>>(listOf())
-    val availableHikesListState: StateFlow<List<HikeUI>> = _availableHikesListState
-
-    private val _isLoadingHikes = MutableStateFlow(false)
-    val isLoadingHikes: StateFlow<Boolean> = _isLoadingHikes
+    private val _groupsListState = MutableStateFlow<List<GroupUI>>(listOf())
+    val groupListState: StateFlow<List<GroupUI>> = _groupsListState
 
 
-    fun fetchHikesList(token: String) {
+    fun fetchGroupsList(token: String) {
         Log.d("WearOS", "Fetching data with token: $token")
         _isLoading.value = true
 
 
         viewModelScope.launch {
-            delay(1000) // Simulate network delay
             getGroups(
                 token = token,
-                onSuccess =  ::updateHikes,
+                onSuccess = ::updateGroups,
                 onError = ::setError
             )
         }
     }
 
-    fun updateHikes(data: List<Hikes>?) {
+    fun updateGroups(data: List<GroupDoc>?) {
         Log.d("WearOS", "Data updated: $data")
         if (data != null) {
-            _availableHikesListState.value = data.map { hike ->
-                HikeUI(
-                    group_id = hike.group_id,
-                    description = hike.description,
-                    created_at = hike.created_at,
-                    created_by = hike.created_by,
-                    member_number = hike.member_number,
+            _groupsListState.value = data.map { group ->
+                GroupUI(
+                    group_id = group.group_id,
+                    description = group.description,
+                    created_at = group.created_at,
+                    created_by = group.created_by,
+                    member_number = group.members_number,
                     track = TrackInfo(
-                        id = hike.track.id,
-                        title = hike.track.title
+                        id = group.track.id,
+                        title = group.track.title
                     )
                 )
             }
@@ -72,23 +67,21 @@ class HikeSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         } else {
             Log.e("WearOS", "Data is null")
         }
-        _isLoadingHikes.value = false
         _isLoading.value = false
     }
 
     fun setError(error: String?) {
         Log.e("WearOS", "Error occurred: $error")
-        _availableHikesListState.value = listOf()
+        _groupsListState.value = listOf()
         _fetchError.value = error
-        _isLoadingHikes.value = false
         _isLoading.value = false
     }
 
     class Factory(private val db: AppDatabase) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(HikeSelectionViewModel::class.java)) {
-                return HikeSelectionViewModel(db) as T
+            if (modelClass.isAssignableFrom(GroupSelectionViewModel::class.java)) {
+                return GroupSelectionViewModel(db) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

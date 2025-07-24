@@ -1,14 +1,16 @@
 package com.ontrek.shared.api
 
 import com.ontrek.shared.data.Login
-import com.ontrek.shared.data.MessageResponse
 import com.ontrek.shared.data.Signup
-import com.ontrek.shared.data.TokenResponse
-import com.ontrek.shared.data.Friend
+import com.ontrek.shared.data.LoginResponse
 import com.ontrek.shared.data.FriendRequest
-import com.ontrek.shared.data.Hikes
+import com.ontrek.shared.data.FileID
+import com.ontrek.shared.data.GroupDoc
+import com.ontrek.shared.data.GroupID
+import com.ontrek.shared.data.GroupIDCreation
+import com.ontrek.shared.data.GroupInfoResponseDoc
+import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.Track
-import com.ontrek.shared.data.Profile
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -17,15 +19,21 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Headers
-import retrofit2.http.PUT
-import retrofit2.http.Query
+import com.ontrek.shared.data.MemberInfo
+import com.ontrek.shared.data.MemberInfoUpdate
+import com.ontrek.shared.data.MessageResponse
+import com.ontrek.shared.data.Profile
+import com.ontrek.shared.data.UserMinimal
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.DELETE
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.Streaming
 
 object RetrofitClient {
@@ -42,7 +50,7 @@ interface ApiService {
     // ------- AUTH ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/login")
-    fun login(@Body loginBody: Login): Call<TokenResponse>
+    fun login(@Body loginBody: Login): Call<LoginResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @POST("/auth/register")
@@ -90,23 +98,15 @@ interface ApiService {
     @GET("/gpx/{id}/download")
     fun downloadGPX(@Header("Bearer") token: String, @Path("id") gpxID: Int): Call<ResponseBody>
 
-    // ------- HIKES ---------
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("groups/")
-    fun getGroups(@Header("Bearer") token: String): Call<List<Hikes>>
 
     // ------- FRIENDS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("friends/")
-    fun getFriends(@Header("Bearer") token: String): Call<List<Friend>>
+    fun getFriends(@Header("Bearer") token: String): Call<List<UserMinimal>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("friends/{id}")
     fun deleteFriend(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
-
-    @Headers("Content-Type: application/json;charset=UTF-8")
-    @GET("search")
-    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendOnly") friendOnly: Boolean = false): Call<List<Friend>>
 
     // ------- FRIEND REQUESTS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
@@ -128,4 +128,47 @@ interface ApiService {
     @Headers("Content-Type: application/json;charset=UTF-8")
     @DELETE("friends/requests/{id}")
     fun deleteFriendRequest(@Header("Bearer") token: String, @Path("id") id: String): Call<MessageResponse>
+
+    // ------- GROUPS ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/groups/")
+    fun getGroups(@Header("Bearer") token: String): Call<List<GroupDoc>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/groups/{id}")
+    fun getGroupInfo(@Header("Bearer") token: String, @Path("id") id: Int): Call<GroupInfoResponseDoc>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("/groups/{id}")
+    fun deleteGroup(@Header("Bearer") token: String, @Path("id") id: Int): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PATCH("/groups/{id}/gpx")
+    fun changeGPXInGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Body trackId: FileID): Call<MessageResponse>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @POST("/groups/")
+    fun createGroup(@Header("Bearer") token: String, @Body group: GroupIDCreation): Call<GroupID>
+
+    // ------- GROUP MEMBERS ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PUT("/groups/{id}/members/{user}")
+    fun addMemberToGroup(@Header("Bearer") token: String, @Path("id") groupID: Int, @Path("user") userID: String): Call<GroupMember>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @PUT("/groups/{id}/members/location")
+    fun updateMemberLocation(@Header("Bearer") token: String, @Path("id") id: Int, @Body memberInfo: MemberInfoUpdate): Call<Void>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("/groups/{id}/members")
+    fun getGroupMembers(@Header("Bearer") token: String, @Path("id") id: Int): Call<List<MemberInfo>>
+
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @DELETE("/groups/{id}/members/")
+    fun removeMemberFromGroup(@Header("Bearer") token: String, @Path("id") id: Int, @Query("user_id") userId: String? = null): Call<Void>
+
+    // ------- SEARCH USER PROFILE ---------
+    @Headers("Content-Type: application/json;charset=UTF-8")
+    @GET("search")
+    fun searchUser(@Header("Bearer") token: String, @Query("query") search: String, @Query("friendsOnly") friendsOnly: Boolean = false): Call<List<UserMinimal>>
 }

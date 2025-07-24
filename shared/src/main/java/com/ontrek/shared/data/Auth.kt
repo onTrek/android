@@ -5,8 +5,9 @@ data class Login(
     val password: String
 )
 
-data class TokenResponse(
-    val token: String
+data class LoginResponse (
+    val token: String,
+    val id: String
 )
 
 
