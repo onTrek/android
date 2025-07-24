@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -156,7 +157,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
         ) {
             when (val currentState = tracks) {
                 is TrackViewModel.TracksState.Loading -> {
-                    // LoadingComponent()
+                    CircularProgressIndicator()
                 }
                 is TrackViewModel.TracksState.Success -> {
                     if (currentState.tracks.isEmpty()) {
