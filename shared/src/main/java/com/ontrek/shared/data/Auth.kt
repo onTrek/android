@@ -16,3 +16,19 @@ data class Signup(
     val username: String,
     val password: String,
 )
+
+enum class AuthMode {
+    LOGIN, SIGNUP
+}
+
+
+data class AuthUIData(
+    val email: String = "",
+    val username: String = "",
+    val password: String = "",
+    val passwordRepeat: String = "",
+    val authMode: AuthMode = AuthMode.LOGIN,
+    val passwordVisible: Boolean = false,
+    val passwordRepeatVisible: Boolean = false,
+    val isLoading: Boolean = false,
+)

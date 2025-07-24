@@ -16,9 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -27,6 +25,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,31 +46,25 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.mobile.R
 import com.ontrek.mobile.data.PreferencesViewModel
-import com.ontrek.mobile.ui.theme.OnTrekTheme
+import com.ontrek.shared.data.AuthMode
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen() {
     val viewModel = viewModel<AuthViewModel>()
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.authState.collectAsState()
+    val msgToast by viewModel.msgToast.collectAsState()
     val context = LocalContext.current
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
-    val scrollState = rememberScrollState()
 
-
-    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
-        if (uiState.errorMessage != null || uiState.successMessage != null) {
-            Toast.makeText(
-                context,
-                uiState.errorMessage ?: uiState.successMessage ?: "",
-                Toast.LENGTH_SHORT
-            ).show()
-            viewModel.clearMessages()
+    LaunchedEffect(msgToast) {
+        if (msgToast.isNotEmpty()) {
+            Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -84,8 +77,7 @@ fun AuthScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -103,7 +95,11 @@ fun AuthScreen() {
             // Campo email
             OutlinedTextField(
                 value = uiState.email,
-                onValueChange = { viewModel.updateEmail(it) },
+                onValueChange = {
+                    viewModel.authState.value.let { currentState ->
+                        viewModel.authState.value = currentState.copy(email = it)
+                    }
+                },
                 label = { Text("Email") },
                 leadingIcon = {
                     Icon(
@@ -131,7 +127,11 @@ fun AuthScreen() {
                 Column {
                     OutlinedTextField(
                         value = uiState.username,
-                        onValueChange = { viewModel.updateUsername(it) },
+                        onValueChange = {
+                            viewModel.authState.value.let { currentState ->
+                                viewModel.authState.value = currentState.copy(username = it)
+                            }
+                        },
                         label = { Text("Username") },
                         leadingIcon = {
                             Icon(
@@ -154,7 +154,11 @@ fun AuthScreen() {
             // Campo password
             OutlinedTextField(
                 value = uiState.password,
-                onValueChange = { viewModel.updatePassword(it) },
+                onValueChange = {
+                    viewModel.authState.value.let { currentState ->
+                        viewModel.authState.value = currentState.copy(password = it)
+                    }
+                },
                 label = { Text("Password") },
                 leadingIcon = {
                     Icon(
@@ -165,7 +169,11 @@ fun AuthScreen() {
                 },
                 trailingIcon = {
                     IconButton(
-                        onClick = { viewModel.togglePasswordVisibility() },
+                        onClick = {
+                            viewModel.authState.value.let { currentState ->
+                                viewModel.authState.value = currentState.copy(passwordVisible = !currentState.passwordVisible)
+                            }
+                        },
                         enabled = !uiState.isLoading
                     ) {
                         Icon(
@@ -195,7 +203,11 @@ fun AuthScreen() {
                 Column {
                     OutlinedTextField(
                         value = uiState.passwordRepeat,
-                        onValueChange = { viewModel.updatePasswordRepeat(it) },
+                        onValueChange = {
+                            viewModel.authState.value.let { currentState ->
+                                viewModel.authState.value = currentState.copy(passwordRepeat = it)
+                            }
+                        },
                         label = { Text("Repeat password") },
                         leadingIcon = {
                             Icon(
@@ -206,7 +218,11 @@ fun AuthScreen() {
                         },
                         trailingIcon = {
                             IconButton(
-                                onClick = { viewModel.togglePasswordRepeatVisibility() },
+                                onClick = {
+                                    viewModel.authState.value.let { currentState ->
+                                        viewModel.authState.value = currentState.copy(passwordRepeatVisible = !currentState.passwordRepeatVisible)
+                                    }
+                                },
                                 enabled = !uiState.isLoading
                             ) {
                                 Icon(
@@ -258,9 +274,16 @@ fun AuthScreen() {
                     Text(if (uiState.authMode == AuthMode.LOGIN) "Login" else "Sign up")
                 }
             }
+
             // Testo e azione per cambiare modalità
             TextButton(
-                onClick = { viewModel.switchAuthMode() },
+                onClick = {
+                    viewModel.authState.value.let { currentState ->
+                        val newMode = if (currentState.authMode == AuthMode.LOGIN)
+                            AuthMode.SIGNUP else AuthMode.LOGIN
+                        viewModel.authState.value = currentState.copy(authMode = newMode)
+                    }
+                },
                 modifier = Modifier
                     .padding(bottom = 10.dp)
                     .align(Alignment.End),
@@ -269,14 +292,5 @@ fun AuthScreen() {
                 Text(if (uiState.authMode == AuthMode.LOGIN) "Sign up" else "Log in")
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun AuthScreenPreview() {
-    OnTrekTheme {
-        AuthScreen()
     }
 }

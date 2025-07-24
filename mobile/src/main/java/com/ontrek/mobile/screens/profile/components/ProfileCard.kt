@@ -71,7 +71,7 @@ fun ProfileCard(
                     when (imageLoadingState) {
                         is ProfileViewModel.UserImageState.Loading -> {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier.size(12.dp).padding(30.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 strokeWidth = 2.dp
                             )

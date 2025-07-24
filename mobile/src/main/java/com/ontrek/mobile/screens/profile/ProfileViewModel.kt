@@ -158,8 +158,8 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             _userProfile.value = UserProfileState.Loading
             try {
+                _msgToast.value = "Log out successfully"
                 clearToken()
-                _msgToast.value = "Logged out successfully"
             } catch (e: Exception) {
                 _msgToast.value = "Error during logout: ${e.message}"
             }
