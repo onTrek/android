@@ -41,7 +41,7 @@ fun ProfileCard(
     profile: Profile,
     imageBitmap: ImageBitmap?,
     imageLoadingState: ProfileViewModel.UserImageState,
-    isDevelopmentMode: Boolean,
+    isDevelopmentMode: Boolean = false,
     onImageClick: () -> Unit
 ) {
     Card(

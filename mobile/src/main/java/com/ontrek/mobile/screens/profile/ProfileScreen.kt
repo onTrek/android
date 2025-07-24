@@ -67,7 +67,6 @@ fun ProfileScreen(navController: NavHostController, tokenState: StateFlow<String
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val preferencesViewModel: PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
-    val isDevelopmentMode = false
 
     LaunchedEffect(imageProfile) {
         when (imageProfile) {
@@ -249,7 +248,6 @@ fun ProfileScreen(navController: NavHostController, tokenState: StateFlow<String
                         profile = profile,
                         imageBitmap = imageBitmap,
                         imageLoadingState = imageProfile,
-                        isDevelopmentMode = isDevelopmentMode,
                         onImageClick = { showFilePicker = true }
                     )
 
