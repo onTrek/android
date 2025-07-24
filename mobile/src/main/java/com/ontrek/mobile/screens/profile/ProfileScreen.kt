@@ -55,9 +55,8 @@ fun ProfileScreen(navController: NavHostController, tokenState: StateFlow<String
     val userProfile by viewModel.userProfile.collectAsState()
     val imageProfile by viewModel.imageProfile.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState()
-    val msgToast by viewModel.msgToastFlow.collectAsState()
     val token by tokenState.collectAsStateWithLifecycle()
-
+    val msgToast by viewModel.msgToast.collectAsState()
     var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var previewImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var preview by remember { mutableStateOf(ByteArray(0)) }
@@ -158,9 +157,10 @@ fun ProfileScreen(navController: NavHostController, tokenState: StateFlow<String
         }
     }
 
-    LaunchedEffect(msgToast) {
-        if (msgToast.isNotEmpty()) {
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
+            viewModel.clearMsgToast()
         }
     }
 

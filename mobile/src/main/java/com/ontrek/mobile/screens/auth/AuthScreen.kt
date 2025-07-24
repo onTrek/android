@@ -67,8 +67,8 @@ fun AuthScreen() {
     var passwordVisibility by remember { mutableStateOf(false) }
     var passwordRepeatVisibility by remember { mutableStateOf(false) }
 
-    LaunchedEffect(msgToast) {
-        if (msgToast.isNotEmpty()) {
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
             viewModel.clearMsgToast()
         }

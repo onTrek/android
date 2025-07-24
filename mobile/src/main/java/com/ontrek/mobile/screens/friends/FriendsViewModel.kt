@@ -289,7 +289,7 @@ class FriendsViewModel : ViewModel() {
         data class Error(val message: String) : SearchState()
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
     }
 

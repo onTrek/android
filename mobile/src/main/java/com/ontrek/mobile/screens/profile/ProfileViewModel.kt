@@ -28,7 +28,7 @@ class ProfileViewModel : ViewModel() {
     val connectionStatus: StateFlow<ConnectionState> = _connectionStatusWaer.asStateFlow()
 
     private val _msgToast = MutableStateFlow("")
-    val msgToastFlow: StateFlow<String> = _msgToast.asStateFlow()
+    val msgToast: StateFlow<String> = _msgToast.asStateFlow()
 
     fun fetchUserProfile(token: String) {
         viewModelScope.launch {
@@ -164,6 +164,14 @@ class ProfileViewModel : ViewModel() {
                 _msgToast.value = "Error during logout: ${e.message}"
             }
         }
+    }
+
+    fun clearMsgToast() {
+        _msgToast.value = ""
+    }
+
+    fun setMsgToast(message: String) {
+        _msgToast.value = message
     }
 
     sealed class UserProfileState {

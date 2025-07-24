@@ -61,8 +61,8 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         viewModel.loadGroups(token)
     }
 
-    LaunchedEffect(msgToast) {
-        if (msgToast.isNotEmpty()) {
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
             viewModel.clearMsgToast()
         }
