@@ -72,7 +72,6 @@ fun TrackDetailScreen(
     LaunchedEffect(msgToast) {
         if (msgToast.isNotEmpty()) {
             Toast.makeText(current, msgToast, Toast.LENGTH_SHORT).show()
-            viewModel.resetMsgToast() // Reset the message after showing it
         }
     }
 
