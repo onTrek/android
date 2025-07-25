@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class TrackDetailViewModel : ViewModel() {
     private val _trackDetailState = MutableStateFlow<TrackDetailState>(TrackDetailState.Loading)
@@ -21,9 +19,6 @@ class TrackDetailViewModel : ViewModel() {
 
     private val _imageState = MutableStateFlow<ImageState>(ImageState.Loading)
     val imageState: StateFlow<ImageState> = _imageState
-
-    private val _isLoadingDelete = MutableStateFlow(false)
-    val isLoadingDelete: StateFlow<Boolean> = _isLoadingDelete
 
     private val _msgToast = MutableStateFlow<String>("")
     val msgToast: StateFlow<String> = _msgToast
@@ -91,7 +86,7 @@ class TrackDetailViewModel : ViewModel() {
 
     fun deleteTrack(trackId: Int, token: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            _isLoadingDelete.value = true
+            _trackDetailState.value = TrackDetailState.Loading
             deleteTrack(
                 id = trackId,
                 onSuccess = { _ ->
@@ -103,7 +98,6 @@ class TrackDetailViewModel : ViewModel() {
                 },
                 token = token
             )
-            _isLoadingDelete.value = false
         }
     }
 
@@ -127,9 +121,5 @@ class TrackDetailViewModel : ViewModel() {
             override fun hashCode(): Int = imageBytes.contentHashCode()
         }
         data class Error(val message: String) : ImageState()
-    }
-
-    fun resetMsgToast() {
-        _msgToast.value = ""
     }
 }

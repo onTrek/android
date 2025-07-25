@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.group.components
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,29 +11,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAddAlt1
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
+import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.mobile.screens.group.detail.GroupDetailsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
-import androidx.core.graphics.toColorInt
-import com.ontrek.mobile.screens.friends.components.Username
 
 @Composable
 fun MembersGroup(
@@ -57,7 +57,7 @@ fun MembersGroup(
             token = token,
             title = "Add Member",
             onlyFriend = true,
-       )
+        )
     }
 
     Column(
@@ -79,7 +79,9 @@ fun MembersGroup(
             if (currentUserID == owner) {
                 IconButton(
                     onClick = { showAddMemberDialog = true },
-                    modifier = Modifier.size(30.dp).padding(bottom = 4.dp)
+                    modifier = Modifier
+                        .size(30.dp)
+                        .padding(bottom = 4.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.PersonAddAlt1,
@@ -112,7 +114,7 @@ fun MembersGroup(
                         onRemoveClick = {
                             viewModel.removeMember(groupId, member.id, token)
                         },
-                   )
+                    )
                 }
             }
         }
@@ -145,7 +147,7 @@ fun MemberItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Person,
+            imageVector = Icons.Default.AccountCircle,
             contentDescription = "Member",
             tint = Color(member.color.toColorInt()),
             modifier = Modifier.size(24.dp)

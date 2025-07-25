@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.shared.api.groups.createGroup
 import com.ontrek.shared.api.groups.getGroups
-import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.GroupIDCreation
 import com.ontrek.shared.data.Track
@@ -28,17 +27,11 @@ class GroupsViewModel : ViewModel() {
         data class Error(val message: String) : TrackState()
     }
 
-    private val _listGroup = MutableStateFlow<GroupsState>(GroupsState.Success(emptyList()))
+    private val _listGroup = MutableStateFlow<GroupsState>(GroupsState.Loading)
     val listGroup: StateFlow<GroupsState> = _listGroup
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
-
-    private val _isCharged = MutableStateFlow(false)
-    val isCharged: StateFlow<Boolean> = _isCharged
-
-    private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
-    val tracks: StateFlow<TrackState> = _tracks
 
 
     fun loadGroups(token: String) {
@@ -57,31 +50,14 @@ class GroupsViewModel : ViewModel() {
         }
     }
 
-    fun loadTracks(token: String) {
-        _tracks.value = TrackState.Loading
-        viewModelScope.launch {
-            getTracks(
-                onSuccess = { tracksList ->
-                    _tracks.value = TrackState.Success(tracksList ?: emptyList())
-                },
-                onError = { error ->
-                    _tracks.value = TrackState.Error(error)
-                    _msgToast.value = error
-                },
-                token = token
-            )
-        }
-    }
-
     fun addGroup(
         description: String,
-        trackId: Int,
         token: String,
         navController: NavHostController
     ) {
         viewModelScope.launch {
             createGroup(
-                group = GroupIDCreation(description = description, file_id = trackId),
+                group = GroupIDCreation(description = description),
                 onSuccess = { groupId ->
                     _msgToast.value = "Group created successfully"
                     Log.d("GroupsViewModel", "Group created with ID: $groupId")
@@ -95,11 +71,8 @@ class GroupsViewModel : ViewModel() {
         }
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
     }
 
-    fun setCharged() {
-        _isCharged.value = !_isCharged.value
-    }
 }

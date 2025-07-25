@@ -31,9 +31,6 @@ class FriendsViewModel : ViewModel() {
     private val _sentFriendRequests = MutableStateFlow<SentRequestsState>(SentRequestsState.Loading)
     val sentFriendRequests: StateFlow<SentRequestsState> = _sentFriendRequests
 
-    private val _isCharge = MutableStateFlow(false)
-    val isCharge: StateFlow<Boolean> = _isCharge
-
     // Carica la lista degli amici
     fun loadFriends(token: String) {
         viewModelScope.launch {
@@ -97,7 +94,6 @@ class FriendsViewModel : ViewModel() {
                             date = System.currentTimeMillis().toString()
                         )
                     )
-                    setIsCharge()
                 },
                 onError = { error ->
                     _msgToast.value = error
@@ -169,9 +165,11 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             _sentFriendRequests.value = when (val currentState = _sentFriendRequests.value) {
                 is SentRequestsState.Success -> {
-                    val updatedRequests = currentState.requests.toMutableList().apply { add(request) }
+                    val updatedRequests =
+                        currentState.requests.toMutableList().apply { add(request) }
                     SentRequestsState.Success(updatedRequests)
                 }
+
                 else -> currentState
             }
         }
@@ -184,6 +182,7 @@ class FriendsViewModel : ViewModel() {
                     val updatedFriends = currentState.friends.toMutableList().apply { add(friend) }
                     FriendsState.Success(updatedFriends)
                 }
+
                 else -> currentState
             }
         }
@@ -196,6 +195,7 @@ class FriendsViewModel : ViewModel() {
                     val updatedFriends = currentState.friends.filter { it.id != friendId }
                     FriendsState.Success(updatedFriends)
                 }
+
                 else -> currentState
             }
         }
@@ -208,6 +208,7 @@ class FriendsViewModel : ViewModel() {
                     val updatedRequests = currentState.requests.filter { it.id != requestId }
                     RequestsState.Success(updatedRequests)
                 }
+
                 else -> currentState
             }
         }
@@ -233,11 +234,8 @@ class FriendsViewModel : ViewModel() {
         data class Error(val message: String) : SentRequestsState()
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
     }
 
-    fun setIsCharge() {
-        _isCharge.value = !_isCharge.value
-    }
 }

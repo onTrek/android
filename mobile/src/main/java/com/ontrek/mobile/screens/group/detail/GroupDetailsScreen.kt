@@ -5,16 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -51,7 +54,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.screens.group.components.MembersGroup
 import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
@@ -66,6 +68,7 @@ import com.ontrek.shared.utils.formatDate
 @Composable
 fun GroupDetailsScreen(
     groupId: Int,
+    currentUser: String,
     navController: NavHostController,
     token: String
 ) {
@@ -75,9 +78,6 @@ fun GroupDetailsScreen(
     val membersState by viewModel.membersState.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
-    val preferencesViewModel: PreferencesViewModel =
-        viewModel(factory = PreferencesViewModel.Factory)
-    val currentUserId = preferencesViewModel.currentUserState.collectAsState().value ?: ""
 
     val context = LocalContext.current
 
@@ -147,20 +147,20 @@ fun GroupDetailsScreen(
                         // Dialoghi di conferma
                         if (showDeleteConfirmation) {
                             DeleteConfirmationDialog(
-                                title = if (currentUserId != groupInfo.created_by.id) {
+                                title = if (currentUser != groupInfo.created_by.id) {
                                     "Leave Group"
                                 } else {
                                     "Delete Group"
                                 },
                                 textButton = "Confirm",
-                                text = if (currentUserId != groupInfo.created_by.id) {
+                                text = if (currentUser != groupInfo.created_by.id) {
                                     "Are you sure you want to leave this group? You will no longer have access to its content."
                                 } else {
                                     "Are you sure you want to delete this group? This action cannot be undone."
                                 },
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    if (currentUserId != groupInfo.created_by.id) {
+                                    if (currentUser != groupInfo.created_by.id) {
                                         viewModel.leaveGroup(
                                             groupId = groupId,
                                             token = token
@@ -178,16 +178,18 @@ fun GroupDetailsScreen(
                             )
                         }
 
-                        if (showTrackSelection && currentUserId == groupInfo.created_by.id) {
+                        if (showTrackSelection && currentUser == groupInfo.created_by.id) {
                             TrackSelectionDialog(
                                 tracks = tracks,
                                 loadTracks = { viewModel.loadTracks(token) },
                                 onDismiss = { showTrackSelection = false },
                                 onTrackSelected = { track ->
-                                    viewModel.changeTrack(groupId, TrackInfo(
-                                        id = track.id,
-                                        title = track.title
-                                    ), token)
+                                    viewModel.changeTrack(
+                                        groupId, TrackInfo(
+                                            id = track.id,
+                                            title = track.title
+                                        ), token
+                                    )
                                     showTrackSelection = false
                                 },
                                 oldTrack = groupInfo.track.id
@@ -236,7 +238,12 @@ fun GroupDetailsScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, bottom = 10.dp, top = 4.dp),
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 10.dp,
+                                        top = 4.dp
+                                    ),
                             ) {
                                 Text(
                                     text = "Track",
@@ -267,6 +274,11 @@ fun GroupDetailsScreen(
                                         text = groupInfo.track.title.ifEmpty {
                                             "No track associated"
                                         },
+                                        color = if (groupInfo.track.title.isEmpty()) {
+                                            MaterialTheme.colorScheme.outline
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier
                                             .weight(1f)
@@ -275,32 +287,45 @@ fun GroupDetailsScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
 
-                                    if (currentUserId == groupInfo.created_by.id) {
+                                    if (groupInfo.track.title.isEmpty()) {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = "Add Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Change Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
+                                        }
                                         IconButton(
-                                            onClick = { showTrackSelection = true }
+                                            onClick = {
+                                                navController.navigate(
+                                                    Screen.TrackDetail.createRoute(
+                                                        groupInfo.track.id.toString()
+                                                    )
+                                                )
+                                            }
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Edit,
-                                                contentDescription = "Change Track",
-                                                tint = MaterialTheme.colorScheme.secondary
+                                                imageVector = Icons.Default.Info,
+                                                contentDescription = "Track Details",
+                                                tint = MaterialTheme.colorScheme.tertiary
                                             )
                                         }
-                                    }
-
-                                    IconButton(
-                                        onClick = {
-                                            navController.navigate(
-                                                Screen.TrackDetail.createRoute(
-                                                    groupInfo.track.id.toString()
-                                                )
-                                            )
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = "Track Details",
-                                            tint = MaterialTheme.colorScheme.tertiary
-                                        )
                                     }
                                 }
                             }
@@ -317,7 +342,7 @@ fun GroupDetailsScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             MembersGroup(
-                                currentUserID = currentUserId,
+                                currentUserID = currentUser,
                                 owner = groupInfo.created_by.id,
                                 membersState = membersState,
                                 token = token,
@@ -333,7 +358,7 @@ fun GroupDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp),
                         ) {
-                            if (currentUserId == groupInfo.created_by.id) {
+                            if (currentUser == groupInfo.created_by.id) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     tint = MaterialTheme.colorScheme.error,
@@ -349,7 +374,9 @@ fun GroupDetailsScreen(
                                 )
                             }
 
-                            if (currentUserId == groupInfo.created_by.id) {
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            if (currentUser == groupInfo.created_by.id) {
                                 Text(
                                     text = "Delete Group",
                                     color = MaterialTheme.colorScheme.error,
