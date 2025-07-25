@@ -146,7 +146,7 @@ interface ApiService {
     // ------- GROUPS ---------
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/groups/")
-    fun getGroups(@Header("Bearer") token: String): Call<List<GroupDoc>>
+    fun getGroups(): Call<List<GroupDoc>>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/groups/{id}")
