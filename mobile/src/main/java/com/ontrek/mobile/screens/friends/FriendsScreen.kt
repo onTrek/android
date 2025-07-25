@@ -35,7 +35,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsScreen(
-    token: String,
     navController: NavHostController
 ) {
     val viewModel: FriendsViewModel = viewModel()
@@ -48,8 +47,8 @@ fun FriendsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     LaunchedEffect(Unit) {
-        viewModel.loadFriends(token)
-        viewModel.loadFriendRequests(token)
+        viewModel.loadFriends()
+        viewModel.loadFriendRequests()
     }
 
     if (msgToast.isNotEmpty()) {
@@ -119,9 +118,9 @@ fun FriendsScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {
-                    0 -> FriendsTab(viewModel, token)
-                    1 -> SearchTab(viewModel, token)
-                    2 -> RequestsTab(viewModel, token)
+                    0 -> FriendsTab(viewModel)
+                    1 -> SearchTab(viewModel)
+                    2 -> RequestsTab(viewModel)
                 }
             }
         }

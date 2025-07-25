@@ -80,7 +80,6 @@ fun TrackDetailScreen(
     trackId: Int,
     currentUser: String,
     navController: NavHostController,
-    token: String
 ) {
     val viewModel: TrackDetailViewModel = viewModel()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -104,8 +103,8 @@ fun TrackDetailScreen(
     }
 
     LaunchedEffect(trackId) {
-        viewModel.loadTrackDetails(trackId, token)
-        viewModel.loadTrackImage(trackId, token)
+        viewModel.loadTrackDetails(trackId)
+        viewModel.loadTrackImage(trackId)
     }
 
     LaunchedEffect(msgToast) {
@@ -168,9 +167,7 @@ fun TrackDetailScreen(
                                 title = "Delete Track",
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    viewModel.deleteTrack(
-                                        track.id,
-                                        token,
+                                    viewModel.deleteTrack(track.id,
                                         onSuccess = {
                                             navController.navigateUp()
                                         },

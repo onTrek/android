@@ -29,21 +29,26 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Profile.route, startDestination = Screen.Profile.route) {
             composable(route = Screen.Profile.route) {
-                ProfileScreen(navController, preferencesViewModel.tokenState)
+                ProfileScreen(
+                    navController = navController,
+                    token = preferencesViewModel.tokenState.value ?: "",
+                    clearToken = {
+                        preferencesViewModel.clearToken()
+                    },
+                )
             }
         }
 
         navigation(route = TopLevelScreen.Tracks.route, startDestination = Screen.Tracks.route) {
             composable(route = Screen.Tracks.route) {
-                TrackScreen(navController, token = preferencesViewModel.tokenState.value ?: "")
+                TrackScreen(navController)
             }
             composable(route = Screen.TrackDetail.route) { backStackEntry ->
-                val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
+                val trackId = backStackEntry.arguments?.getString("trackId") ?: "0"
                 TrackDetailScreen(
-                    trackId = trackId.toIntOrNull() ?: 0,
+                    trackId = trackId.toInt(),
                     navController = navController,
                     currentUser = preferencesViewModel.currentUserState.value ?: "",
-                    token = preferencesViewModel.tokenState.value ?: ""
                 )
             }
         }
@@ -52,7 +57,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             composable(route = Screen.Groups.route) {
                 GroupsScreen(
                     navController = navController,
-                    token = preferencesViewModel.tokenState.value ?: ""
                 )
             }
             composable(route = Screen.GroupDetails.route) { backStackEntry ->
@@ -61,7 +65,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                     groupId = groupId.toIntOrNull() ?: 0,
                     navController = navController,
                     currentUser = preferencesViewModel.currentUserState.value ?: "",
-                    token = preferencesViewModel.tokenState.value ?: "",
                 )
             }
         }
@@ -69,7 +72,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         navigation(route = TopLevelScreen.Friends.route, startDestination = Screen.Friends.route) {
             composable(route = Screen.Friends.route) {
                 FriendsScreen(
-                    token = preferencesViewModel.tokenState.value ?: "",
                     navController = navController
                 )
             }

@@ -25,12 +25,11 @@ import java.time.format.DateTimeParseException
 @Composable
 fun RequestsTab(
     viewModel: FriendsViewModel,
-    token: String
 ) {
     val requestsState by viewModel.requestsState.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadFriendRequests(token)
+        viewModel.loadFriendRequests()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -65,8 +64,8 @@ fun RequestsTab(
                         items(requests) { request ->
                             RequestItem(
                                 request = request,
-                                onAccept = { viewModel.acceptRequest(request, token) },
-                                onReject = { viewModel.rejectFriendRequest(request.id, token) }
+                                onAccept = { viewModel.acceptRequest(request) },
+                                onReject = { viewModel.rejectFriendRequest(request.id) }
                             )
                         }
                     }

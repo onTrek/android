@@ -51,7 +51,7 @@ import com.ontrek.shared.data.GroupDoc
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupsScreen(navController: NavHostController, token: String) {
+fun GroupsScreen(navController: NavHostController) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val viewModel: GroupsViewModel = viewModel()
     val context = LocalContext.current
@@ -62,7 +62,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadGroups(token)
+        viewModel.loadGroups()
     }
 
     if (msgToast.isNotEmpty()) {
@@ -94,7 +94,6 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 onCreateGroup = { description ->
                     viewModel.addGroup(
                         description = description,
-                        token = token,
                         navController = navController
                     )
                 }
@@ -105,7 +104,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         PullToRefreshBox(
             isRefreshing = listGroupState is GroupsViewModel.GroupsState.Loading,
             onRefresh = {
-                viewModel.loadGroups(token)
+                viewModel.loadGroups()
             },
             modifier = Modifier
                 .fillMaxSize()

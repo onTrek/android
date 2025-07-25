@@ -25,7 +25,7 @@ class TrackDetailViewModel : ViewModel() {
 
 
     // Funzione per caricare i dettagli della traccia
-    fun loadTrackDetails(trackId: Int, token: String) {
+    fun loadTrackDetails(trackId: Int) {
         viewModelScope.launch {
             _trackDetailState.value = TrackDetailState.Loading
 
@@ -42,19 +42,17 @@ class TrackDetailViewModel : ViewModel() {
                     Log.e("TrackDetailViewModel", "Error loading track: $errorMessage")
                     _trackDetailState.value = TrackDetailState.Error(errorMessage)
                 },
-                token = token
             )
         }
     }
 
     // Funzione per caricare l'immagine della traccia
-    fun loadTrackImage(trackId: Int, token: String) {
+    fun loadTrackImage(trackId: Int) {
         viewModelScope.launch {
             _imageState.value = ImageState.Loading
 
             getMapTrack(
                 id = trackId,
-                token = token,
                 onSuccess = { responseBody ->
                     // Usa un thread IO per leggere la risposta
                     viewModelScope.launch(Dispatchers.IO) {
@@ -84,7 +82,7 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
-    fun deleteTrack(trackId: Int, token: String, onSuccess: () -> Unit) {
+    fun deleteTrack(trackId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _trackDetailState.value = TrackDetailState.Loading
             deleteTrack(
@@ -96,7 +94,6 @@ class TrackDetailViewModel : ViewModel() {
                 onError = { errorMsg ->
                     _msgToast.value = errorMsg
                 },
-                token = token
             )
         }
     }

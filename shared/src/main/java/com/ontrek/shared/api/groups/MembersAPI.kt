@@ -14,9 +14,8 @@ fun addMemberInGroup(
     userID: String,
     onSuccess: (GroupMember?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.addMemberToGroup(token, groupID, userID).enqueue(object : Callback<GroupMember> {
+    RetrofitClient.api.addMemberToGroup(groupID, userID).enqueue(object : Callback<GroupMember> {
         override fun onResponse(call: Call<GroupMember>, response: Response<GroupMember>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member", "API Success")
@@ -38,11 +37,10 @@ fun addMemberInGroup(
 fun removeMemberFromGroup(
     groupID: Int,
     userID: String? = null,
-    token: String,
     onSuccess: () -> Unit,
     onError: (String) -> Unit,
 ) {
-    RetrofitClient.api.removeMemberFromGroup(token, groupID, userID).enqueue(object : Callback<Void> {
+    RetrofitClient.api.removeMemberFromGroup(groupID, userID).enqueue(object : Callback<Void> {
         override fun onResponse(call: Call<Void>, response: Response<Void>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member", "API Success")
@@ -63,11 +61,10 @@ fun removeMemberFromGroup(
 
 fun getGroupMembers(
     id: Int,
-    token: String,
     onSuccess: (List<MemberInfo>?) -> Unit,
     onError: (String) -> Unit
 ) {
-    RetrofitClient.api.getGroupMembers(token, id).enqueue(object : Callback<List<MemberInfo>> {
+    RetrofitClient.api.getGroupMembers(id).enqueue(object : Callback<List<MemberInfo>> {
         override fun onResponse(call: Call<List<MemberInfo>>, response: Response<List<MemberInfo>>) {
             if (response.isSuccessful) {
                 Log.d("API Group Members", "API Success")
@@ -88,11 +85,10 @@ fun getGroupMembers(
 fun updateMemberLocation(
     id: Int,
     memberInfo: MemberInfoUpdate,
-    token: String,
     onSuccess: () -> Unit,
     onError: (String) -> Unit
 ) {
-    RetrofitClient.api.updateMemberLocation(token, id, memberInfo).enqueue(object : Callback<Void> {
+    RetrofitClient.api.updateMemberLocation(id, memberInfo).enqueue(object : Callback<Void> {
         override fun onResponse(call: Call<Void>, response: Response<Void>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member Location", "API Success")

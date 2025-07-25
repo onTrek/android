@@ -4,8 +4,8 @@ import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.UserMinimal
 
-fun getFriends(token: String, onSuccess: (List<UserMinimal>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.getFriends(token).enqueue(object : retrofit2.Callback<List<UserMinimal>> {
+fun getFriends(onSuccess: (List<UserMinimal>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getFriends().enqueue(object : retrofit2.Callback<List<UserMinimal>> {
         override fun onResponse(call: retrofit2.Call<List<UserMinimal>>, response: retrofit2.Response<List<UserMinimal>>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -23,8 +23,8 @@ fun getFriends(token: String, onSuccess: (List<UserMinimal>?) -> Unit, onError: 
     })
 }
 
-fun deleteFriend(token: String, id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.deleteFriend(token, id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
+fun deleteFriend(id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.deleteFriend(id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
         override fun onResponse(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, response: retrofit2.Response<com.ontrek.shared.data.MessageResponse>) {
             if (response.isSuccessful) {
                 val message = response.body()?.message ?: "UserMinimal deleted"

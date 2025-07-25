@@ -38,8 +38,7 @@ fun TrackButton(
     track: TrackUI,
     index: Int,
     navController: NavHostController,
-    token: String,
-    onDownloadClick: (String, Int, Int, Context) -> Unit,
+    onDownloadClick: (Int, Int, Context) -> Unit,
     deleteTrack: (Int, Context) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -48,7 +47,7 @@ fun TrackButton(
     Button(
         onClick = {
             if (track.state is DownloadState.NotStarted) {
-                onDownloadClick(token, index, track.id, context)
+                onDownloadClick(index, track.id, context)
             } else if (track.state is DownloadState.Completed) {
                 navController.navigate(route = Screen.TrackScreen.route + "?trackID=${track.id}&trackName=${track.title}")
             }

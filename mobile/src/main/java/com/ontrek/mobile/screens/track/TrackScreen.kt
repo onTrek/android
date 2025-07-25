@@ -43,7 +43,9 @@ import com.ontrek.shared.data.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackScreen(navController: NavHostController, token: String) {
+fun TrackScreen(
+    navController: NavHostController
+) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val viewModel: TrackViewModel = viewModel()
     val context = LocalContext.current
@@ -104,7 +106,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
     }
 
     LaunchedEffect(Unit) {
-        viewModel.loadTracks(token)
+        viewModel.loadTracks()
     }
 
     LaunchedEffect(tracksState) {
@@ -118,10 +120,9 @@ fun TrackScreen(navController: NavHostController, token: String) {
             onDismissRequest = { showAddTrackDialog = false },
             onTrackAdded = {
                 showAddTrackDialog = false
-                viewModel.loadTracks(token)
+                viewModel.loadTracks()
                 Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
             },
-            token = token,
             fileUri = selectedFileUri!!,
         )
     }
@@ -157,7 +158,7 @@ fun TrackScreen(navController: NavHostController, token: String) {
         PullToRefreshBox(
             isRefreshing = tracksState is TrackViewModel.TracksState.Loading,
             onRefresh = {
-                viewModel.loadTracks(token)
+                viewModel.loadTracks()
             },
             modifier = Modifier
                 .fillMaxSize()

@@ -42,7 +42,6 @@ import com.ontrek.shared.data.UserMinimal
 @Composable
 fun FriendsTab(
     viewModel: FriendsViewModel,
-    token: String
 ) {
     val friendsState by viewModel.friendsState.collectAsState()
 
@@ -78,7 +77,7 @@ fun FriendsTab(
                         items(friends) { friend ->
                             FriendItem(
                                 friend = friend,
-                                onRemoveFriend = { viewModel.removeFriend(friend.id, token) }
+                                onRemoveFriend = { viewModel.removeFriend(friend.id) }
                             )
                         }
                     }

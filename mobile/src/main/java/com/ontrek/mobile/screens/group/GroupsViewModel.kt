@@ -34,7 +34,7 @@ class GroupsViewModel : ViewModel() {
     val msgToast: StateFlow<String> = _msgToast
 
 
-    fun loadGroups(token: String) {
+    fun loadGroups() {
         _listGroup.value = GroupsState.Loading
         viewModelScope.launch {
             getGroups(
@@ -45,14 +45,12 @@ class GroupsViewModel : ViewModel() {
                     _listGroup.value = GroupsState.Error(error)
                     _msgToast.value = error
                 },
-                token = token
             )
         }
     }
 
     fun addGroup(
         description: String,
-        token: String,
         navController: NavHostController
     ) {
         viewModelScope.launch {
@@ -66,7 +64,6 @@ class GroupsViewModel : ViewModel() {
                 onError = { error ->
                     _msgToast.value = error
                 },
-                token = token
             )
         }
     }

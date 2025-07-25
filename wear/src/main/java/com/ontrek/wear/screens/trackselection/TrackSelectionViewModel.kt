@@ -108,16 +108,13 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         }
     }
 
-    fun fetchTrackList(token: String) {
-        Log.d("WearOS", "Fetching data with token: $token")
+    fun fetchTrackList() {
         _isLoadingTracks.value = true
-
 
         viewModelScope.launch {
             getTracks(
                 onSuccess = ::updateTracks,
                 onError = ::setError,
-                token = token,
             )
         }
     }
@@ -158,14 +155,13 @@ class TrackSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         }
     }
 
-    fun downloadTrack(token: String, index: Int, trackID: Int, context: Context) {
+    fun downloadTrack(index: Int, trackID: Int, context: Context) {
         Log.d("DownloadTrack", "Downloading GPX")
 
         updateButtonState(index, DownloadState.InProgress)
 
         viewModelScope.launch {
             downloadGpx(
-                token = token,
                 gpxID = trackID,
                 onError = {
                     Log.e("DownloadTrack", "Error occurred: $it")

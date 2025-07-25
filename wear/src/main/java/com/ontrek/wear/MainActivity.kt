@@ -22,6 +22,7 @@ import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.NavigationStack
 import com.ontrek.wear.screens.login.Login
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setContent {
             OnTrekTheme {
                 val token by preferencesViewModel.tokenState.collectAsState()
+                RetrofitClient.initialize(preferencesViewModel)
                 Log.d("WATCH_CONNECTION", "Token state: \"$token\"")
                 when {
                     token == null -> Loading(Modifier.fillMaxSize())
@@ -85,7 +87,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                         PermissionRequester(context)
                     }
 
-                    token!!.isEmpty() -> Login()
+                    token!!.isEmpty() -> Login(preferencesViewModel::saveToken)
                     else -> AppScaffold {
                         NavigationStack()
                     }
