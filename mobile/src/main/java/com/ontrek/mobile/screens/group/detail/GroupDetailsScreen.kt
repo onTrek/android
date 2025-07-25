@@ -274,6 +274,11 @@ fun GroupDetailsScreen(
                                         text = groupInfo.track.title.ifEmpty {
                                             "No track associated"
                                         },
+                                        color = if (groupInfo.track.title.isEmpty()) {
+                                            MaterialTheme.colorScheme.outline
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier
                                             .weight(1f)
@@ -282,18 +287,23 @@ fun GroupDetailsScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
 
-                                    if (currentUser == groupInfo.created_by.id) {
-                                        IconButton(
-                                            onClick = { showTrackSelection = true }
-                                        ) {
-                                            if (groupInfo.track.title.isEmpty()) {
+                                    if (groupInfo.track.title.isEmpty()) {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
                                                     contentDescription = "Add Track",
                                                     tint = MaterialTheme.colorScheme.secondary
                                                 )
-                                            } else {
-                                                // Icon to change the track
+                                            }
+                                        }
+                                    } else {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Edit,
                                                     contentDescription = "Change Track",
@@ -301,22 +311,21 @@ fun GroupDetailsScreen(
                                                 )
                                             }
                                         }
-                                    }
-
-                                    IconButton(
-                                        onClick = {
-                                            navController.navigate(
-                                                Screen.TrackDetail.createRoute(
-                                                    groupInfo.track.id.toString()
+                                        IconButton(
+                                            onClick = {
+                                                navController.navigate(
+                                                    Screen.TrackDetail.createRoute(
+                                                        groupInfo.track.id.toString()
+                                                    )
                                                 )
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Info,
+                                                contentDescription = "Track Details",
+                                                tint = MaterialTheme.colorScheme.tertiary
                                             )
                                         }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = "Track Details",
-                                            tint = MaterialTheme.colorScheme.tertiary
-                                        )
                                     }
                                 }
                             }

@@ -26,7 +26,7 @@ class GroupDetailsViewModel : ViewModel() {
     private val _membersState = MutableStateFlow<List<GroupMember>>(emptyList())
     val membersState: StateFlow<List<GroupMember>> = _membersState
 
-    private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
+    private val _tracks = MutableStateFlow<TrackState>(TrackState.Loading)
     val tracks: StateFlow<TrackState> = _tracks
 
     private val _msgToast = MutableStateFlow("")
