@@ -57,11 +57,11 @@ fun GroupsScreen(navController: NavHostController, token: String) {
 
     val listGroupState by viewModel.listGroup.collectAsStateWithLifecycle()
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
-    val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
+    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
 
     var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
 
-    LaunchedEffect(isCharged) {
+    LaunchedEffect(Unit) {
         viewModel.loadGroups(token)
     }
 

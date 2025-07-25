@@ -40,9 +40,6 @@ class FriendsViewModel : ViewModel() {
     private val _sentFriendRequests = MutableStateFlow<SentRequestsState>(SentRequestsState.Loading)
     val sentFriendRequests: StateFlow<SentRequestsState> = _sentFriendRequests
 
-    private val _isCharge = MutableStateFlow(false)
-    val isCharge: StateFlow<Boolean> = _isCharge
-
     // Carica la lista degli amici
     fun loadFriends(token: String) {
         viewModelScope.launch {
@@ -293,7 +290,4 @@ class FriendsViewModel : ViewModel() {
         _msgToast.value = ""
     }
 
-    fun setIsCharge() {
-        _isCharge.value = !_isCharge.value
-    }
 }
