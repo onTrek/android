@@ -29,7 +29,13 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Profile.route, startDestination = Screen.Profile.route) {
             composable(route = Screen.Profile.route) {
-                ProfileScreen(navController)
+                ProfileScreen(
+                    navController = navController,
+                    token = preferencesViewModel.tokenState.value ?: "",
+                    clearToken = {
+                        preferencesViewModel.clearToken()
+                    },
+                )
             }
         }
 

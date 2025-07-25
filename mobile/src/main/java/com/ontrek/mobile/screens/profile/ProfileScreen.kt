@@ -5,48 +5,49 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.ontrek.mobile.utils.components.BottomNavBar
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ExitToApp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ontrek.mobile.data.PreferencesViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.profile.components.ConnectionWearButton
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
+import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorViewComponent
-import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavHostController) {
+fun ProfileScreen(
+    navController: NavHostController,
+    token: String,
+    clearToken: () -> Unit
+) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -63,24 +64,26 @@ fun ProfileScreen(navController: NavHostController) {
     var showFilePicker by remember { mutableStateOf(false) }
     var selectedFilename by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val preferencesViewModel: PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
-    val token = preferencesViewModel.tokenState.collectAsStateWithLifecycle().value  // TODO: pass the token as a parameter
 
     LaunchedEffect(imageProfile) {
         when (imageProfile) {
             is ProfileViewModel.UserImageState.Success -> {
                 val imageData = (imageProfile as ProfileViewModel.UserImageState.Success).imageBytes
                 if (imageData.isNotEmpty()) {
-                    imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.size)?.asImageBitmap()
+                    imageBitmap =
+                        BitmapFactory.decodeByteArray(imageData, 0, imageData.size)?.asImageBitmap()
                 }
             }
-            else -> { /* Non fare nulla per gli altri stati */ }
+
+            else -> { /* Non fare nulla per gli altri stati */
+            }
         }
     }
 
     LaunchedEffect(preview.contentHashCode()) {
         if (preview.isNotEmpty()) {
-            previewImageBitmap = BitmapFactory.decodeByteArray(preview, 0, preview.size)?.asImageBitmap()
+            previewImageBitmap =
+                BitmapFactory.decodeByteArray(preview, 0, preview.size)?.asImageBitmap()
         }
     }
 
@@ -103,16 +106,19 @@ fun ProfileScreen(navController: NavHostController) {
         if (uri != null) {
             try {
                 val fileName = viewModel.getFileNameFromUri(context, uri)
-                val extension = fileName?.substringAfterLast('.', missingDelimiterValue = "")?.lowercase()
+                val extension =
+                    fileName?.substringAfterLast('.', missingDelimiterValue = "")?.lowercase()
 
                 if (extension == "jpg" || extension == "jpeg" || extension == "png") {
                     context.contentResolver.openInputStream(uri)?.use { inputStream ->
                         val imageBytes = inputStream.readBytes()
 
                         if (imageBytes.size > 4) {
-                            val isPng = imageBytes[0] == 0x89.toByte() && imageBytes[1] == 0x50.toByte() &&
-                                    imageBytes[2] == 0x4E.toByte() && imageBytes[3] == 0x47.toByte()
-                            val isJpeg = imageBytes[0] == 0xFF.toByte() && imageBytes[1] == 0xD8.toByte()
+                            val isPng =
+                                imageBytes[0] == 0x89.toByte() && imageBytes[1] == 0x50.toByte() &&
+                                        imageBytes[2] == 0x4E.toByte() && imageBytes[3] == 0x47.toByte()
+                            val isJpeg =
+                                imageBytes[0] == 0xFF.toByte() && imageBytes[1] == 0xD8.toByte()
 
                             if (isPng || isJpeg) {
                                 selectedFilename = fileName
@@ -191,7 +197,7 @@ fun ProfileScreen(navController: NavHostController) {
                     text = "Are you sure you want to logout?",
                     textButton = "Logout",
                     onConfirm = {
-                        viewModel.logout { preferencesViewModel.clearToken() }
+                        viewModel.logout { clearToken() }
                         showLogoutDialog = false
                     },
                     onDismiss = { showLogoutDialog = false },
@@ -204,7 +210,7 @@ fun ProfileScreen(navController: NavHostController) {
                     text = "Are you sure you want to delete your profile? This action cannot be undone.",
                     onConfirm = {
                         viewModel.deleteProfile(
-                            clearToken = { preferencesViewModel.clearToken() },
+                            clearToken = { clearToken() },
                         )
                         showDeleteDialog = false
                     },
@@ -233,8 +239,10 @@ fun ProfileScreen(navController: NavHostController) {
                 is ProfileViewModel.UserProfileState.Loading -> {
                     CircularProgressIndicator()
                 }
+
                 is ProfileViewModel.UserProfileState.Success -> {
-                    val profile = (userProfile as ProfileViewModel.UserProfileState.Success).userProfile
+                    val profile =
+                        (userProfile as ProfileViewModel.UserProfileState.Success).userProfile
 
                     ProfileCard(
                         profile = profile,
@@ -246,11 +254,12 @@ fun ProfileScreen(navController: NavHostController) {
                     ConnectionWearButton(
                         connectionState = connectionStatus,
                         onConnectClick = {
-                            if (token != null) viewModel.sendAuthToWearable(context, token)
+                            viewModel.sendAuthToWearable(context, token)
                         },
                         onDeleteClick = { showDeleteDialog = true }
                     )
                 }
+
                 is ProfileViewModel.UserProfileState.Error -> {
                     val errorMsg = (userProfile as ProfileViewModel.UserProfileState.Error).message
                     ErrorViewComponent(errorMsg = errorMsg)
