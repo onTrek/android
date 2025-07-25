@@ -11,6 +11,11 @@ data class TrackPoint(
     val index: Int,
 )
 
+data class NextTrackPoint(
+    val nextProbablePoint: Int,
+    val nextTrackPoint: TrackPoint,
+)
+
 fun TrackPoint.toSimplePoint(): SimplePoint {
     return SimplePoint(
         latitude = this.latitude,
