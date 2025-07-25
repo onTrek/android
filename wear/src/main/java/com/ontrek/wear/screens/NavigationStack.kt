@@ -45,7 +45,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         composable(route = Screen.GroupSelectionScreen.route) {
             GroupSelectionScreen(
                 navController = navController,
-                tokenState = preferencesViewModel.tokenState
             )
         }
         composable(

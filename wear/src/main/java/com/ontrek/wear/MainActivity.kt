@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                         PermissionRequester(context)
                     }
 
-                    token!!.isEmpty() -> Login()
+                    token!!.isEmpty() -> Login(preferencesViewModel::saveToken)
                     else -> AppScaffold {
                         NavigationStack()
                     }
