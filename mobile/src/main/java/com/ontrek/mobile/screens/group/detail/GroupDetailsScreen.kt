@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -273,6 +274,11 @@ fun GroupDetailsScreen(
                                         text = groupInfo.track.title.ifEmpty {
                                             "No track associated"
                                         },
+                                        color = if (groupInfo.track.title.isEmpty()) {
+                                            MaterialTheme.colorScheme.outline
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier
                                             .weight(1f)
@@ -281,32 +287,45 @@ fun GroupDetailsScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
 
-                                    if (currentUser == groupInfo.created_by.id) {
+                                    if (groupInfo.track.title.isEmpty()) {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = "Add Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        if (currentUser == groupInfo.created_by.id) {
+                                            IconButton(
+                                                onClick = { showTrackSelection = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Change Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
+                                        }
                                         IconButton(
-                                            onClick = { showTrackSelection = true }
+                                            onClick = {
+                                                navController.navigate(
+                                                    Screen.TrackDetail.createRoute(
+                                                        groupInfo.track.id.toString()
+                                                    )
+                                                )
+                                            }
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Edit,
-                                                contentDescription = "Change Track",
-                                                tint = MaterialTheme.colorScheme.secondary
+                                                imageVector = Icons.Default.Info,
+                                                contentDescription = "Track Details",
+                                                tint = MaterialTheme.colorScheme.tertiary
                                             )
                                         }
-                                    }
-
-                                    IconButton(
-                                        onClick = {
-                                            navController.navigate(
-                                                Screen.TrackDetail.createRoute(
-                                                    groupInfo.track.id.toString()
-                                                )
-                                            )
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = "Track Details",
-                                            tint = MaterialTheme.colorScheme.tertiary
-                                        )
                                     }
                                 }
                             }

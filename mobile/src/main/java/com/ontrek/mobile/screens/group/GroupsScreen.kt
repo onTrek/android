@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.group
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.outlined.Route
@@ -58,7 +58,6 @@ fun GroupsScreen(navController: NavHostController, token: String) {
 
     val listGroupState by viewModel.listGroup.collectAsStateWithLifecycle()
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
-    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
 
     var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
 
@@ -92,12 +91,9 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         bottomBar = { BottomNavBar(navController) },
         floatingActionButton = {
             AddGroupButton(
-                tracks = tracks,
-                loadTracks = { viewModel.loadTracks(token) },
-                onCreateGroup = { description, trackId ->
+                onCreateGroup = { description ->
                     viewModel.addGroup(
                         description = description,
-                        trackId = trackId,
                         token = token,
                         navController = navController
                     )
@@ -115,7 +111,6 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Log.d("GroupsScreenState", "Current state: $listGroupState")
             when (val currentState = listGroupState) {
                 is GroupsViewModel.GroupsState.Loading,
                 is GroupsViewModel.GroupsState.Success -> {
@@ -207,20 +202,38 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Route,
-                    contentDescription = "Track Icon",
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                Text(
-                    text = group.track.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                if (group.track.title.isEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Block,
+                        contentDescription = "Track Icon",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "No track associated",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.Route,
+                        contentDescription = "Track Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = group.track.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
             }
         }
     }

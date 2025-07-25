@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.shared.api.groups.createGroup
 import com.ontrek.shared.api.groups.getGroups
-import com.ontrek.shared.api.track.getTracks
 import com.ontrek.shared.data.GroupDoc
 import com.ontrek.shared.data.GroupIDCreation
 import com.ontrek.shared.data.Track
@@ -34,9 +33,6 @@ class GroupsViewModel : ViewModel() {
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
 
-    private val _tracks = MutableStateFlow<TrackState>(TrackState.Loading)
-    val tracks: StateFlow<TrackState> = _tracks
-
 
     fun loadGroups(token: String) {
         _listGroup.value = GroupsState.Loading
@@ -54,31 +50,14 @@ class GroupsViewModel : ViewModel() {
         }
     }
 
-    fun loadTracks(token: String) {
-        _tracks.value = TrackState.Loading
-        viewModelScope.launch {
-            getTracks(
-                onSuccess = { tracksList ->
-                    _tracks.value = TrackState.Success(tracksList ?: emptyList())
-                },
-                onError = { error ->
-                    _tracks.value = TrackState.Error(error)
-                    _msgToast.value = error
-                },
-                token = token
-            )
-        }
-    }
-
     fun addGroup(
         description: String,
-        trackId: Int,
         token: String,
         navController: NavHostController
     ) {
         viewModelScope.launch {
             createGroup(
-                group = GroupIDCreation(description = description, file_id = trackId),
+                group = GroupIDCreation(description = description),
                 onSuccess = { groupId ->
                     _msgToast.value = "Group created successfully"
                     Log.d("GroupsViewModel", "Group created with ID: $groupId")
