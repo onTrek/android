@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.group
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -58,11 +59,10 @@ fun GroupsScreen(navController: NavHostController, token: String) {
     val listGroupState by viewModel.listGroup.collectAsStateWithLifecycle()
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
-    val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
 
     var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
 
-    LaunchedEffect(isCharged) {
+    LaunchedEffect(Unit) {
         viewModel.loadGroups(token)
     }
 
@@ -115,6 +115,7 @@ fun GroupsScreen(navController: NavHostController, token: String) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            Log.d("GroupsScreenState", "Current state: $listGroupState")
             when (val currentState = listGroupState) {
                 is GroupsViewModel.GroupsState.Loading,
                 is GroupsViewModel.GroupsState.Success -> {

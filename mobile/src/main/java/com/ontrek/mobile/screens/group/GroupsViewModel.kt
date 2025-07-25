@@ -28,26 +28,17 @@ class GroupsViewModel : ViewModel() {
         data class Error(val message: String) : TrackState()
     }
 
-    private val _listGroup = MutableStateFlow<GroupsState>(GroupsState.Success(emptyList()))
+    private val _listGroup = MutableStateFlow<GroupsState>(GroupsState.Loading)
     val listGroup: StateFlow<GroupsState> = _listGroup
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
 
-    private val _isCharged = MutableStateFlow(false)
-    val isCharged: StateFlow<Boolean> = _isCharged
-
-    private val _tracks = MutableStateFlow<TrackState>(TrackState.Success(emptyList()))
+    private val _tracks = MutableStateFlow<TrackState>(TrackState.Loading)
     val tracks: StateFlow<TrackState> = _tracks
-
-    private val _cachedGroups = MutableStateFlow<List<GroupDoc>>(emptyList())
-    val cachedGroups: StateFlow<List<GroupDoc>> = _cachedGroups
 
 
     fun loadGroups(token: String) {
-        _cachedGroups.value = _listGroup.value.let {
-            if (it is GroupsState.Success) it.groups else emptyList()
-        }
         _listGroup.value = GroupsState.Loading
         viewModelScope.launch {
             getGroups(
@@ -105,7 +96,4 @@ class GroupsViewModel : ViewModel() {
         _msgToast.value = ""
     }
 
-    fun setCharged() {
-        _isCharged.value = !_isCharged.value
-    }
 }
