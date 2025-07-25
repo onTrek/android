@@ -70,7 +70,6 @@ fun GroupDetailsScreen(
     groupId: Int,
     currentUser: String,
     navController: NavHostController,
-    token: String
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val viewModel: GroupDetailsViewModel = viewModel()
@@ -84,8 +83,8 @@ fun GroupDetailsScreen(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showTrackSelection by remember { mutableStateOf(false) }
 
-    LaunchedEffect(groupId) {
-        viewModel.loadGroupDetails(groupId, token)
+    LaunchedEffect(Unit) {
+        viewModel.loadGroupDetails(groupId)
         viewModel.setNavController(navController)
     }
 
@@ -163,12 +162,10 @@ fun GroupDetailsScreen(
                                     if (currentUser != groupInfo.created_by.id) {
                                         viewModel.leaveGroup(
                                             groupId = groupId,
-                                            token = token
                                         )
                                     } else {
                                         viewModel.deleteGroup(
                                             groupId = groupId,
-                                            token = token,
                                             onSuccess = {
                                                 navController.navigateUp()
                                             }
@@ -181,14 +178,14 @@ fun GroupDetailsScreen(
                         if (showTrackSelection && currentUser == groupInfo.created_by.id) {
                             TrackSelectionDialog(
                                 tracks = tracks,
-                                loadTracks = { viewModel.loadTracks(token) },
+                                loadTracks = { viewModel.loadTracks() },
                                 onDismiss = { showTrackSelection = false },
                                 onTrackSelected = { track ->
                                     viewModel.changeTrack(
                                         groupId, TrackInfo(
                                             id = track.id,
                                             title = track.title
-                                        ), token
+                                        )
                                     )
                                     showTrackSelection = false
                                 },
@@ -345,7 +342,6 @@ fun GroupDetailsScreen(
                                 currentUserID = currentUser,
                                 owner = groupInfo.created_by.id,
                                 membersState = membersState,
-                                token = token,
                                 viewModel = viewModel,
                                 groupId = groupId,
                             )

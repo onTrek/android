@@ -42,7 +42,6 @@ fun MembersGroup(
     owner: String,
     membersState: List<GroupMember>,
     groupId: Int,
-    token: String,
     viewModel: GroupDetailsViewModel,
 ) {
     var showAddMemberDialog by remember { mutableStateOf(false) }
@@ -51,10 +50,9 @@ fun MembersGroup(
         SearchUsersDialog(
             onDismiss = { showAddMemberDialog = false },
             onUserSelected = { user ->
-                viewModel.addMember(user.id, groupId, token)
+                viewModel.addMember(user.id, groupId)
                 showAddMemberDialog = false
             },
-            token = token,
             title = "Add Member",
             onlyFriend = true,
         )
@@ -112,7 +110,7 @@ fun MembersGroup(
                         owner = owner,
                         member = member,
                         onRemoveClick = {
-                            viewModel.removeMember(groupId, member.id, token)
+                            viewModel.removeMember(groupId, member.id)
                         },
                     )
                 }

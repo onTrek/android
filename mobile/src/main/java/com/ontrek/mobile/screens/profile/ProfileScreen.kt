@@ -64,7 +64,7 @@ fun ProfileScreen(navController: NavHostController) {
     var selectedFilename by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val preferencesViewModel: PreferencesViewModel = viewModel(factory = PreferencesViewModel.Factory)
-    val token = preferencesViewModel.tokenState.collectAsStateWithLifecycle().value
+    val token = preferencesViewModel.tokenState.collectAsStateWithLifecycle().value  // TODO: pass the token as a parameter
 
     LaunchedEffect(imageProfile) {
         when (imageProfile) {
@@ -203,12 +203,9 @@ fun ProfileScreen(navController: NavHostController) {
                     title = "Delete Profile",
                     text = "Are you sure you want to delete your profile? This action cannot be undone.",
                     onConfirm = {
-                        if (token != null) {
-                            viewModel.deleteProfile(
-                                clearToken = { preferencesViewModel.clearToken() },
-                                token!!
-                            )
-                        }
+                        viewModel.deleteProfile(
+                            clearToken = { preferencesViewModel.clearToken() },
+                        )
                         showDeleteDialog = false
                     },
                     onDismiss = { showDeleteDialog = false },
@@ -225,8 +222,8 @@ fun ProfileScreen(navController: NavHostController) {
                         selectedFilename = null
                     },
                     onConfirm = {
-                        if (token != null && selectedFilename != null) {
-                            viewModel.updateProfileImage(token!!, preview, selectedFilename!!)
+                        if (selectedFilename != null) {
+                            viewModel.updateProfileImage(preview, selectedFilename!!)
                         }
                     }
                 )
@@ -249,7 +246,7 @@ fun ProfileScreen(navController: NavHostController) {
                     ConnectionWearButton(
                         connectionState = connectionStatus,
                         onConnectClick = {
-                            if (token != null) viewModel.sendAuthToWearable(context, token!!)
+                            if (token != null) viewModel.sendAuthToWearable(context, token)
                         },
                         onDeleteClick = { showDeleteDialog = true }
                     )

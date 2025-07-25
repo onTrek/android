@@ -265,7 +265,7 @@ fun TrackDetailScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp)
-                            ) {Friend
+                            ) {
                                 // Sezione Informazioni Generali
                                 Text(
                                     text = "Track Information",

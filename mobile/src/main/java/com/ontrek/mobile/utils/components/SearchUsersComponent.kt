@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 fun SearchUsersDialog(
     onDismiss: () -> Unit,
     onUserSelected: (user: UserMinimal) -> Unit,
-    token: String,
     onlyFriend: Boolean = false,
     title: String = "Search Users",
 ) {
@@ -50,10 +49,8 @@ fun SearchUsersDialog(
                                 isLoading = true
                                 error = null
                                 try {
-                                    Log.d("SearchUsersDialog", "Searching for: $it on token: $token, onlyFriend: $onlyFriend")
                                     searchUsers(
                                         query = it,
-                                        token = token,
                                         friendOnly = onlyFriend,
                                         onSuccess = { results ->
                                             searchResults = results ?: emptyList()

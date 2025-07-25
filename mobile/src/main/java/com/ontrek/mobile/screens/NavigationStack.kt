@@ -38,9 +38,9 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 TrackScreen(navController)
             }
             composable(route = Screen.TrackDetail.route) { backStackEntry ->
-                val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
+                val trackId = backStackEntry.arguments?.getString("trackId") ?: "0"
                 TrackDetailScreen(
-                    trackId = trackId,
+                    trackId = trackId.toInt(),
                     navController = navController,
                     currentUser = preferencesViewModel.currentUserState.value ?: "",
                 )
@@ -51,7 +51,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             composable(route = Screen.Groups.route) {
                 GroupsScreen(
                     navController = navController,
-                    token = preferencesViewModel.tokenState.value ?: ""
                 )
             }
             composable(route = Screen.GroupDetails.route) { backStackEntry ->
@@ -60,7 +59,6 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                     groupId = groupId.toIntOrNull() ?: 0,
                     navController = navController,
                     currentUser = preferencesViewModel.currentUserState.value ?: "",
-                    token = preferencesViewModel.tokenState.value ?: "",
                 )
             }
         }

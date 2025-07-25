@@ -120,10 +120,9 @@ fun TrackScreen(
             onDismissRequest = { showAddTrackDialog = false },
             onTrackAdded = {
                 showAddTrackDialog = false
-                viewModel.loadTracks(token)
+                viewModel.loadTracks()
                 Toast.makeText(context, "Track added successfully", Toast.LENGTH_SHORT).show()
             },
-            token = token,
             fileUri = selectedFileUri!!,
         )
     }
