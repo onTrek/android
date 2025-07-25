@@ -10,6 +10,7 @@ data class TrackStats(
 )
 
 data class Track(
+    val owner: String,
     val id: Int,
     val filename: String,
     val stats: TrackStats,

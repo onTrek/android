@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.screens.group.components.MembersGroup
 import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
@@ -68,6 +67,7 @@ import com.ontrek.shared.utils.formatDate
 @Composable
 fun GroupDetailsScreen(
     groupId: Int,
+    currentUser: String,
     navController: NavHostController,
     token: String
 ) {
@@ -77,9 +77,6 @@ fun GroupDetailsScreen(
     val membersState by viewModel.membersState.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val msgToast by viewModel.msgToast.collectAsState()
-    val preferencesViewModel: PreferencesViewModel =
-        viewModel(factory = PreferencesViewModel.Factory)
-    val currentUserId = preferencesViewModel.currentUserState.collectAsState().value ?: ""
 
     val context = LocalContext.current
 
@@ -149,20 +146,20 @@ fun GroupDetailsScreen(
                         // Dialoghi di conferma
                         if (showDeleteConfirmation) {
                             DeleteConfirmationDialog(
-                                title = if (currentUserId != groupInfo.created_by.id) {
+                                title = if (currentUser != groupInfo.created_by.id) {
                                     "Leave Group"
                                 } else {
                                     "Delete Group"
                                 },
                                 textButton = "Confirm",
-                                text = if (currentUserId != groupInfo.created_by.id) {
+                                text = if (currentUser != groupInfo.created_by.id) {
                                     "Are you sure you want to leave this group? You will no longer have access to its content."
                                 } else {
                                     "Are you sure you want to delete this group? This action cannot be undone."
                                 },
                                 onDismiss = { showDeleteConfirmation = false },
                                 onConfirm = {
-                                    if (currentUserId != groupInfo.created_by.id) {
+                                    if (currentUser != groupInfo.created_by.id) {
                                         viewModel.leaveGroup(
                                             groupId = groupId,
                                             token = token
@@ -180,7 +177,7 @@ fun GroupDetailsScreen(
                             )
                         }
 
-                        if (showTrackSelection && currentUserId == groupInfo.created_by.id) {
+                        if (showTrackSelection && currentUser == groupInfo.created_by.id) {
                             TrackSelectionDialog(
                                 tracks = tracks,
                                 loadTracks = { viewModel.loadTracks(token) },
@@ -284,7 +281,7 @@ fun GroupDetailsScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
 
-                                    if (currentUserId == groupInfo.created_by.id) {
+                                    if (currentUser == groupInfo.created_by.id) {
                                         IconButton(
                                             onClick = { showTrackSelection = true }
                                         ) {
@@ -326,7 +323,7 @@ fun GroupDetailsScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             MembersGroup(
-                                currentUserID = currentUserId,
+                                currentUserID = currentUser,
                                 owner = groupInfo.created_by.id,
                                 membersState = membersState,
                                 token = token,
@@ -342,7 +339,7 @@ fun GroupDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp),
                         ) {
-                            if (currentUserId == groupInfo.created_by.id) {
+                            if (currentUser == groupInfo.created_by.id) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     tint = MaterialTheme.colorScheme.error,
@@ -360,7 +357,7 @@ fun GroupDetailsScreen(
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            if (currentUserId == groupInfo.created_by.id) {
+                            if (currentUser == groupInfo.created_by.id) {
                                 Text(
                                     text = "Delete Group",
                                     color = MaterialTheme.colorScheme.error,

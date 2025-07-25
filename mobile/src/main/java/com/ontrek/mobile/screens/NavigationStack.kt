@@ -20,6 +20,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val preferencesViewModel: PreferencesViewModel =
         viewModel(factory = PreferencesViewModel.Factory)
+
     NavHost(
         navController = navController,
         startDestination = TopLevelScreen.Groups.route,
@@ -41,6 +42,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 TrackDetailScreen(
                     trackId = trackId.toIntOrNull() ?: 0,
                     navController = navController,
+                    currentUser = preferencesViewModel.currentUserState.value ?: "",
                     token = preferencesViewModel.tokenState.value ?: ""
                 )
             }
@@ -58,6 +60,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 GroupDetailsScreen(
                     groupId = groupId.toIntOrNull() ?: 0,
                     navController = navController,
+                    currentUser = preferencesViewModel.currentUserState.value ?: "",
                     token = preferencesViewModel.tokenState.value ?: "",
                 )
             }

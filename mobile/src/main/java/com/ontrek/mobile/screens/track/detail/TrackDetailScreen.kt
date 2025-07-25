@@ -70,6 +70,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
+import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.utils.formatDate
 import com.ontrek.shared.utils.formatDuration
 
@@ -77,6 +78,7 @@ import com.ontrek.shared.utils.formatDuration
 @Composable
 fun TrackDetailScreen(
     trackId: Int,
+    currentUser: String,
     navController: NavHostController,
     token: String
 ) {
@@ -146,12 +148,9 @@ fun TrackDetailScreen(
 
                 is TrackDetailViewModel.TrackDetailState.Error -> {
                     val errorState = trackDetailState as TrackDetailViewModel.TrackDetailState.Error
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            "Error: ${errorState.message}",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                    ErrorViewComponent(
+                        errorMsg = errorState.message,
+                    )
                 }
 
                 is TrackDetailViewModel.TrackDetailState.Success -> {
@@ -351,21 +350,23 @@ fun TrackDetailScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Bottone per eliminazione traccia
-                        TextButton(
-                            onClick = { showDeleteConfirmation = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Track",
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Delete Track",
-                                color = MaterialTheme.colorScheme.error
-                            )
+                        if (track.owner == currentUser)  {
+                            TextButton(
+                                onClick = { showDeleteConfirmation = true },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Track",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Delete Track",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
                 }
