@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -288,11 +289,20 @@ fun GroupDetailsScreen(
                                         IconButton(
                                             onClick = { showTrackSelection = true }
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Edit,
-                                                contentDescription = "Change Track",
-                                                tint = MaterialTheme.colorScheme.secondary
-                                            )
+                                            if (groupInfo.track.title.isEmpty()) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = "Add Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            } else {
+                                                // Icon to change the track
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Change Track",
+                                                    tint = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
                                         }
                                     }
 

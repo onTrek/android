@@ -81,13 +81,12 @@ class GroupsViewModel : ViewModel() {
 
     fun addGroup(
         description: String,
-        trackId: Int,
         token: String,
         navController: NavHostController
     ) {
         viewModelScope.launch {
             createGroup(
-                group = GroupIDCreation(description = description, file_id = trackId),
+                group = GroupIDCreation(description = description),
                 onSuccess = { groupId ->
                     _msgToast.value = "Group created successfully"
                     Log.d("GroupsViewModel", "Group created with ID: $groupId")

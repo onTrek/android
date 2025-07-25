@@ -57,7 +57,6 @@ fun GroupsScreen(navController: NavHostController, token: String) {
 
     val listGroupState by viewModel.listGroup.collectAsStateWithLifecycle()
     val msgToast by viewModel.msgToast.collectAsStateWithLifecycle("")
-    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val isCharged by viewModel.isCharged.collectAsStateWithLifecycle()
 
     var groups by remember { mutableStateOf(listOf<GroupDoc>()) }
@@ -92,12 +91,9 @@ fun GroupsScreen(navController: NavHostController, token: String) {
         bottomBar = { BottomNavBar(navController) },
         floatingActionButton = {
             AddGroupButton(
-                tracks = tracks,
-                loadTracks = { viewModel.loadTracks(token) },
-                onCreateGroup = { description, trackId ->
+                onCreateGroup = { description ->
                     viewModel.addGroup(
                         description = description,
-                        trackId = trackId,
                         token = token,
                         navController = navController
                     )
@@ -212,14 +208,26 @@ fun GroupItem(group: GroupDoc, onItemClick: () -> Unit) {
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text(
-                    text = group.track.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                if (group.track.title.isEmpty()) {
+                    Text(
+                        text = "No track associated",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    Text(
+                        text = group.track.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
             }
         }
     }
