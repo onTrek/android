@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun DeleteConfirmationDialog(
     title: String = "Delete Item",
+    textButton: String = "Delete",
     text: String = "Are you sure you want to delete this? This action cannot be undone.",
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
@@ -27,7 +28,7 @@ fun DeleteConfirmationDialog(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Text("Delete", color = MaterialTheme.colorScheme.onError)
+                Text(textButton, color = MaterialTheme.colorScheme.onError)
             }
         },
         dismissButton = {

@@ -8,25 +8,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.ontrek.mobile.data.PreferencesViewModel
-import com.ontrek.mobile.screens.profile.Profile
+import com.ontrek.mobile.screens.profile.ProfileScreen
 import com.ontrek.mobile.screens.friends.FriendsScreen
-import com.ontrek.mobile.screens.hike.GroupScreen
+import com.ontrek.mobile.screens.group.GroupsScreen
+import com.ontrek.mobile.screens.group.detail.GroupDetailsScreen
 import com.ontrek.mobile.screens.track.TrackScreen
 import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    val preferencesViewModel: PreferencesViewModel =
+        viewModel(factory = PreferencesViewModel.Factory)
 
     NavHost(
         navController = navController,
-        startDestination = TopLevelScreen.Hikes.route,
+        startDestination = TopLevelScreen.Groups.route,
         modifier = modifier,
     ) {
 
         navigation(route = TopLevelScreen.Profile.route, startDestination = Screen.Profile.route) {
             composable(route = Screen.Profile.route) {
-                Profile(navController)
+                ProfileScreen(navController)
             }
         }
 
@@ -38,14 +41,27 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
                 TrackDetailScreen(
                     trackId = trackId,
-                    navController = navController
+                    navController = navController,
+                    currentUser = preferencesViewModel.currentUserState.value ?: "",
                 )
             }
         }
 
-        navigation(route = TopLevelScreen.Hikes.route, startDestination = Screen.Hikes.route) {
-            composable(route = Screen.Hikes.route) {
-                GroupScreen(navController)
+        navigation(route = TopLevelScreen.Groups.route, startDestination = Screen.Groups.route) {
+            composable(route = Screen.Groups.route) {
+                GroupsScreen(
+                    navController = navController,
+                    token = preferencesViewModel.tokenState.value ?: ""
+                )
+            }
+            composable(route = Screen.GroupDetails.route) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+                GroupDetailsScreen(
+                    groupId = groupId.toIntOrNull() ?: 0,
+                    navController = navController,
+                    currentUser = preferencesViewModel.currentUserState.value ?: "",
+                    token = preferencesViewModel.tokenState.value ?: "",
+                )
             }
         }
 

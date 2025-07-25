@@ -8,10 +8,10 @@ import com.ontrek.shared.api.friends.deleteFriendRequest
 import com.ontrek.shared.api.friends.getFriendRequests
 import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.api.friends.getSentFriendRequest
-import com.ontrek.shared.api.friends.searchUsers
 import com.ontrek.shared.api.friends.sendFriendRequest
+import com.ontrek.shared.api.search.searchUsers
 import com.ontrek.shared.data.FriendRequest
-import com.ontrek.shared.data.Friend
+import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,9 +39,6 @@ class FriendsViewModel : ViewModel() {
 
     private val _sentFriendRequests = MutableStateFlow<SentRequestsState>(SentRequestsState.Loading)
     val sentFriendRequests: StateFlow<SentRequestsState> = _sentFriendRequests
-
-    private val _isCharge = MutableStateFlow(false)
-    val isCharge: StateFlow<Boolean> = _isCharge
 
     // Carica la lista degli amici
     fun loadFriends() {
@@ -126,7 +123,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
     // Invia richiesta di amicizia
-    fun sendRequest(user: Friend) {
+    fun sendRequest(user: UserMinimal) {
         viewModelScope.launch {
             // Simulazione chiamata API
             sendFriendRequest(
@@ -157,7 +154,7 @@ class FriendsViewModel : ViewModel() {
                 onSuccess = { message ->
                     _msgToast.value = message
                     removeRequestFromList(user.id)
-                    val friend = Friend(
+                    val friend = UserMinimal(
                         id = user.id,
                         username = user.username,
                     )
@@ -216,7 +213,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    fun addFriendToList(friend: Friend) {
+    fun addFriendToList(friend: UserMinimal) {
         viewModelScope.launch {
             _friendsState.value = when (val currentState = _friendsState.value) {
                 is FriendsState.Success -> {
@@ -255,7 +252,7 @@ class FriendsViewModel : ViewModel() {
     // Stati delle amicizie
     sealed class FriendsState {
         object Loading : FriendsState()
-        data class Success(val friends: List<Friend>) : FriendsState()
+        data class Success(val friends: List<UserMinimal>) : FriendsState()
         data class Error(val message: String) : FriendsState()
     }
 
@@ -277,15 +274,11 @@ class FriendsViewModel : ViewModel() {
         object Initial : SearchState()
         object Loading : SearchState()
         object Empty : SearchState()
-        data class Success(val users: List<Friend>) : SearchState()
+        data class Success(val users: List<UserMinimal>) : SearchState()
         data class Error(val message: String) : SearchState()
     }
 
-    fun resetMsgToast() {
+    fun clearMsgToast() {
         _msgToast.value = ""
-    }
-
-    fun setIsCharge() {
-        _isCharge.value = !_isCharge.value
     }
 }

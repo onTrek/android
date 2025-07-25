@@ -2,11 +2,11 @@ package com.ontrek.shared.api.friends
 
 import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
-import com.ontrek.shared.data.Friend
+import com.ontrek.shared.data.UserMinimal
 
-fun getFriends(onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.getFriends().enqueue(object : retrofit2.Callback<List<Friend>> {
-        override fun onResponse(call: retrofit2.Call<List<Friend>>, response: retrofit2.Response<List<Friend>>) {
+fun getFriends(onSuccess: (List<UserMinimal>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getFriends().enqueue(object : retrofit2.Callback<List<UserMinimal>> {
+        override fun onResponse(call: retrofit2.Call<List<UserMinimal>>, response: retrofit2.Response<List<UserMinimal>>) {
             if (response.isSuccessful) {
                 val data = response.body()
                 onSuccess(data)
@@ -16,7 +16,7 @@ fun getFriends(onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
             }
         }
 
-        override fun onFailure(call: retrofit2.Call<List<Friend>>, t: Throwable) {
+        override fun onFailure(call: retrofit2.Call<List<UserMinimal>>, t: Throwable) {
             Log.e("API Friends", "Error: ${t.message ?: "Unknown error"}")
             onError("API Friends: ${t.message ?: "Unknown error"}")
         }
@@ -27,7 +27,7 @@ fun deleteFriend(id: String, onSuccess: (String) -> Unit, onError: (String) -> U
     RetrofitClient.api.deleteFriend(id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
         override fun onResponse(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, response: retrofit2.Response<com.ontrek.shared.data.MessageResponse>) {
             if (response.isSuccessful) {
-                val message = response.body()?.message ?: "Friend deleted"
+                val message = response.body()?.message ?: "UserMinimal deleted"
                 onSuccess(message)
             } else {
                 onError("API Friends: ${response.code()}")
@@ -35,23 +35,6 @@ fun deleteFriend(id: String, onSuccess: (String) -> Unit, onError: (String) -> U
         }
 
         override fun onFailure(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, t: Throwable) {
-            Log.e("API Friends", "Error: ${t.message ?: "Unknown error"}")
-            onError("API Friends: ${t.message ?: "Unknown error"}")
-        }
-    })
-}
-
-fun searchUsers(query: String, friendOnly: Boolean = false, onSuccess: (List<Friend>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.searchUser(query, friendOnly).enqueue(object : retrofit2.Callback<List<Friend>> {
-        override fun onResponse(call: retrofit2.Call<List<Friend>>, response: retrofit2.Response<List<Friend>>) {
-            if (response.isSuccessful) {
-                onSuccess(response.body())
-            } else {
-                onError("API Friends: ${response.code()}")
-            }
-        }
-
-        override fun onFailure(call: retrofit2.Call<List<Friend>>, t: Throwable) {
             Log.e("API Friends", "Error: ${t.message ?: "Unknown error"}")
             onError("API Friends: ${t.message ?: "Unknown error"}")
         }

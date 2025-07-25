@@ -2,13 +2,13 @@ package com.ontrek.mobile.utils.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Hiking
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Hiking
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.rounded.Hiking
+import androidx.compose.material.icons.sharp.Hiking
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -40,7 +40,7 @@ data class BottomNavItem(
         title = topLevelScreen.title,
         route = topLevelScreen.route,
         selectedIcon = selectedIcon,
-        unselectedIcon = selectedIcon,
+        unselectedIcon = unselectedIcon,
     )
 }
 
@@ -50,14 +50,14 @@ fun BottomNavBar(navController: NavController) {
     val topLevelRoutes = listOf(
 
         BottomNavItem(
-            topLevelScreen = TopLevelScreen.Hikes,
-            selectedIcon = Icons.Filled.Hiking,
-            unselectedIcon = Icons.Outlined.Hiking,
+            topLevelScreen = TopLevelScreen.Groups,
+            selectedIcon = Icons.Filled.Groups,
+            unselectedIcon = Icons.Outlined.Groups,
         ),
         BottomNavItem(
             topLevelScreen = TopLevelScreen.Tracks,
-            selectedIcon = Icons.Filled.Route,
-            unselectedIcon = Icons.Outlined.Route,
+            selectedIcon = Icons.Sharp.Hiking,
+            unselectedIcon = Icons.Rounded.Hiking,
         ),
         BottomNavItem(
             topLevelScreen = TopLevelScreen.Friends,

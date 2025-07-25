@@ -42,20 +42,19 @@ fun FriendsScreen(
     val msgToast by viewModel.msgToast.collectAsState()
     val context = LocalContext.current
     val requests by viewModel.requestsState.collectAsState()
-    val charge by viewModel.isCharge.collectAsState()
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    LaunchedEffect(charge) {
+    LaunchedEffect(Unit) {
         viewModel.loadFriends()
         viewModel.loadFriendRequests()
     }
 
-    LaunchedEffect(msgToast) {
-        if (msgToast.isNotEmpty()) {
+    if (msgToast.isNotEmpty()) {
+        LaunchedEffect(msgToast) {
             Toast.makeText(context, msgToast, Toast.LENGTH_SHORT).show()
-            viewModel.resetMsgToast()
+            viewModel.clearMsgToast()
         }
     }
 

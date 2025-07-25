@@ -5,8 +5,9 @@ data class Login(
     val password: String
 )
 
-data class TokenResponse(
-    val token: String
+data class LoginResponse (
+    val token: String,
+    val id: String
 )
 
 
@@ -14,4 +15,18 @@ data class Signup(
     val email: String,
     val username: String,
     val password: String,
+)
+
+enum class AuthMode {
+    LOGIN, SIGNUP
+}
+
+
+data class AuthUIData(
+    val email: String = "",
+    val username: String = "",
+    val password: String = "",
+    val passwordRepeat: String = "",
+    val authMode: AuthMode = AuthMode.LOGIN,
+    val isLoading: Boolean = false,
 )

@@ -1,22 +1,19 @@
-package com.ontrek.mobile.utils.components.trackComponents
+package com.ontrek.mobile.screens.track.components
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ontrek.shared.api.track.uploadTrack
+import com.ontrek.shared.constant.MAX_TITLE_TRACK_LENGTH
 import java.net.URLDecoder
 
 @Composable
@@ -73,11 +70,11 @@ fun AddTrackDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
-                        if (it.length <= 64) title = it
+                        if (it.length <= MAX_TITLE_TRACK_LENGTH) title = it
                     },
                     label = { Text("Title") },
                     modifier = Modifier.fillMaxWidth(),
-                    supportingText = { Text("${title.length}/64") }
+                    supportingText = { Text("${title.length}/$MAX_TITLE_TRACK_LENGTH")  }
                 )
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

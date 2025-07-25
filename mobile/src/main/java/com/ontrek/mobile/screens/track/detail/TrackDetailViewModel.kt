@@ -8,13 +8,10 @@ import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
 import com.ontrek.shared.api.track.deleteTrack
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class TrackDetailViewModel : ViewModel() {
     private val _trackDetailState = MutableStateFlow<TrackDetailState>(TrackDetailState.Loading)
@@ -23,22 +20,15 @@ class TrackDetailViewModel : ViewModel() {
     private val _imageState = MutableStateFlow<ImageState>(ImageState.Loading)
     val imageState: StateFlow<ImageState> = _imageState
 
-    private val _isLoadingDelete = MutableStateFlow(false)
-    val isLoadingDelete: StateFlow<Boolean> = _isLoadingDelete
-
-    private val _msgToast = MutableStateFlow("")
+    private val _msgToast = MutableStateFlow<String>("")
     val msgToast: StateFlow<String> = _msgToast
 
 
     // Funzione per caricare i dettagli della traccia
-    fun loadTrackDetails(trackId: String) {
+    fun loadTrackDetails(trackId: Int) {
         viewModelScope.launch {
             _trackDetailState.value = TrackDetailState.Loading
 
-            // Simulazione di una chiamata API
-            delay(500)
-
-            // Dati di esempio
             getTrack(
                 id = trackId,
                 onSuccess = { track ->
@@ -57,12 +47,9 @@ class TrackDetailViewModel : ViewModel() {
     }
 
     // Funzione per caricare l'immagine della traccia
-    fun loadTrackImage(trackId: String) {
+    fun loadTrackImage(trackId: Int) {
         viewModelScope.launch {
             _imageState.value = ImageState.Loading
-
-            // Simulazione di una chiamata API
-            delay(2000)
 
             getMapTrack(
                 id = trackId,
@@ -95,9 +82,9 @@ class TrackDetailViewModel : ViewModel() {
         }
     }
 
-    fun deleteTrack(trackId: String, onSuccess: () -> Unit) {
+    fun deleteTrack(trackId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            _isLoadingDelete.value = true
+            _trackDetailState.value = TrackDetailState.Loading
             deleteTrack(
                 id = trackId,
                 onSuccess = { _ ->
@@ -108,7 +95,6 @@ class TrackDetailViewModel : ViewModel() {
                     _msgToast.value = errorMsg
                 },
             )
-            _isLoadingDelete.value = false
         }
     }
 
@@ -132,29 +118,5 @@ class TrackDetailViewModel : ViewModel() {
             override fun hashCode(): Int = imageBytes.contentHashCode()
         }
         data class Error(val message: String) : ImageState()
-    }
-
-    // Formatta la data per la visualizzazione
-    fun formatDate(dateString: String): String {
-        return try {
-            val instant = Instant.parse(dateString)
-            DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(java.time.ZoneId.systemDefault()).format(instant)
-        } catch (e: Exception) {
-            dateString
-        }
-    }
-
-    // Formatta la durata per la visualizzazione
-    fun formatDuration(duration: String): String {
-        return try {
-            val parts = duration.split(":")
-            "${parts[0]}h ${parts[1]}m"
-        } catch (e: Exception) {
-            duration
-        }
-    }
-
-    fun resetMsgToast() {
-        _msgToast.value = ""
     }
 }

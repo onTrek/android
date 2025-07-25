@@ -8,8 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Hiking
-import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +40,7 @@ import com.ontrek.wear.theme.OnTrekTheme
 @Composable
 fun Homepage(
     onNavigateToTracks: () -> Unit,
-    onNavigateToHikes: () -> Unit,
+    onNavigateToGroups: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val listState = rememberScalingLazyListState()
@@ -79,18 +79,18 @@ fun Homepage(
 
             item {
                 MenuChoice(
-                    title = "Hikes",
+                    title = "Hiking groups",
                     subtitle = "Adventures with friends",
-                    icon = Icons.Default.Hiking,
-                    onClick = onNavigateToHikes
+                    icon = Icons.Default.Groups,
+                    onClick = onNavigateToGroups
                 )
             }
 
             item {
                 MenuChoice(
-                    title = "Tracks",
+                    title = "Hike alone",
                     subtitle = "Explore nature by yourself",
-                    icon = Icons.Default.Landscape,
+                    icon = Icons.Default.Hiking,
                     onClick = onNavigateToTracks
                 )
             }
@@ -224,6 +224,6 @@ fun LogoutConfirmationDialog(
 @Composable
 fun HomepagePreview() {
     OnTrekTheme {
-        Homepage(onNavigateToTracks = {}, onNavigateToHikes = {}, onLogout = {})
+        Homepage(onNavigateToTracks = {}, onNavigateToGroups = {}, onLogout = {})
     }
 }
