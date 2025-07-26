@@ -33,14 +33,13 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     val groupListState: StateFlow<List<GroupUI>> = _groupsListState
 
 
-    fun fetchGroupsList(token: String) {
-        Log.d("WearOS", "Fetching data with token: $token")
+    fun fetchGroupsList() {
+        Log.d("WearOS", "Fetching data")
         _isLoading.value = true
 
 
         viewModelScope.launch {
             getGroups(
-                token = token,
                 onSuccess = ::updateGroups,
                 onError = ::setError
             )

@@ -14,7 +14,7 @@ class TrackViewModel : ViewModel() {
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast
 
-    fun loadTracks(token: String) {
+    fun loadTracks() {
         _tracksState.value = TracksState.Loading
         viewModelScope.launch {
             getTracks(
@@ -28,7 +28,6 @@ class TrackViewModel : ViewModel() {
                 onError = { errorMsg ->
                     _msgToast.value = errorMsg
                 },
-                token = token
             )
         }
     }

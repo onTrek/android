@@ -4,8 +4,8 @@ import android.util.Log
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.FriendRequest
 
-fun getFriendRequests(token: String, onSuccess: (List<FriendRequest>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.getFriendRequests(token).enqueue(object : retrofit2.Callback<List<FriendRequest>> {
+fun getFriendRequests(onSuccess: (List<FriendRequest>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getFriendRequests().enqueue(object : retrofit2.Callback<List<FriendRequest>> {
         override fun onResponse(call: retrofit2.Call<List<FriendRequest>>, response: retrofit2.Response<List<FriendRequest>>) {
             if (response.isSuccessful) {
                 onSuccess(response.body())
@@ -21,8 +21,8 @@ fun getFriendRequests(token: String, onSuccess: (List<FriendRequest>?) -> Unit, 
     })
 }
 
-fun getSentFriendRequest( token: String, onSuccess: (List<FriendRequest>?) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.getSentFriendRequests(token).enqueue(object : retrofit2.Callback<List<FriendRequest>> {
+fun getSentFriendRequest(onSuccess: (List<FriendRequest>?) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.getSentFriendRequests().enqueue(object : retrofit2.Callback<List<FriendRequest>> {
         override fun onResponse(call: retrofit2.Call<List<FriendRequest>>, response: retrofit2.Response<List<FriendRequest>>) {
             if (response.isSuccessful) {
                 onSuccess(response.body())
@@ -39,8 +39,8 @@ fun getSentFriendRequest( token: String, onSuccess: (List<FriendRequest>?) -> Un
 }
 
 
-fun acceptFriendRequest(token: String, id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.acceptFriendRequest(token, id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
+fun acceptFriendRequest(id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.acceptFriendRequest(id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
         override fun onResponse(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, response: retrofit2.Response<com.ontrek.shared.data.MessageResponse>) {
             if (response.isSuccessful) {
                 val message = response.body()?.message ?: "Request accepted"
@@ -57,8 +57,8 @@ fun acceptFriendRequest(token: String, id: String, onSuccess: (String) -> Unit, 
     })
 }
 
-fun sendFriendRequest(token: String, id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.postFriendRequest(token, id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
+fun sendFriendRequest(id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.postFriendRequest(id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
         override fun onResponse(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, response: retrofit2.Response<com.ontrek.shared.data.MessageResponse>) {
             if (response.isSuccessful) {
                 val message = response.body()?.message ?: "Request sent"
@@ -77,8 +77,8 @@ fun sendFriendRequest(token: String, id: String, onSuccess: (String) -> Unit, on
 }
 
 
-fun deleteFriendRequest(token: String, id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-    RetrofitClient.api.deleteFriendRequest(token, id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
+fun deleteFriendRequest(id: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    RetrofitClient.api.deleteFriendRequest(id).enqueue(object : retrofit2.Callback<com.ontrek.shared.data.MessageResponse> {
         override fun onResponse(call: retrofit2.Call<com.ontrek.shared.data.MessageResponse>, response: retrofit2.Response<com.ontrek.shared.data.MessageResponse>) {
             if (response.isSuccessful) {
                 val message = response.body()?.message ?: "Request deleted"

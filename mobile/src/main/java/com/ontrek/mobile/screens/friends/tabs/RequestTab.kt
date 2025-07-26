@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,17 +17,20 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.screens.friends.components.Username
-import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
 import com.ontrek.shared.data.FriendRequest
-import com.ontrek.shared.utils.formatTimeAgo
+import java.time.Duration
+import java.time.Instant
+import java.time.format.DateTimeParseException
 
 @Composable
 fun RequestsTab(
     viewModel: FriendsViewModel,
-    token: String
 ) {
     val requestsState by viewModel.requestsState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadFriendRequests()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (requestsState) {
@@ -39,18 +41,19 @@ fun RequestsTab(
             }
             is FriendsViewModel.RequestsState.Error -> {
                 val errorState = requestsState as FriendsViewModel.RequestsState.Error
-                ErrorViewComponent(
-                    errorMsg = errorState.message
+                Text(
+                    text = errorState.message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             is FriendsViewModel.RequestsState.Success -> {
                 val requests = (requestsState as FriendsViewModel.RequestsState.Success).requests
 
                 if (requests.isEmpty()) {
-                    EmptyComponent(
-                        title = "There are no friend requests",
-                        description = "You can wait for friend requests or send your own.",
-                        icon = Icons.Default.PersonSearch,
+                    Text(
+                        text = "Don't have any friend requests",
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
                     LazyColumn(
@@ -61,8 +64,8 @@ fun RequestsTab(
                         items(requests) { request ->
                             RequestItem(
                                 request = request,
-                                onAccept = { viewModel.acceptRequest(request, token) },
-                                onReject = { viewModel.rejectFriendRequest(request.id, token) }
+                                onAccept = { viewModel.acceptRequest(request) },
+                                onReject = { viewModel.rejectFriendRequest(request.id) }
                             )
                         }
                     }
@@ -154,5 +157,23 @@ fun RequestItem(
                 }
             }
         }
+    }
+}
+
+// Funzione per formattare il tempo passato
+fun formatTimeAgo(timestamp: String): String {
+    return try {
+        val time = Instant.parse(timestamp)
+        val now = Instant.now()
+        val diff =  Duration.between(time, now).toMillis()
+
+        when {
+            diff < 60_000 -> "Adesso"
+            diff < 3_600_000 -> "${diff / 60_000} minuti fa"
+            diff < 86_400_000 -> "${diff / 3_600_000} ore fa"
+            else -> "${diff / 86_400_000} giorni fa"
+        }
+    } catch (e: DateTimeParseException) {
+        ""
     }
 }

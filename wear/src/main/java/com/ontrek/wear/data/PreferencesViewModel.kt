@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.ontrek.shared.api.TokenProvider
 import com.ontrek.wear.StoreApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class PreferencesViewModel(
     private val preferencesStore: PreferencesStore
-): ViewModel() {
+): ViewModel(), TokenProvider {
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -42,5 +43,9 @@ class PreferencesViewModel(
         viewModelScope.launch {
             preferencesStore.clearToken()
         }
+    }
+
+    override fun getToken(): String? {
+        return tokenState.value
     }
 }

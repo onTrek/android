@@ -37,7 +37,7 @@ class GroupDetailsViewModel : ViewModel() {
         this.navController = navController
     }
 
-    fun loadGroupDetails(groupId: Int, token: String) {
+    fun loadGroupDetails(groupId: Int) {
         _groupState.value = GroupState.Loading
         viewModelScope.launch {
             getGroupInfo(
@@ -53,12 +53,11 @@ class GroupDetailsViewModel : ViewModel() {
                 onError = { error ->
                     _groupState.value = GroupState.Error(error)
                 },
-                token = token
             )
         }
     }
 
-    fun loadTracks(token: String) {
+    fun loadTracks() {
         _tracks.value = TrackState.Loading
         viewModelScope.launch {
             getTracks(
@@ -69,12 +68,11 @@ class GroupDetailsViewModel : ViewModel() {
                     _tracks.value = TrackState.Error(error)
                     _msgToast.value = "Error loading tracks: $error"
                 },
-                token = token
             )
         }
     }
 
-    fun deleteGroup(groupId: Int, token: String, onSuccess: () -> Unit) {
+    fun deleteGroup(groupId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             deleteGroup(
                 id = groupId,
@@ -85,12 +83,11 @@ class GroupDetailsViewModel : ViewModel() {
                 onError = { error ->
                     _msgToast.value = "Error deleting group: $error"
                 },
-                token = token
             )
         }
     }
 
-    fun changeTrack(groupId: Int, track: TrackInfo, token: String) {
+    fun changeTrack(groupId: Int, track: TrackInfo) {
         viewModelScope.launch {
             changeGPXInGroup(
                 id = groupId,
@@ -112,17 +109,15 @@ class GroupDetailsViewModel : ViewModel() {
                 onError = { error ->
                     _msgToast.value = "Error changing track: $error"
                 },
-                token = token
             )
         }
     }
 
-    fun removeMember(groupId: Int, userId: String, token: String) {
+    fun removeMember(groupId: Int, userId: String, ) {
         viewModelScope.launch {
             removeMemberFromGroup(
                 groupID = groupId,
                 userID = userId,
-                token = token,
                 onSuccess = {
                     _msgToast.value = "Member removed successfully"
                     deleteMemberInTheList(userId)
@@ -138,11 +133,10 @@ class GroupDetailsViewModel : ViewModel() {
         _membersState.value = _membersState.value.filter { it.id != userId }
     }
 
-    fun leaveGroup(groupId: Int, token: String) {
+    fun leaveGroup(groupId: Int, ) {
         viewModelScope.launch {
             removeMemberFromGroup(
                 groupID = groupId,
-                token = token,
                 onSuccess = {
                     _msgToast.value = "You have left the group successfully"
                     navController?.navigateUp()
@@ -154,7 +148,7 @@ class GroupDetailsViewModel : ViewModel() {
         }
     }
 
-    fun addMember(userId: String, groupId: Int, token: String) {
+    fun addMember(userId: String, groupId: Int) {
         viewModelScope.launch {
             if (_membersState.value.any { it.id == userId }) {
                 _msgToast.value = "User is already a member of the group"
@@ -163,7 +157,6 @@ class GroupDetailsViewModel : ViewModel() {
             addMemberInGroup(
                 userID = userId,
                 groupID = groupId,
-                token = token,
                 onSuccess = { newMember ->
                     _msgToast.value = "Member added successfully"
                     _membersState.value = _membersState.value + listOfNotNull(newMember)

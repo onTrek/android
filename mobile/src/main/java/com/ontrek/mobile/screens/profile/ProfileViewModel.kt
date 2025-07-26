@@ -30,13 +30,12 @@ class ProfileViewModel : ViewModel() {
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast.asStateFlow()
 
-    fun fetchUserProfile(token: String) {
+    fun fetchUserProfile() {
         viewModelScope.launch {
             _userProfile.value = UserProfileState.Loading
             _imageProfile.value = UserImageState.Loading
             try {
                 getProfile(
-                    token = token,
                     onSuccess = { response ->
                         _userProfile.value = UserProfileState.Success(
                             userProfile = response ?: Profile(
@@ -46,7 +45,6 @@ class ProfileViewModel : ViewModel() {
                             )
                         )
                         getImageProfile(
-                            token = token,
                             id = response?.id ?: "0",
                             onSuccess = { imageBytes ->
                                 _imageProfile.value = UserImageState.Success(imageBytes)
@@ -68,12 +66,11 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun deleteProfile(clearToken: () -> Unit, token: String) {
+    fun deleteProfile(clearToken: () -> Unit) {
         viewModelScope.launch {
             _userProfile.value = UserProfileState.Loading
             _imageProfile.value = UserImageState.Loading
             deleteProfile(
-                token = token,
                 onSuccess = {
                     _msgToast.value = "Profile deleted successfully"
                     clearToken()
@@ -110,12 +107,11 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun updateProfileImage(token: String, image: ByteArray, filename: String) {
+    fun updateProfileImage(image: ByteArray, filename: String) {
         try {
             viewModelScope.launch {
                 _imageProfile.value = UserImageState.Loading
                 uploadImageProfile(
-                    token = token,
                     imageBytes = image,
                     filename = filename,
                     onSuccess = {

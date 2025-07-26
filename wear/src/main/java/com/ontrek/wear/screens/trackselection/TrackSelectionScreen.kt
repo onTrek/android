@@ -47,7 +47,6 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun TrackSelectionScreen(
     navController: NavHostController = rememberNavController(),
-    tokenState: StateFlow<String?>,
 ) {
     val trackSelectionViewModel = viewModel<TrackSelectionViewModel>(
         factory = TrackSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
@@ -61,13 +60,13 @@ fun TrackSelectionScreen(
     val updateSuccess by trackSelectionViewModel.updateSuccess.collectAsStateWithLifecycle()
     val downloadSuccess by trackSelectionViewModel.downloadSuccess.collectAsStateWithLifecycle()
     var refresh by remember { mutableStateOf(false) }
-    val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
+    val charge by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
-    LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(token!!)
+    LaunchedEffect(charge) {
+        trackSelectionViewModel.fetchTrackList()
     }
 
     // Reset scroll position when download is successful
@@ -135,7 +134,6 @@ fun TrackSelectionScreen(
                 itemsIndexed(downloadedTracks) { index, track ->
                     TrackButton(
                         track = track,
-                        token = token ?: "",
                         navController = navController,
                         index = index,
                         deleteTrack = trackSelectionViewModel::deleteTrack,
@@ -167,7 +165,6 @@ fun TrackSelectionScreen(
                 itemsIndexed(availableTracks) { index, track ->
                     TrackButton(
                         track = track,
-                        token = token ?: "",
                         navController = navController,
                         index = index,
                         deleteTrack = trackSelectionViewModel::deleteTrack,
@@ -208,9 +205,7 @@ fun TrackSelectionScreen(
                     IconButton(
                         onClick = {
                             Log.d("TrackSelectionScreen", "Refresh tracks")
-                            if (!token.isNullOrEmpty()) trackSelectionViewModel.fetchTrackList(
-                                token!!,
-                            )
+                            trackSelectionViewModel.fetchTrackList()
                         },
                         modifier = Modifier
                             .fillMaxWidth()

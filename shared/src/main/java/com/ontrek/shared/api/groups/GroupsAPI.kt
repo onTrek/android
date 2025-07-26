@@ -16,9 +16,8 @@ fun getGroupInfo(
     id: Int,
     onSuccess: (GroupInfoResponseDoc?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.getGroupInfo(token, id).enqueue(object : Callback<GroupInfoResponseDoc> {
+    RetrofitClient.api.getGroupInfo(id).enqueue(object : Callback<GroupInfoResponseDoc> {
         override fun onResponse(call: Call<GroupInfoResponseDoc>, response: Response<GroupInfoResponseDoc>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -41,9 +40,8 @@ fun deleteGroup(
     id: Int,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.deleteGroup(token, id).enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.deleteGroup(id).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -65,9 +63,8 @@ fun deleteGroup(
 fun getGroups(
     onSuccess: (List<GroupDoc>?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.getGroups(token).enqueue(object : Callback<List<GroupDoc>> {
+    RetrofitClient.api.getGroups().enqueue(object : Callback<List<GroupDoc>> {
         override fun onResponse(call: Call<List<GroupDoc>>, response: Response<List<GroupDoc>>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -90,9 +87,8 @@ fun createGroup(
     group: GroupIDCreation,
     onSuccess: (GroupID?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.createGroup(token, group).enqueue(object : Callback<GroupID> {
+    RetrofitClient.api.createGroup(group).enqueue(object : Callback<GroupID> {
         override fun onResponse(call: Call<GroupID>, response: Response<GroupID>) {
             if (response.isSuccessful) {
                 val data = response.body()
@@ -116,9 +112,8 @@ fun changeGPXInGroup(
     trackId: Int,
     onSuccess: (MessageResponse?) -> Unit,
     onError: (String) -> Unit,
-    token: String
 ) {
-    RetrofitClient.api.changeGPXInGroup(token, id, FileID(trackId)).enqueue(object : Callback<MessageResponse> {
+    RetrofitClient.api.changeGPXInGroup(id, FileID(trackId)).enqueue(object : Callback<MessageResponse> {
         override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 val data = response.body()

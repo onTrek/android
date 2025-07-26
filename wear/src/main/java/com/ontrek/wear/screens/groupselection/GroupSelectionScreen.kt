@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun GroupSelectionScreen(
     navController: NavHostController = rememberNavController(),
-    tokenState: StateFlow<String?>,
 ) {
     val groupSelectionViewModel = viewModel<GroupSelectionViewModel>(
         factory = GroupSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
@@ -54,11 +53,10 @@ fun GroupSelectionScreen(
     val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
 
 
-    val token by tokenState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
-    LaunchedEffect(token) {
-        if (!token.isNullOrEmpty()) groupSelectionViewModel.fetchGroupsList(token!!)
+    LaunchedEffect(Unit) {
+        groupSelectionViewModel.fetchGroupsList()
     }
 
 
@@ -119,9 +117,7 @@ fun GroupSelectionScreen(
                 IconButton(
                     onClick = {
                         Log.d("GroupSelectionScreen", "Refresh groups")
-                        if (!token.isNullOrEmpty()) groupSelectionViewModel.fetchGroupsList(
-                            token!!,
-                        )
+                        groupSelectionViewModel.fetchGroupsList()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
