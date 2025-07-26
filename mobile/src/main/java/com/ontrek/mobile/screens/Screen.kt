@@ -2,7 +2,7 @@ package com.ontrek.mobile.screens
 
 sealed class Screen(val route: String) {
     object Profile : Screen("ProfileScreen")
-    object SearchUsers : Screen("SearchUsers")
+    object Friends : Screen("FriendsScreen")
     object Tracks : Screen("TracksScreen")
     object Groups : Screen("GroupsScreen")
     object TrackDetail : Screen("TrackDetailScreen/{trackId}") {
@@ -17,9 +17,8 @@ sealed class Screen(val route: String) {
 
 sealed class TopLevelScreen(route: String, val title: String) : Screen(route) {
     object Profile : TopLevelScreen("ProfileSection", "Profile")
-    object SearchUsers : TopLevelScreen("SearchUsers", "Search")
+    object Friends : TopLevelScreen("FriendsSection", "Friends")
     object Tracks : TopLevelScreen("TracksSection", "Tracks")
     object Groups : TopLevelScreen("GroupsSection", "Groups")
 
 }
-
