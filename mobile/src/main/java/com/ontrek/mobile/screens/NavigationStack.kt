@@ -12,6 +12,7 @@ import com.ontrek.mobile.screens.profile.ProfileScreen
 import com.ontrek.mobile.screens.friends.FriendsScreen
 import com.ontrek.mobile.screens.group.GroupsScreen
 import com.ontrek.mobile.screens.group.detail.GroupDetailsScreen
+import com.ontrek.mobile.screens.search.SearchFriendsScreen
 import com.ontrek.mobile.screens.track.TrackScreen
 import com.ontrek.mobile.screens.track.detail.TrackDetailScreen
 
@@ -71,7 +72,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
 
         navigation(route = TopLevelScreen.Friends.route, startDestination = Screen.Friends.route) {
             composable(route = Screen.Friends.route) {
-                FriendsScreen(
+                SearchFriendsScreen(
                     navController = navController
                 )
             }

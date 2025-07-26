@@ -1,15 +1,36 @@
 package com.ontrek.mobile.utils.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.shared.data.UserMinimal
 
 @Composable
 fun ProfileItem(
     user: UserMinimal,
-    search: Boolean = false,
+    isSearch: Boolean = false,
     onClick: () -> Unit = {},
 ) {
-    // This function will be implemented later
-    // It will display a profile item with the provided name, username, and image URL
-    // The onClick parameter will handle click events
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Username(user.username)
+        }
+    }
 }
