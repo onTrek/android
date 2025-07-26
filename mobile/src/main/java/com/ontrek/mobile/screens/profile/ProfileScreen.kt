@@ -39,7 +39,7 @@ import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -262,7 +262,7 @@ fun ProfileScreen(
 
                 is ProfileViewModel.UserProfileState.Error -> {
                     val errorMsg = (userProfile as ProfileViewModel.UserProfileState.Error).message
-                    ErrorViewComponent(errorMsg = errorMsg)
+                    ErrorComponent(errorMsg = errorMsg)
                 }
             }
         }

@@ -60,7 +60,7 @@ fun BottomNavBar(navController: NavController) {
             unselectedIcon = Icons.Rounded.Hiking,
         ),
         BottomNavItem(
-            topLevelScreen = TopLevelScreen.Friends,
+            topLevelScreen = TopLevelScreen.SearchUsers,
             selectedIcon = Icons.Filled.Group,
             unselectedIcon = Icons.Outlined.Group,
         ),

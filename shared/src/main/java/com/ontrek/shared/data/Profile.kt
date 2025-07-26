@@ -9,4 +9,5 @@ data class Profile(
 data class UserMinimal(
     val id: String,
     val username: String,
+    val state: Int = 0,
 )

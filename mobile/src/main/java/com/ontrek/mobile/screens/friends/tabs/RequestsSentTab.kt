@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 
 @Composable
 fun RequestsSent(
@@ -46,7 +46,7 @@ fun RequestsSent(
                 }
             }
             is FriendsViewModel.SentRequestsState.Error -> {
-                ErrorViewComponent(
+                ErrorComponent(
                     errorMsg = (sentRequestsState as FriendsViewModel.SentRequestsState.Error).message
                 )
             }

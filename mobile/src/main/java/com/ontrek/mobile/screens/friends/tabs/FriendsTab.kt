@@ -24,7 +24,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,7 +38,7 @@ import com.ontrek.mobile.screens.friends.FriendsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.shared.data.UserMinimal
 
 @Composable
@@ -57,7 +56,7 @@ fun FriendsTab(
             }
             is FriendsViewModel.FriendsState.Error -> {
                 val errorState = friendsState as FriendsViewModel.FriendsState.Error
-                ErrorViewComponent(
+                ErrorComponent(
                     errorMsg = errorState.message,
                 )
             }
