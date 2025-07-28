@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,6 +66,7 @@ import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
+import com.ontrek.wear.MainActivity
 import kotlin.apply
 
 
@@ -93,6 +95,7 @@ fun TrackScreen(
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
     val applicationContext = context.applicationContext
+    val isAmbientMode by (LocalActivity.current as MainActivity).isInAmbientMode.collectAsStateWithLifecycle()
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
@@ -215,6 +218,15 @@ fun TrackScreen(
             compassSensor.stop()
             gpsSensor.stop()
             gpxViewModel.reset()
+        }
+    }
+
+    LaunchedEffect(isAmbientMode) {
+        if (isAmbientMode) {
+            Log.d("AMBIENT_MODE", "Entering ambient mode, stopping compass sensor")
+            compassSensor.stop()
+        } else {
+            compassSensor.start()
         }
     }
 

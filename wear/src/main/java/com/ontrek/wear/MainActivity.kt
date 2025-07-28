@@ -29,6 +29,7 @@ import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.PermissionRequester
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
     private var hasPermissions = false
     private lateinit var ambientController: AmbientLifecycleObserver
+    val isInAmbientMode = MutableStateFlow(false)
 
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -176,7 +178,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private inner class AmbientCallback : AmbientLifecycleObserver.AmbientLifecycleCallback {
         override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
-            Log.d("AMBIENT", "Entering ambient mode")
+            Log.d("AMBIENT_MODE", "Entering ambient mode")
+            isInAmbientMode.value = true
             val layoutParams = window.attributes
             layoutParams.screenBrightness = 0.0f
             window.attributes = layoutParams
@@ -184,8 +187,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
 
         override fun onExitAmbient() {
-            // Codice da eseguire quando l'app esce dalla modalità ambient
-            Log.d("AMBIENT", "Exiting ambient mode")
+            Log.d("AMBIENT_MODE", "Exiting ambient mode")
+            isInAmbientMode.value = false
             val layoutParams = window.attributes
             layoutParams.screenBrightness = -1.0f //system default brightness
             window.attributes = layoutParams
