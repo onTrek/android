@@ -222,7 +222,7 @@ fun TrackScreen(
     }
 
     LaunchedEffect(isAmbientMode) {
-        if (isAmbientMode) {
+        if (isAmbientMode && accuracy == 3) {
             Log.d("AMBIENT_MODE", "Entering ambient mode, stopping compass sensor")
             compassSensor.stop()
         } else {
@@ -274,7 +274,7 @@ fun TrackScreen(
     }
 
     LaunchedEffect(direction) {
-        if (accuracy < 2) return@LaunchedEffect
+        if (accuracy < 3) return@LaunchedEffect
         gpxViewModel.elaborateDirection(direction)
     }
 
