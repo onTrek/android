@@ -4,6 +4,7 @@ import android.Manifest
 import android.R.style.Theme_DeviceDefault
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,11 +13,13 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.ambient.AmbientLifecycleObserver
+import androidx.wear.compose.material3.AppScaffold
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -38,6 +41,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     private var hasPermissions = false
     private lateinit var ambientController: AmbientLifecycleObserver
     val isInAmbientMode = MutableStateFlow(false)
+    private var ambientModeEnabled by mutableStateOf(false)
 
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -86,7 +90,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     token == null -> Loading(Modifier.fillMaxSize())
                     // if GPS permissions are not granted, show a message or handle it
                     (!localPermissions) -> {
-                        PermissionRequester(context)
+                        PermissionRequester(context, ambientModeEnabled)
                     }
 
                     token!!.isEmpty() -> Login(preferencesViewModel::saveToken)
@@ -105,7 +109,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     override fun onResume() {
         super.onResume()
-        Log.d("WATCH_CONNECTION", "Resuming activity, registering data listener")
         dataClient.addListener(this)
 
         val newPermissionState = checkPermissions()
@@ -113,10 +116,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         // Se lo stato dei permessi è cambiato, riavvia l'activity per aggiornare l'UI
         if (hasPermissions != newPermissionState) {
             hasPermissions = newPermissionState
-            if (hasPermissions) {
-                // I permessi sono stati concessi, ricrea l'activity
-                recreate()
-            }
+            recreate()
         }
     }
 
@@ -154,9 +154,16 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
 
-        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission")
+        try {
+            ambientModeEnabled =
+                Settings.Global.getInt(contentResolver, "ambient_enabled") == 1
+        } catch (e: Exception) {
+            Log.e("AMBIENT_MODE", "Error checking ambient mode setting: ${e.message}")
+        }
 
-        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission
+        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission, Ambient Mode: $ambientModeEnabled")
+
+        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission && ambientModeEnabled
     }
 
     private fun checkAndRequestPermissions(): Boolean {
@@ -170,7 +177,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             )
         } else {
             hasPermissions = true
-            Log.d("GPS_PERMISSIONS", "Location permissions already granted")
             return true
         }
         return false
@@ -178,7 +184,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private inner class AmbientCallback : AmbientLifecycleObserver.AmbientLifecycleCallback {
         override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
-            Log.d("AMBIENT_MODE", "Entering ambient mode")
             isInAmbientMode.value = true
             val layoutParams = window.attributes
             layoutParams.screenBrightness = 0.0f
@@ -187,7 +192,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
 
         override fun onExitAmbient() {
-            Log.d("AMBIENT_MODE", "Exiting ambient mode")
             isInAmbientMode.value = false
             val layoutParams = window.attributes
             layoutParams.screenBrightness = -1.0f //system default brightness
