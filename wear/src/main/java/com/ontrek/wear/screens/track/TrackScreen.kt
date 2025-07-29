@@ -395,10 +395,10 @@ fun TrackScreen(
                 }
                 OffTrackDialog(
                     showDialog = distanceNotification,
-                    onConfirm = { gpxViewModel.dismissOffTrackNotification() },
+                    onConfirm = { gpxViewModel.snoozeOffTrackNotification() },
                     onSnooze = {
-//                        gpxViewModel.snoozeOffTrack()
-                        gpxViewModel.dismissOffTrackNotification()
+                        //TODO() Let the user choose the snooze time
+                        gpxViewModel.snoozeOffTrackNotification(2)
                     }
                 )
             }
