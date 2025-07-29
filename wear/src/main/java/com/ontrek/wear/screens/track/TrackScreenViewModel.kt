@@ -43,6 +43,12 @@ const val degreesThreshold: Double = 5.0
  */
 const val notificationTrackDistanceThreshold: Double = 25.0
 
+/* * The default snooze time for the off-track notification.
+ * If the user dismisses the off-track notification, they will be able to snooze it for this amount of time.
+ * This value is used to prevent the user from being notified too frequently.
+ */
+const val defaultSnoozeTime: Long = 1 * 60 * 1000 // 1 minute
+
 class TrackScreenViewModel : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
@@ -75,6 +81,7 @@ class TrackScreenViewModel : ViewModel() {
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
     private var isAtStartup by mutableStateOf(true)
+    private var lastSnoozeTime by mutableStateOf<Long>(0L)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -206,9 +213,18 @@ class TrackScreenViewModel : ViewModel() {
             _alreadyNotifiedOffTrack.value = false
         }
     }
-
-    fun dismissOffTrackNotification() {
+    fun snoozeOffTrackNotification(snoozeTimeMultiplier: Int = 1) {
         _notifyOffTrack.value = false
+        lastSnoozeTime = System.currentTimeMillis()
+        val snoozeTime = lastSnoozeTime
+
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(defaultSnoozeTime * snoozeTimeMultiplier)
+
+            //If the user rejoined the track, and then got off track again,
+            //the old snooze time is not valid anymore
+            if (snoozeTime == lastSnoozeTime) _alreadyNotifiedOffTrack.value = false
+        }
     }
 
     fun elaborateDirection(compassDirection: Float) {
