@@ -404,13 +404,3 @@ fun TrackScreen(
         }
     }
 }
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun CalibrationPreview() {
-    OnTrekTheme {
-        CompassCalibrationNotice(
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
