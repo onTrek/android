@@ -13,15 +13,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Snooze
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,34 +33,28 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.wear.compose.material3.AlertDialog
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CircularProgressIndicator
-import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
-import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
+import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.functions.calculateFontSize
-import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import com.ontrek.wear.MainActivity
-import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
-import kotlin.apply
 
 
 private const val buttonSweepAngle = 60f
