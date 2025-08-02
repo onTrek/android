@@ -67,6 +67,7 @@ import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 import com.ontrek.wear.MainActivity
+import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import kotlin.apply
 
 
@@ -413,102 +414,6 @@ fun TrackScreen(
                     }
                 },
                 trackName = trackName
-            )
-        }
-    }
-}
-
-@Composable
-fun CompassCalibrationNotice(
-    modifier: Modifier = Modifier,
-) {
-    val message = "Low accuracy"
-    val subMessage = "Tilt and move the device until it vibrates"
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            modifier = Modifier.padding(top = 10.dp),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            fontSize = MaterialTheme.typography.titleMedium.fontSize
-        )
-        GifRenderer(Modifier.fillMaxSize(0.5f), R.drawable.compass, R.drawable.compassplaceholder)
-        Text(
-            text = subMessage,
-            modifier = Modifier.padding(horizontal = 15.dp),
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-fun OffTrackDialog(
-    showDialog: Boolean,
-    onConfirm: () -> Unit,
-    onSnooze: () -> Unit
-) {
-    AlertDialog(
-        visible = showDialog,
-        onDismissRequest = onConfirm,
-        icon = {
-            Icon(
-                imageVector = Icons.Outlined.Warning,
-                contentDescription = "Off Track",
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 30.dp)
-            )
-        },
-        title = {
-            Text(
-                text = "You are getting off track!",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleMedium,
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.padding(start = 4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = "Confirm",
-                )
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onSnooze,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.padding(end = 4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Snooze,
-                    contentDescription = "Snooze",
-                )
-            }
-        }
-    ) {
-        item {
-            Text(
-                text = "Get back on track or snooze the notification.",
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
             )
         }
     }
