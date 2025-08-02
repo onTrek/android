@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
@@ -39,7 +38,6 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
@@ -48,7 +46,6 @@ import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SosButton
-import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
