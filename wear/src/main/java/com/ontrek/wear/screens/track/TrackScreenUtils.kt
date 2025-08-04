@@ -2,6 +2,7 @@ package com.ontrek.wear.screens.track
 
 import android.location.Location
 import android.util.Log
+import com.ontrek.shared.data.NextTrackPoint
 import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
@@ -10,14 +11,20 @@ import com.ontrek.wear.utils.functions.getNearestPoints
 import com.ontrek.wear.utils.objects.NearPoint
 import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs
+import kotlin.math.min
 
-fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int?): TrackPoint {
+fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int?): NextTrackPoint {
     val threadSafePosition = currentLocation
-    val probableNextPoint = if (actualPointIndex == null) {
-        getNearestPoints(threadSafePosition, trackPoints)[0]
+    val probableNextPoint = if (probablePointIndex == null) {
+        val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
+        val nearestPoint = nearestPoints[0]
+        if (nearestPoint.index > trackPoints.size - min(7, trackPoints.size)) nearestPoints.find { it.index < 5 } ?: nearestPoint else nearestPoint
     } else {
-        extractNearestPoint(currentLocation, trackPoints, actualPointIndex)
+        extractNearestPoint(currentLocation, trackPoints, probablePointIndex)
     }
+
+    Log.d("TrackScreenUtils", "Probable next point: ${probableNextPoint.index}, with distance ${probableNextPoint.distanceToUser}")
+
     var probableNextPointIndex = probableNextPoint.index
     var probableNextPointDistance = probableNextPoint.distanceToUser
 
@@ -25,11 +32,11 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
 
     // Simplify the case where the user is at the first point
     if (probableNextPointIndex == 0) {
-        return trackPoints[1]
+        return NextTrackPoint(1, trackPoints[1])
     }
     if (probableNextPointIndex == trackPoints.size - 1) {
         // If we are at the last point, we can stop
-        return trackPoints[trackPoints.size - 1]
+        return NextTrackPoint(probableNextPoint.index,trackPoints[trackPoints.size - 1])
     }
 
     // If the chosen point hits the threshold,
@@ -38,14 +45,14 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
         probableNextPointIndex++
         if (trackPoints.size <= probableNextPointIndex) {
             // If we are at the last point, we can stop
-            return trackPoints[probableNextPointIndex - 1]
+            return NextTrackPoint(probableNextPoint.index,trackPoints[probableNextPointIndex - 1])
         }
         probableNextPointDistance = getDistanceTo(
             threadSafePosition.toSimplePoint(),
             trackPoints[probableNextPointIndex].toSimplePoint()
         )
         if (probableNextPointDistance > trackPointThreshold) {
-            return trackPoints[probableNextPointIndex]
+            return NextTrackPoint(probableNextPoint.index,trackPoints[probableNextPointIndex])
         }
     }
 
@@ -70,44 +77,64 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
     val offset1 = (A + B) - X
     val offset2 = (A + C) - Y
 
-    if (offset1 < offset2) {
-        // We are closer to the first point, so we can return it
-        return trackPoints[W]
+    if (offset1 > offset2 && offset2 < notificationTrackDistanceThreshold) {
+        // We are closer to the second point and we are onTrack even with this new point, so we can return it
+        return NextTrackPoint(probableNextPoint.index,trackPoints[W+1])
     }
-    // We are closer to the second point, so we can return it
-    return trackPoints[W + 1]
+    // We are closer to the first point, or the first point is a best candidate
+    return NextTrackPoint(probableNextPoint.index,trackPoints[W])
 }
 
-fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, actualPointIndex: Int) : NearPoint {
+fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int) : NearPoint {
     val threadSafePosition = position
 
-    // Find the nearest track points to the current position
-    val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
-    val probableNextPoint = nearestPoints[0]
+    //So if we have an actualPointIndex of 2, the array becomes [2, 3, 4, 5, ..., 0, 1]
+    val trackPointsLooper = trackPoints.subList(probablePointIndex, trackPoints.size) + trackPoints.subList(0, probablePointIndex)
 
-    // If the nearest point is too far from the actual point index, we need to do a little bit of work
-    // to avoid the case where a user might by in a track where there are two tracks close to each other
-    // that go in different directions
-    if (probableNextPoint.index <= actualPointIndex + 3 && probableNextPoint.index >= actualPointIndex - 3) return probableNextPoint
+    var bestPointDistanceFromTrack = computeDistanceFromTrack(threadSafePosition, trackPoints, probablePointIndex)
+    var pointIndex = probablePointIndex
+    var pointUnderThresholdFound = false
 
-    // If the nearest points are close to each other, we can use the probable next point index
-    // (probably the GPS fucked up at some point or lost the signal)...
-    if (nearestPoints.maxBy { it.index }.index - nearestPoints.minBy { it.index }.index < 7) return probableNextPoint
-
-    // But if they arent, we see if there is some point that is "close enough" to the actual point index
-    val newProbableNextPoint = nearestPoints.find { it.index <= actualPointIndex + 3 && it.index >= actualPointIndex - 3 }
-
-    // ...but if all the nearest points are too far from the actual point index,
-    // we fallback the one that is "closest in the array" to the last point
-    if (newProbableNextPoint == null) {
-        Log.w(
-            "TRACK_SCREEN_VIEW_MODEL",
-            "No nearest point found close to the actual point index"
-        )
-        return nearestPoints.minBy { abs(it.index - actualPointIndex) }
+    for (point in trackPointsLooper) {
+        if (point.index == 0 || point.index == probablePointIndex) {
+            continue // Skip the first and last points
+        }
+        val distanceOfPointInExam = computeDistanceFromTrack(threadSafePosition, trackPoints, point.index)
+        Log.d("TrackScreenUtils", "Examining point ${point.index} with distance from track: $distanceOfPointInExam")
+        if (distanceOfPointInExam <= bestPointDistanceFromTrack) {
+            bestPointDistanceFromTrack = distanceOfPointInExam
+            pointIndex = point.index
+        } else if (pointUnderThresholdFound) {
+            break
+        }
+        if (bestPointDistanceFromTrack <= notificationTrackDistanceThreshold) {
+            pointUnderThresholdFound = true
+        }
+        //If we found a point under the threshold, we don't need to search in the starting points
+        if (pointUnderThresholdFound && point.index == trackPoints.size - 1) break
     }
 
-    return newProbableNextPoint
+    return NearPoint(
+        index = pointIndex,
+        distanceToUser = getDistanceTo(
+            threadSafePosition.toSimplePoint(), trackPoints[pointIndex].toSimplePoint()
+        )
+    )
+}
+
+fun computeDistanceFromTrack(currentLocation: Location, trackPoints: List<TrackPoint>, analysisPointIndex: Int): Double {
+    val nextPoint = trackPoints[analysisPointIndex]
+    val previousPoint = trackPoints[analysisPointIndex - 1]
+
+    val previousPointDistance = getDistanceTo(
+        currentLocation.toSimplePoint(), previousPoint.toSimplePoint()
+    )
+    val nextPointDistance = getDistanceTo(
+        currentLocation.toSimplePoint(),
+        nextPoint.toSimplePoint()
+    )
+
+    return previousPointDistance + nextPointDistance - getDistanceTo(previousPoint.toSimplePoint(), nextPoint.toSimplePoint())
 }
 
 

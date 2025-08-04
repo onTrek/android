@@ -9,11 +9,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.lerp
 import androidx.wear.compose.material3.MaterialTheme
+
 /**
  * Componente che disegna una freccia direzionale.
  *
@@ -25,13 +25,13 @@ import androidx.wear.compose.material3.MaterialTheme
 fun Arrow(
     modifier: Modifier = Modifier,
     direction: Float,
-    color: Color? = null
+    distanceFraction: Float? = null
 ) {
     val correctColor = MaterialTheme.colorScheme.primaryContainer
     val wrongColor = MaterialTheme.colorScheme.errorContainer
-    val normalizedDirection = if (direction > 180f) 360f - direction else direction
-    val fraction = normalizedDirection / 180f
-    val arrowColor = color ?: lerp(correctColor, wrongColor, fraction)
+
+    val arrowColor =
+        if (distanceFraction != null) lerp(correctColor, wrongColor, distanceFraction) else correctColor
 
     // Memorizza l'ultimo valore di direzione per calcolare il percorso più breve
     val lastDirection = remember { mutableFloatStateOf(direction) }
