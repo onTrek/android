@@ -4,9 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.Hiking
 import androidx.compose.material.icons.sharp.Hiking
 import androidx.compose.material3.Badge
@@ -60,9 +63,9 @@ fun BottomNavBar(navController: NavController) {
             unselectedIcon = Icons.Rounded.Hiking,
         ),
         BottomNavItem(
-            topLevelScreen = TopLevelScreen.Friends,
-            selectedIcon = Icons.Filled.Group,
-            unselectedIcon = Icons.Outlined.Group,
+            topLevelScreen = TopLevelScreen.Search,
+            selectedIcon = Icons.Filled.Search,
+            unselectedIcon = Icons.Outlined.Search,
         ),
         BottomNavItem(
             topLevelScreen = TopLevelScreen.Profile,

@@ -9,7 +9,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.profile.ProfileScreen
-import com.ontrek.mobile.screens.friends.FriendsScreen
 import com.ontrek.mobile.screens.group.GroupsScreen
 import com.ontrek.mobile.screens.group.detail.GroupDetailsScreen
 import com.ontrek.mobile.screens.search.SearchFriendsScreen
@@ -70,8 +69,8 @@ fun NavigationStack(modifier: Modifier = Modifier) {
             }
         }
 
-        navigation(route = TopLevelScreen.Friends.route, startDestination = Screen.Friends.route) {
-            composable(route = Screen.Friends.route) {
+        navigation(route = TopLevelScreen.Search.route, startDestination = Screen.Search.route) {
+            composable(route = Screen.Search.route) {
                 SearchFriendsScreen(
                     navController = navController
                 )
