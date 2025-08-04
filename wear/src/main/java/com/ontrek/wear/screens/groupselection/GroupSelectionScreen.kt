@@ -13,6 +13,9 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,12 +40,14 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.data.DatabaseProvider
+import com.ontrek.wear.screens.groupselection.components.GroupButton
+import com.ontrek.wear.screens.groupselection.components.GroupDialog
 import com.ontrek.wear.utils.components.Loading
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GroupSelectionScreen(
-    navController: NavHostController = rememberNavController(),
+    navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     val groupSelectionViewModel = viewModel<GroupSelectionViewModel>(
         factory = GroupSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
@@ -51,7 +56,6 @@ fun GroupSelectionScreen(
     val isLoading by groupSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val fetchError by groupSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
-
 
     val listState = rememberScalingLazyListState()
 
@@ -94,24 +98,13 @@ fun GroupSelectionScreen(
                 )
             }
             items(groups) { group ->
-                Button(
-                    onClick = {
-                        Log.d("GroupSelectionScreen", "Selected group: ${group.description}")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                ) {
-                    Text(
-                        text = group.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                GroupButton(
+                    group = group,
+                    navigateToTrack = { trackID, trackName, sessionID ->
+                        Log.d("GroupSelectionScreen", "Navigating to track: $trackID, $trackName, $sessionID")
+                        navigateToTrack(trackID, trackName, sessionID)
+                    }
+                )
             }
             item {
                 IconButton(
