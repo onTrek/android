@@ -237,7 +237,13 @@ fun ProfileScreen(
 
             when (userProfile) {
                 is ProfileViewModel.UserProfileState.Loading -> {
-                    CircularProgressIndicator()
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
 
                 is ProfileViewModel.UserProfileState.Success -> {

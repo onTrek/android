@@ -32,7 +32,19 @@ fun ProfileItem(
             ImageProfile(
                 userID = user.id,
             )
+
             Username(user.username)
+
+            if (isSearch) {
+                when (user.state) {
+                    0 -> {
+                    }
+                    -1 -> {
+                    }
+                    1 -> {
+                    }
+                }
+            }
         }
     }
 }

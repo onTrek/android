@@ -4,46 +4,65 @@ import androidx.compose.runtime.*
 import coil.compose.AsyncImage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.ontrek.mobile.R
+import com.ontrek.shared.api.profile.getImageProfile
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 @Composable
 fun ImageProfile(
     userID: String,
 ) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(true) }
 
-    // Simulazione di caricamento asincrono dell'URL dell'immagine
     LaunchedEffect(userID) {
-        // Sostituisci questa logica con la tua funzione per ottenere l'URL dell'immagine
+        loading = true
         imageUrl = getImageUrlForUser(userID)
+        loading = false
     }
 
-    if (imageUrl != null) {
+    if (imageUrl != null && !loading) {
         AsyncImage(
             model = imageUrl,
-            contentDescription = "Immagine profilo utente",
-            placeholder = painterResource(id = R.drawable.ic_launcher_background),
-            error = painterResource(id = R.drawable.ic_launcher_background),
+            contentDescription = "Image Profile",
+            placeholder = null,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier.clip(androidx.compose.foundation.shape.CircleShape).size(50.dp)
         )
+    } else if (loading) {
+        CircularProgressIndicator()
     } else {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = "Immagine profilo predefinita",
-            modifier = Modifier.clip(androidx.compose.foundation.shape.CircleShape).size(50.dp)
+        Icon(
+            imageVector = Icons.Rounded.Person,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(32.dp)
         )
     }
 }
 
-// Funzione fittizia per ottenere l'URL dell'immagine dell'utente
 suspend fun getImageUrlForUser(userID: String): String? {
-    // Implementa qui la logica reale (API, database, ecc.)
-    // Per ora ritorna null o un URL di esempio
-    return null
+    return suspendCancellableCoroutine { continuation ->
+        getImageProfile(
+            id = userID,
+            onSuccess = { imageBytes ->
+                val base64Image = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
+                val imageUrl = "data:image/jpeg;base64,$base64Image"
+                continuation.resume(imageUrl)
+            },
+            onError = { errorMessage ->
+                println("Error fetching image: $errorMessage")
+                continuation.resume(null)
+            }
+        )
+    }
 }
