@@ -95,11 +95,13 @@ fun SearchFriendsScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+
                 is SearchFriendsViewModel.SearchState.Error -> {
                     ErrorComponent(
                         errorMsg = state.message
                     )
                 }
+
                 is SearchFriendsViewModel.SearchState.Success -> {
                     LazyColumn {
                         items(state.users) { user ->
@@ -111,10 +113,15 @@ fun SearchFriendsScreen(
                         }
                     }
                 }
+
                 SearchFriendsViewModel.SearchState.Empty -> {
                     EmptyComponent(
-                        title = "No users found",
-                        description = "Try searching with a different keyword",
+                        title = if (query.isEmpty()) "Search for friends" else "No results found",
+                        description = if (query.isEmpty()) {
+                            "Type a username to search for friends."
+                        } else {
+                            "Try searching with a different username."
+                        },
                         icon = Icons.Default.Search,
                     )
                 }
