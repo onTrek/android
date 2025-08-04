@@ -13,25 +13,17 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
@@ -41,9 +33,7 @@ import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.data.DatabaseProvider
 import com.ontrek.wear.screens.groupselection.components.GroupButton
-import com.ontrek.wear.screens.groupselection.components.GroupDialog
 import com.ontrek.wear.utils.components.Loading
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GroupSelectionScreen(
@@ -101,7 +91,10 @@ fun GroupSelectionScreen(
                 GroupButton(
                     group = group,
                     navigateToTrack = { trackID, trackName, sessionID ->
-                        Log.d("GroupSelectionScreen", "Navigating to track: $trackID, $trackName, $sessionID")
+                        Log.d(
+                            "GroupSelectionScreen",
+                            "Navigating to track: $trackID, $trackName, $sessionID"
+                        )
                         navigateToTrack(trackID, trackName, sessionID)
                     }
                 )
