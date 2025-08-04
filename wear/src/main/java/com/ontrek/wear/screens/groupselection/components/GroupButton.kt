@@ -19,6 +19,7 @@ import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.screens.groupselection.GroupUI
@@ -29,6 +30,7 @@ fun GroupButton(
     navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    val hasTrack = group.track.id != -1
 
     Button(
         onClick = {
@@ -49,16 +51,24 @@ fun GroupButton(
         )
     }
 
-    GroupDialog(
-        groupTitle = group.description,
-        trackTitle = group.track.title,
-        visible = showDialog,
-        onDismiss = { showDialog = false },
-        onConfirm = {
-            // TODO: Implement the check if the track is already downloaded and download it if not
-            navigateToTrack(group.track.id, group.track.title, group.group_id)
-        }
-    )
+    if (hasTrack) {
+        GroupDialog(
+            groupTitle = group.description,
+            trackTitle = group.track.title,
+            visible = showDialog,
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                // TODO: Implement the check if the track is already downloaded and download it if not
+                navigateToTrack(group.track.id, group.track.title, group.group_id)
+            }
+        )
+    } else {
+        EmptyTrackDialog(
+            groupTitle = group.description,
+            visible = showDialog,
+            onDismiss = { showDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -124,5 +134,51 @@ fun GroupDialog(
                 )
             }
         },
+    )
+}
+
+@Composable
+fun EmptyTrackDialog(
+    groupTitle: String,
+    visible: Boolean,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        visible = visible,
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = groupTitle,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.Groups,
+                contentDescription = "Group",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        text = {
+            Text(
+                text = "No track associated with this group. Use the smartphone app to add it.",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        },
+        edgeButton = {
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.padding(vertical = 8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Dismiss",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     )
 }
