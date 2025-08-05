@@ -43,6 +43,7 @@ import com.ontrek.mobile.screens.profile.components.FriendsTab
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
 import com.ontrek.mobile.screens.profile.components.MenuDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
+import com.ontrek.mobile.screens.profile.components.RequestsDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.ErrorComponent
 
@@ -57,6 +58,7 @@ fun ProfileScreen(
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showMenuDialog by remember { mutableStateOf(false) }
+    var showRequestsDialog by remember { mutableStateOf(false) }
 
     val userProfile by viewModel.userProfile.collectAsState()
     val imageProfile by viewModel.imageProfile.collectAsState()
@@ -162,6 +164,7 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
         viewModel.fetchFriends()
+        viewModel.loadFriendRequests()
     }
 
     if (msgToast.isNotEmpty()) {
@@ -180,7 +183,7 @@ fun ProfileScreen(
                 title = { Text(text = "Your profile") },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { showRequestsDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = "Notifications",
@@ -219,6 +222,13 @@ fun ProfileScreen(
                         clearToken()
                         viewModel.setMsgToast("You have been logged out")
                     }
+                )
+            }
+
+            if (showRequestsDialog) {
+                RequestsDialog(
+                    viewModel = viewModel,
+                    onDismiss = { showRequestsDialog = false }
                 )
             }
 
