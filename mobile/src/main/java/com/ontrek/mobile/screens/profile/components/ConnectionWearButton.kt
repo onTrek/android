@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Watch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,22 +29,25 @@ import com.ontrek.mobile.screens.profile.ProfileViewModel
 fun ConnectionWearButton(
     connectionState: ProfileViewModel.ConnectionState,
     onConnectClick: () -> Unit,
-    onDeleteClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
             onClick = onConnectClick,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
-            enabled = when(connectionState) {
+            enabled = when (connectionState) {
                 is ProfileViewModel.ConnectionState.Success -> !connectionState.isConnected
                 is ProfileViewModel.ConnectionState.Loading -> false
                 is ProfileViewModel.ConnectionState.Error -> true
@@ -60,6 +61,7 @@ fun ConnectionWearButton(
                         strokeWidth = 2.dp
                     )
                 }
+
                 else -> {
                     Icon(
                         imageVector = Icons.Rounded.Watch,
@@ -75,22 +77,6 @@ fun ConnectionWearButton(
                     )
                 }
             }
-        }
-
-        TextButton(onClick = onDeleteClick) {
-            Icon(
-                imageVector = Icons.Rounded.Delete,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Delete profile",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.error
-            )
         }
     }
 }
