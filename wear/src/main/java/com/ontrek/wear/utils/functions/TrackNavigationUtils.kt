@@ -1,4 +1,4 @@
-package com.ontrek.wear.screens.track
+package com.ontrek.wear.utils.functions
 
 import android.location.Location
 import android.util.Log
@@ -6,8 +6,9 @@ import com.ontrek.shared.data.NextTrackPoint
 import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
-import com.ontrek.wear.utils.functions.getDistanceTo
-import com.ontrek.wear.utils.functions.getNearestPoints
+import com.ontrek.wear.screens.track.degreesThreshold
+import com.ontrek.wear.screens.track.notificationTrackDistanceThreshold
+import com.ontrek.wear.screens.track.trackPointThreshold
 import com.ontrek.wear.utils.objects.NearPoint
 import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs

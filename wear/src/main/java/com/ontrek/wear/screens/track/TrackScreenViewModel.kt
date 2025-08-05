@@ -10,8 +10,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
+import com.ontrek.wear.utils.functions.computeDistanceFromTrack
+import com.ontrek.wear.utils.functions.findNextTrackPoint
 import com.ontrek.wear.utils.functions.getDistanceTo
 import com.ontrek.wear.utils.functions.getNearestPoints
+import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -164,7 +167,8 @@ class TrackScreenViewModel : ViewModel() {
 
         val oldIndex = nextTrackPoint.value?.index
 
-        val finderResult = findNextTrackPoint(currentLocation, trackPoints.value, probablePointIndex.value)
+        val finderResult =
+            findNextTrackPoint(currentLocation, trackPoints.value, probablePointIndex.value)
         nextTrackPoint.value = finderResult.nextTrackPoint
         probablePointIndex.value = finderResult.nextProbablePoint
 
@@ -181,7 +185,8 @@ class TrackScreenViewModel : ViewModel() {
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
-        _distanceFromTrack.value = computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
+        _distanceFromTrack.value =
+            computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
 
         val distance = if (isAtStartup) getDistanceTo(currentLocation.toSimplePoint(),
             nextTrackPoint.value!!.toSimplePoint()) else _distanceFromTrack.value!!
