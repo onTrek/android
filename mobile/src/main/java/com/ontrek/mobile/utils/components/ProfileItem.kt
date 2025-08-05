@@ -1,7 +1,6 @@
 package com.ontrek.mobile.utils.components
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,7 +39,6 @@ fun ProfileItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
             .padding(
                 horizontal = 1.dp,
                 vertical = 4.dp,

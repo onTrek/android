@@ -47,19 +47,18 @@ class SearchFriendsViewModel : ViewModel() {
             sendFriendRequest(
                 id = userID,
                 onSuccess = { message ->
-                    _msgToast.value = message
-                    // Aggiorna lo stato dell'utente nella lista dei risultati
                     val currentState = _searchState.value
                     if (currentState is SearchState.Success) {
                         val updatedUsers = currentState.users.map { user ->
                             if (user.id == userID) {
-                                user.copy(state = -1)  // Cambia state da 0 a -1 per questo utente
+                                user.copy(state = 0)
                             } else {
                                 user
                             }
                         }
                         _searchState.value = SearchState.Success(updatedUsers)
                     }
+                    _msgToast.value = message
                 },
                 onError = { error ->
                     _msgToast.value = error
