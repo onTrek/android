@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.profile.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +26,7 @@ import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ImageProfile
 import com.ontrek.mobile.utils.components.Username
 import com.ontrek.shared.data.FriendRequest
+import com.ontrek.shared.utils.formatTimeAgo
 
 @Composable
 fun RequestItem(
@@ -67,10 +70,20 @@ fun RequestItem(
                 modifier = Modifier.padding(end = 10.dp),
             )
 
-            Username(
-                request.username,
+            Column(
                 modifier = Modifier.weight(1f),
-            )
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Username(
+                    username = request.username,
+                )
+
+                Text(
+                    text = formatTimeAgo(request.date),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             IconButton(onClick = onAccept) {
                 Icon(
