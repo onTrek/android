@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.ontrek.mobile.screens.profile.ProfileViewModel.RequestsState.Companion.count
 import com.ontrek.mobile.screens.profile.components.ConnectionWearButton
 import com.ontrek.mobile.screens.profile.components.FriendsTab
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
@@ -60,6 +62,8 @@ fun ProfileScreen(
     var showMenuDialog by remember { mutableStateOf(false) }
     var showRequestsDialog by remember { mutableStateOf(false) }
 
+    val requestsState by viewModel.requestsState.collectAsState()
+    val requestsCount = requestsState.count
     val userProfile by viewModel.userProfile.collectAsState()
     val imageProfile by viewModel.imageProfile.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState()
@@ -185,7 +189,11 @@ fun ProfileScreen(
                 actions = {
                     IconButton(onClick = { showRequestsDialog = true }) {
                         Icon(
-                            imageVector = Icons.Default.Email,
+                            imageVector = if (requestsCount > 0) {
+                                Icons.Default.MarkEmailUnread
+                            } else {
+                                Icons.Default.MailOutline
+                            },
                             contentDescription = "Notifications",
                             tint = MaterialTheme.colorScheme.primary
                         )

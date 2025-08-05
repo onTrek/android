@@ -11,6 +11,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import com.ontrek.mobile.screens.profile.ProfileViewModel.RequestsState.Companion.count
 import com.ontrek.shared.api.friends.acceptFriendRequest
 import com.ontrek.shared.api.friends.deleteFriend
 import com.ontrek.shared.api.friends.deleteFriendRequest
@@ -290,6 +291,13 @@ class ProfileViewModel : ViewModel() {
                 }
                 else -> currentState
             }
+
+            if (_requestsState.value is RequestsState.Success) {
+                val count = (_requestsState.value as RequestsState.Success).count
+                if (count == 0) {
+                    _requestsState.value = RequestsState.Empty
+                }
+            }
         }
     }
 
@@ -331,5 +339,13 @@ class ProfileViewModel : ViewModel() {
         data class Error(val message: String) : RequestsState()
         object Loading : RequestsState()
         object Empty : RequestsState()
+
+        companion object {
+            val RequestsState.count: Int
+                get() = when (this) {
+                    is Success -> requests.size
+                    else -> 0
+                }
+        }
     }
 }

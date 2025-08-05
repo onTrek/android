@@ -1,24 +1,18 @@
 package com.ontrek.mobile.screens.profile.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.ontrek.mobile.screens.profile.ProfileViewModel
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.shared.data.FriendRequest
 
 @Composable
 fun RequestsDialog(
@@ -102,6 +95,7 @@ fun RequestsDialog(
                             }
                         }
                     }
+
                     ProfileViewModel.RequestsState.Loading -> {
                         CircularProgressIndicator()
                     }
@@ -116,51 +110,6 @@ fun RequestsDialog(
                     Text("Close")
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun RequestItem(
-    request: FriendRequest, // Sostituisci con il tipo corretto
-    onAccept: () -> Unit,
-    onReject: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.AccountCircle,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(40.dp)
-        )
-
-        Text(
-            text = "@${request.username}",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
-        )
-
-        IconButton(onClick = onAccept) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Accetta",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        IconButton(onClick = onReject) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Rifiuta",
-                tint = MaterialTheme.colorScheme.error
-            )
         }
     }
 }
