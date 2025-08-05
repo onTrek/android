@@ -100,7 +100,7 @@ fun GroupDialog(
             Text(
                 text = "You are about to join the group '$groupTitle' for the hike '$trackTitle'.",
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },
@@ -164,7 +164,7 @@ fun EmptyTrackDialog(
             Text(
                 text = "No track associated with this group. Use the smartphone app to add it.",
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },
