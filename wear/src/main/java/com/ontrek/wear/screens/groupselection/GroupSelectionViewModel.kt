@@ -105,37 +105,49 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
     fun downloadTrack(trackId: Int, context: Context) {
         viewModelScope.launch {
-
             _downloadState.value = DownloadState.InProgress
 
-            var trackDetail: Track? = null
-            getTrack(
-                id = trackId,
-                onSuccess = { track ->
-                    if (track != null) {
-                        trackDetail = track
-                    } else {
-                        _downloadState.value = DownloadState.Error(message = "Failed to download track")
-                    }
-                },
-                onError = { errorMessage ->
-                    _downloadState.value = DownloadState.Error(message = "Failed to download track")
-                },
-            )
+            // get the track details and wait for completion
+            val trackDetail = getTrackSuspending(trackId)
 
+            // Check if we got the track details successfully
             if (trackDetail == null) {
                 Log.e("DownloadTrack", "Track not found for ID: $trackId")
                 _downloadState.value = DownloadState.Error(message = "Track not found")
                 return@launch
             }
 
+            // download the GPX file
             val filename = "${trackDetail.id}.gpx"
+            downloadGpxSuspending(trackDetail.id, filename, trackDetail, context)
+        }
+    }
 
-            downloadGpx(
-                gpxID = trackDetail.id,
-                onError = {
-                    Log.e("DownloadTrack", "Error occurred: $it")
+    private suspend fun getTrackSuspending(trackId: Int): Track? {
+        return kotlin.coroutines.suspendCoroutine { continuation ->
+            getTrack(
+                id = trackId,
+                onSuccess = { track ->
+                    Log.d("DownloadTrack", "Track downloaded successfully: $track")
+                    continuation.resumeWith(Result.success(track))
+                },
+                onError = { errorMessage ->
+                    Log.e("DownloadTrack", "Error getting track: $errorMessage")
                     _downloadState.value = DownloadState.Error(message = "Failed to download track")
+                    continuation.resumeWith(Result.success(null))
+                }
+            )
+        }
+    }
+
+    private suspend fun downloadGpxSuspending(gpxId: Int, filename: String, trackDetail: Track, context: Context) {
+        return kotlin.coroutines.suspendCoroutine { continuation ->
+            downloadGpx(
+                gpxID = gpxId,
+                onError = { errorMessage ->
+                    Log.e("DownloadTrack", "Error occurred: $errorMessage")
+                    _downloadState.value = DownloadState.Error(message = "Failed to download track")
+                    continuation.resumeWith(Result.success(Unit))
                 },
                 onSuccess = { fileContent ->
                     // Save the track to the database
@@ -156,6 +168,7 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                     saveFile(fileContent, filename, context)
                     Log.d("DownloadTrack", "File downloaded successfully: ${trackDetail.title}")
                     _downloadState.value = DownloadState.Completed
+                    continuation.resumeWith(Result.success(Unit))
                 }
             )
         }
