@@ -3,7 +3,6 @@ package com.ontrek.wear.data
 import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -12,7 +11,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Entity(tableName = "tracks")
-data class Track (
+data class Track(
     @PrimaryKey val id: Int,
     val title: String,
     val filename: String = "$id.gpx",
@@ -26,11 +25,14 @@ interface TrackDao {
     @Query("SELECT * FROM tracks ORDER BY downloadedAt DESC")
     suspend fun getAllTracks(): List<Track>
 
-     @Insert
-     suspend fun insertTrack(track: Track)
+    @Query("SELECT * FROM tracks WHERE id = :id")
+    suspend fun getTrackById(id: Int): Track?
 
-     @Query("DELETE FROM tracks WHERE id = :id")
-        suspend fun deleteTrackById(id: Int)
+    @Insert
+    suspend fun insertTrack(track: Track)
+
+    @Query("DELETE FROM tracks WHERE id = :id")
+    suspend fun deleteTrackById(id: Int)
 }
 
 @Database(entities = [Track::class], version = 1)

@@ -44,7 +44,11 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         }
         composable(route = Screen.GroupSelectionScreen.route) {
             GroupSelectionScreen(
-                navController = navController,
+                navigateToTrack = { trackID, trackName, sessionID ->
+                    navController.navigate(
+                        Screen.TrackScreen.route + "?trackID=$trackID&trackName=$trackName&sessionID=$sessionID"
+                    )
+                }
             )
         }
         composable(
