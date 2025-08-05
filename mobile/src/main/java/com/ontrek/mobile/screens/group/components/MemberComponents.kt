@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
-import com.ontrek.mobile.screens.friends.components.Username
+import com.ontrek.mobile.utils.components.Username
 import com.ontrek.mobile.screens.group.detail.GroupDetailsViewModel
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.SearchUsersDialog

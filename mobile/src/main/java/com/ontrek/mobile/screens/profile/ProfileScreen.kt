@@ -7,9 +7,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,11 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.profile.components.ConnectionWearButton
+import com.ontrek.mobile.screens.profile.components.FriendsTab
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
 import com.ontrek.mobile.screens.profile.components.MenuDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
@@ -48,6 +53,7 @@ fun ProfileScreen(
     token: String,
     clearToken: () -> Unit
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showMenuDialog by remember { mutableStateOf(false) }
@@ -155,6 +161,7 @@ fun ProfileScreen(
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
+        viewModel.fetchFriends()
     }
 
     if (msgToast.isNotEmpty()) {
@@ -165,11 +172,21 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text(text = "Your profile") },
+                scrollBehavior = scrollBehavior,
                 actions = {
+                    IconButton(onClick = { }) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = "Notifications",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { showMenuDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -188,7 +205,6 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
             if (showMenuDialog) {
                 MenuDialog(
@@ -197,9 +213,11 @@ fun ProfileScreen(
                         viewModel.deleteProfile(
                             clearToken = { clearToken() },
                         )
+                        viewModel.setMsgToast("Your profile has been deleted")
                     },
                     onLogoutClick = {
                         clearToken()
+                        viewModel.setMsgToast("You have been logged out")
                     }
                 )
             }
@@ -243,11 +261,19 @@ fun ProfileScreen(
                         onImageClick = { showFilePicker = true }
                     )
 
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
                     ConnectionWearButton(
                         connectionState = connectionStatus,
                         onConnectClick = {
                             viewModel.sendAuthToWearable(context, token)
                         },
+                    )
+
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                    FriendsTab(
+                        viewModel = viewModel,
                     )
                 }
 

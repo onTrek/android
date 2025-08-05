@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.ontrek.mobile.screens.friends.components.Username
 import com.ontrek.shared.data.UserMinimal
 
 @Composable
