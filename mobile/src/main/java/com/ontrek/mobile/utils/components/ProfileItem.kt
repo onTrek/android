@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.CancelScheduleSend
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +47,9 @@ fun ProfileItem(
                 vertical = 4.dp,
             ),
         shape = RoundedCornerShape(50.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
     ) {
         if (showDeleteDialog) {
             DeleteConfirmationDialog(
@@ -69,6 +73,7 @@ fun ProfileItem(
                 ),
         ) {
             ImageProfile(
+                colorBorder = groupOwner != "",
                 userID = user.id,
                 color = color,
                 modifier = Modifier.padding(end = 10.dp),

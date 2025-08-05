@@ -1,5 +1,6 @@
 package com.ontrek.mobile.screens.profile.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ImageProfile
@@ -41,6 +43,9 @@ fun RequestItem(
             .fillMaxWidth()
             .padding(
                 vertical = 4.dp,
+            ).background(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(50.dp)
             ),
         shape = RoundedCornerShape(50.dp),
     ) {
@@ -63,7 +68,9 @@ fun RequestItem(
                 .padding(
                     horizontal = 10.dp,
                     vertical = 8.dp,
-                ),
+                ).background(
+                    color = androidx.compose.ui.graphics.Color.Transparent,
+                )
         ) {
             ImageProfile(
                 userID = request.id,
@@ -81,7 +88,9 @@ fun RequestItem(
                 Text(
                     text = formatTimeAgo(request.date),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
                 )
             }
 

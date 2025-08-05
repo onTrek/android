@@ -33,6 +33,7 @@ import kotlin.coroutines.resume
 @Composable
 fun ImageProfile(
     userID: String,
+    colorBorder: Boolean = false,
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
     modifier: Modifier = Modifier,
     size: Int = 50
@@ -51,10 +52,16 @@ fun ImageProfile(
         modifier = modifier
             .size(size.dp)
             .clip(CircleShape)
-            .border(
-                width = 5.dp,
-                color = color.copy(alpha = 0.2f),
-                shape = CircleShape
+            .then(
+                if (colorBorder) {
+                    Modifier.border(
+                        width = 5.dp,
+                        color = color,
+                        shape = CircleShape
+                    )
+                } else {
+                    Modifier
+                }
             )
             .background(color.copy(alpha = 0.2f)),
         contentAlignment = Alignment.Center
@@ -80,7 +87,7 @@ fun ImageProfile(
                 Icon(
                     imageVector = Icons.Rounded.Person,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = color.copy(alpha = 0.2f),
                     modifier = Modifier.size(size.dp * 0.6f)
                 )
             }
