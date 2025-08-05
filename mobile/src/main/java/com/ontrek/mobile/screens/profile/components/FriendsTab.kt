@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.profile.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,7 +92,6 @@ fun FriendsTab(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(friends) { friend ->
                             ProfileItem(

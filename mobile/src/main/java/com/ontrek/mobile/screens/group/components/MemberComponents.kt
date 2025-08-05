@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.ontrek.mobile.screens.group.detail.GroupDetailsViewModel
 import com.ontrek.mobile.utils.components.ProfileItem
-import com.ontrek.mobile.utils.components.SearchUsersDialog
 import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.UserMinimal
 
@@ -41,14 +40,12 @@ fun MembersGroup(
     var showAddMemberDialog by remember { mutableStateOf(false) }
 
     if (showAddMemberDialog && currentUserID == owner) {
-        SearchUsersDialog(
+        SearchMembersComponent(
             onDismiss = { showAddMemberDialog = false },
             onUserSelected = { user ->
                 viewModel.addMember(user.id, groupId)
                 showAddMemberDialog = false
-            },
-            title = "Add Member",
-            onlyFriend = true,
+            }
         )
     }
 
@@ -105,6 +102,7 @@ fun MembersGroup(
                         state = 0,
                     )
                     ProfileItem(
+                        textDelete = "Remove Member",
                         user = user,
                         groupOwner = currentUserID,
                         color = Color(member.color.toColorInt()),

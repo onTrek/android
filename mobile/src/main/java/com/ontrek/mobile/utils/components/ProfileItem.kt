@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CancelScheduleSend
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PersonAddAlt1
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,6 +31,7 @@ import com.ontrek.shared.data.UserMinimal
 @Composable
 fun ProfileItem(
     user: UserMinimal,
+    addMember: Boolean = false,
     isSearch: Boolean = false,
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit = {},
@@ -134,23 +136,34 @@ fun ProfileItem(
                         }
                     }
                 }
-            } else if (groupOwner == "" || user.id != groupOwner) {
+            } else if (!addMember &&  (groupOwner == "" || user.id != groupOwner)) {
                 IconButton(
                     onClick = { showDeleteDialog = true },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         tint = MaterialTheme.colorScheme.error,
-                        contentDescription = "Delete Friendship",
+                        contentDescription = textDelete,
                     )
                 }
-            } else {
+            } else if (groupOwner == user.id) {
                 Text(
                     text = "Group Owner",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
                 )
+            } else {
+                IconButton(
+                    onClick = { onClick() },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PersonAddAlt1,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "Add Member",
+                    )
+                }
             }
         }
     }

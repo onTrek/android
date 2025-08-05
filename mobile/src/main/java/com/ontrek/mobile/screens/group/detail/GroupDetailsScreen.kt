@@ -199,6 +199,7 @@ fun GroupDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp),
                             shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
@@ -336,6 +337,7 @@ fun GroupDetailsScreen(
                                 .heightIn(min = 360.dp)
                                 .padding(top = 12.dp, bottom = 12.dp),
                             shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             MembersGroup(

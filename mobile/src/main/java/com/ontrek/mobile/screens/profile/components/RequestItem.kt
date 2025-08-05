@@ -1,6 +1,5 @@
 package com.ontrek.mobile.screens.profile.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +43,8 @@ fun RequestItem(
             .fillMaxWidth()
             .padding(
                 vertical = 4.dp,
-            ).background(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(50.dp)
             ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = RoundedCornerShape(50.dp),
     ) {
         if (showDeleteDialog) {
@@ -68,8 +66,6 @@ fun RequestItem(
                 .padding(
                     horizontal = 10.dp,
                     vertical = 8.dp,
-                ).background(
-                    color = androidx.compose.ui.graphics.Color.Transparent,
                 )
         ) {
             ImageProfile(
