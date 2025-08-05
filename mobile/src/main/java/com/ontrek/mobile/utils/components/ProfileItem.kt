@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,8 @@ fun ProfileItem(
     isSearch: Boolean = false,
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit = {},
+    groupOwner: String = "",
+    textDelete: String = "Delete Friendship",
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -46,7 +49,7 @@ fun ProfileItem(
     ) {
         if (showDeleteDialog) {
             DeleteConfirmationDialog(
-                title = "Delete Friendship",
+                title = textDelete,
                 text = "Are you sure you want to delete @${user.username} from this list?",
                 onConfirm = {
                     onClick()
@@ -126,7 +129,7 @@ fun ProfileItem(
                         }
                     }
                 }
-            } else {
+            } else if (groupOwner == "" || user.id != groupOwner) {
                 IconButton(
                     onClick = { showDeleteDialog = true },
                 ) {
@@ -136,6 +139,13 @@ fun ProfileItem(
                         contentDescription = "Delete Friendship",
                     )
                 }
+            } else {
+                Text(
+                    text = "Group Owner",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
     }
