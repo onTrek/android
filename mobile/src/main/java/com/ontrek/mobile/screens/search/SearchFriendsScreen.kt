@@ -2,15 +2,15 @@ package com.ontrek.mobile.screens.search
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +64,7 @@ fun SearchFriendsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Search",
+                        text = "Search Friends",
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -84,8 +84,11 @@ fun SearchFriendsScreen(
                     query = it
                     viewModel.search(query)
                 },
-                label = { Text("Search user") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Search for username") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                shape = RoundedCornerShape(30.dp)
             )
 
             when (val state = searchState) {
@@ -107,9 +110,9 @@ fun SearchFriendsScreen(
                         items(state.users) { user ->
                             ProfileItem(
                                 user = user,
+                                isSearch = true,
                                 onClick = { viewModel.sendRequest(user.id) }
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
@@ -122,7 +125,11 @@ fun SearchFriendsScreen(
                         } else {
                             "Try searching with a different username."
                         },
-                        icon = Icons.Default.Search,
+                        icon = if (query.isEmpty()) {
+                            Icons.Default.Search
+                        } else {
+                            Icons.Default.SearchOff
+                        },
                     )
                 }
             }
