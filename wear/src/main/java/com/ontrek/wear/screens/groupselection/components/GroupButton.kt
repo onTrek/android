@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,11 +23,15 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import com.ontrek.wear.screens.groupselection.DownloadState
 import com.ontrek.wear.screens.groupselection.GroupUI
+import com.ontrek.wear.utils.components.Loading
 
 @Composable
 fun GroupButton(
     group: GroupUI,
+    downloadState: DownloadState,
+    downloadIfNecessary: (trackId: Int) -> Unit,
     navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -55,11 +60,15 @@ fun GroupButton(
         GroupDialog(
             groupTitle = group.description,
             trackTitle = group.track.title,
+            downloadState = downloadState,
             visible = showDialog,
             onDismiss = { showDialog = false },
             onConfirm = {
-                // TODO: Implement the check if the track is already downloaded and download it if not
-                navigateToTrack(group.track.id, group.track.title, group.group_id)
+                if (downloadState == DownloadState.NotStarted) {
+                    downloadIfNecessary(group.track.id)
+                } else {
+                    navigateToTrack(group.track.id, group.track.title, group.group_id)
+                }
             }
         )
     } else {
@@ -75,6 +84,7 @@ fun GroupButton(
 fun GroupDialog(
     groupTitle: String,
     trackTitle: String,
+    downloadState: DownloadState,
     visible: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
@@ -126,12 +136,29 @@ fun GroupDialog(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
+                enabled = downloadState != DownloadState.InProgress,
                 modifier = Modifier.padding(start = 4.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Confirm",
-                )
+                when (downloadState) {
+                    DownloadState.InProgress -> {
+                        Loading()
+                    }
+
+                    is DownloadState.Error,
+                    DownloadState.NotStarted -> {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Download",
+                        )
+                    }
+
+                    else -> {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Confirm",
+                        )
+                    }
+                }
             }
         },
     )

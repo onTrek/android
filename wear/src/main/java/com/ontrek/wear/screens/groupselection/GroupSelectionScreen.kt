@@ -1,6 +1,7 @@
 package com.ontrek.wear.screens.groupselection
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,11 +49,20 @@ fun GroupSelectionScreen(
     val isLoading by groupSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val fetchError by groupSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
+    val downloadState by groupSelectionViewModel.downloadState.collectAsStateWithLifecycle()
 
     val listState = rememberScalingLazyListState()
 
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         groupSelectionViewModel.fetchGroupsList()
+    }
+
+    LaunchedEffect(downloadState) {
+        if (downloadState is DownloadState.Error) {
+            Toast.makeText(context, (downloadState as DownloadState.Error).message, Toast.LENGTH_LONG).show()
+        }
     }
 
 
@@ -92,6 +102,14 @@ fun GroupSelectionScreen(
             items(groups) { group ->
                 GroupButton(
                     group = group,
+                    downloadState = downloadState,
+                    downloadIfNecessary = {
+                        if (groupSelectionViewModel.checkIfTrackExists(group.track.id)) return@GroupButton
+                        groupSelectionViewModel.downloadTrack(
+                            trackId = group.track.id,
+                            context = context
+                        )
+                    },
                     navigateToTrack = { trackID, trackName, sessionID ->
                         Log.d(
                             "GroupSelectionScreen",
