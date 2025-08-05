@@ -8,6 +8,7 @@ import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.shared.data.GroupMember
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
+import com.ontrek.shared.data.MessageResponse
 
 fun addMemberInGroup(
     groupID: Int,
@@ -28,7 +29,7 @@ fun addMemberInGroup(
         }
 
         override fun onFailure(call: Call<GroupMember>, t: Throwable) {
-            Log.e("API Group Member", "API Error: ${t.toString()}")
+            Log.e("API Group Member", "API Error: ${t.message}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })
@@ -52,7 +53,7 @@ fun removeMemberFromGroup(
         }
 
         override fun onFailure(call: Call<Void>, t: Throwable) {
-            Log.e("API Group Member", "API Error: ${t.toString()}")
+            Log.e("API Group Member", "API Error: ${t.message}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })
@@ -76,20 +77,20 @@ fun getGroupMembers(
         }
 
         override fun onFailure(call: Call<List<MemberInfo>>, t: Throwable) {
-            Log.e("API Group Members", "API Error: ${t.toString()}")
+            Log.e("API Group Members", "API Error: ${t.message}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })
 }
 
 fun updateMemberLocation(
-    id: Int,
+    groupId: Int,
     memberInfo: MemberInfoUpdate,
     onSuccess: () -> Unit,
     onError: (String) -> Unit
 ) {
-    RetrofitClient.api.updateMemberLocation(id, memberInfo).enqueue(object : Callback<Void> {
-        override fun onResponse(call: Call<Void>, response: Response<Void>) {
+    RetrofitClient.api.updateMemberLocation(groupId, memberInfo).enqueue(object : Callback<MessageResponse> {
+        override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
             if (response.isSuccessful) {
                 Log.d("API Group Member Location", "API Success")
                 onSuccess()
@@ -99,8 +100,8 @@ fun updateMemberLocation(
             }
         }
 
-        override fun onFailure(call: Call<Void>, t: Throwable) {
-            Log.e("API Group Member Location", "API Error: ${t.toString()}")
+        override fun onFailure(call: Call<MessageResponse>, t: Throwable) {
+            Log.e("API Group Member Location", "API Error: ${t.message}")
             onError("API Error: ${t.message ?: "Unknown error"}")
         }
     })

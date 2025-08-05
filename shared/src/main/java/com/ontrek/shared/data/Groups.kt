@@ -57,6 +57,6 @@ data class MemberInfoUpdate(
     val altitude: Double,
     val going_to: String,
     val help_request: Boolean,
-    val latitude: Double,
+    var latitude: Double,
     val longitude: Double
 )
