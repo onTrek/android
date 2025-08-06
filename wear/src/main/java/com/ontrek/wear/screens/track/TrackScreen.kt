@@ -276,7 +276,11 @@ fun TrackScreen(
         } else if (isInitialized == true) {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
+            if (sessionID.isNotEmpty()) {
+                gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
+            }
         }
+        gpxViewModel.getMembersLocation(sessionID)
     }
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
@@ -370,6 +374,14 @@ fun TrackScreen(
                             sweepAngle = buttonSweepAngle,
                             onSosTriggered = {
                                 navController.navigate(route = Screen.SOSScreen.route)
+                                Log.d("SOS_BUTTON", "SOS button pressed")
+                                val threadSafeCurrentLocation = currentLocation
+
+                                if (sessionID.isNotEmpty()) {
+                                    if (threadSafeCurrentLocation != null) {
+                                        gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+                                    }
+                                }
                             },
                             onPressStateChanged = { pressed: Boolean ->
                                 isSosButtonPressed = pressed

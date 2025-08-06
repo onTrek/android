@@ -1,13 +1,16 @@
 package com.ontrek.wear.screens.groupselection
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
@@ -17,18 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
@@ -37,12 +35,12 @@ import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.ScrollIndicatorColors
 import androidx.wear.compose.material3.Text
 import com.ontrek.wear.data.DatabaseProvider
+import com.ontrek.wear.screens.groupselection.components.GroupButton
 import com.ontrek.wear.utils.components.Loading
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GroupSelectionScreen(
-    navController: NavHostController = rememberNavController(),
+    navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     val groupSelectionViewModel = viewModel<GroupSelectionViewModel>(
         factory = GroupSelectionViewModel.Factory(DatabaseProvider.getDatabase(LocalContext.current.applicationContext))
@@ -51,12 +49,20 @@ fun GroupSelectionScreen(
     val isLoading by groupSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val fetchError by groupSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
-
+    val downloadState by groupSelectionViewModel.downloadState.collectAsStateWithLifecycle()
 
     val listState = rememberScalingLazyListState()
 
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         groupSelectionViewModel.fetchGroupsList()
+    }
+
+    LaunchedEffect(downloadState) {
+        if (downloadState is DownloadState.Error) {
+            Toast.makeText(context, (downloadState as DownloadState.Error).message, Toast.LENGTH_LONG).show()
+        }
     }
 
 
@@ -94,23 +100,43 @@ fun GroupSelectionScreen(
                 )
             }
             items(groups) { group ->
-                Button(
-                    onClick = {
-                        Log.d("GroupSelectionScreen", "Selected group: ${group.description}")
+                GroupButton(
+                    group = group,
+                    downloadState = downloadState,
+                    downloadIfNecessary = {
+                        if (groupSelectionViewModel.checkIfTrackExists(group.track.id)) return@GroupButton
+                        groupSelectionViewModel.downloadTrack(
+                            trackId = group.track.id,
+                            context = context
+                        )
                     },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                ) {
-                    Text(
-                        text = group.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    navigateToTrack = { trackID, trackName, sessionID ->
+                        Log.d(
+                            "GroupSelectionScreen",
+                            "Navigating to track: $trackID, $trackName, $sessionID"
+                        )
+                        navigateToTrack(trackID, trackName, sessionID)
+                    }
+                )
+            }
+            if (!fetchError.isNullOrEmpty()) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CloudOff,
+                            contentDescription = "Error loading groups.",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        Text(
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleSmall,
+                            text = "Error loading groups.",
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             item {
