@@ -171,7 +171,7 @@ interface ApiService {
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @PUT("/groups/{id}/members/location")
-    fun updateMemberLocation(@Path("id") id: Int, @Body memberInfo: MemberInfoUpdate): Call<Void>
+    fun updateMemberLocation(@Path("id") id: Int, @Body memberInfo: MemberInfoUpdate): Call<MessageResponse>
 
     @Headers("Content-Type: application/json;charset=UTF-8")
     @GET("/groups/{id}/members")

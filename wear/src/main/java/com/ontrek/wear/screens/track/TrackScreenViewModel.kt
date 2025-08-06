@@ -4,10 +4,16 @@ import android.content.Context
 import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ontrek.shared.api.groups.getGroupMembers
+import com.ontrek.shared.api.groups.updateMemberLocation
+import com.ontrek.shared.data.MemberInfo
+import com.ontrek.shared.data.MemberInfoUpdate
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.computeDistanceFromTrack
@@ -46,6 +52,12 @@ const val degreesThreshold: Double = 5.0
  */
 const val notificationTrackDistanceThreshold: Double = 25.0
 
+/* * The number of locations to wait before sending the location to the server.
+ * This is used to avoid sending too many locations to the server in a short time.
+ * The value is set to 5, meaning that the location will be sent after 5 locations have been received.
+ */
+const val waitNumberOfLocations = 5
+
 class TrackScreenViewModel : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
@@ -70,6 +82,9 @@ class TrackScreenViewModel : ViewModel() {
     private val _isOffTrack = MutableStateFlow(false)
     val isOffTrack: StateFlow<Boolean> = _isOffTrack
 
+    private val _membersLocation = MutableStateFlow(listOf<MemberInfo>())
+    val membersLocation: StateFlow<List<MemberInfo>> = _membersLocation
+
     // States only used inside the viewModel functions
     private val nextTrackPoint =
         MutableStateFlow<TrackPoint?>(null) // Track point for direction calculation
@@ -78,6 +93,8 @@ class TrackScreenViewModel : ViewModel() {
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
     private var isAtStartup by mutableStateOf(true)
+
+    private var sendLocationCounter by mutableIntStateOf(0)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -182,6 +199,73 @@ class TrackScreenViewModel : ViewModel() {
         }
 
         computeIfOnTrack(currentLocation)
+    }
+
+    fun sendCurrentLocation(currentLocation: Location, sessionId: String) {
+        if (sendLocationCounter >= waitNumberOfLocations) {
+            viewModelScope.launch {
+                try {
+                    val groupId = sessionId.toInt()
+
+                    val memberInfo = MemberInfoUpdate(
+                        latitude = currentLocation.latitude,
+                        longitude = currentLocation.longitude,
+                        accuracy = currentLocation.accuracy.toDouble(),
+                        altitude = currentLocation.altitude,
+                        going_to = "",
+                        help_request = false
+                    )
+
+                    Log.d("TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
+                            "lat=${currentLocation.latitude}, " +
+                            "lon=${currentLocation.longitude}, " +
+                            "alt=${currentLocation.altitude}, " +
+                            "acc=${currentLocation.accuracy}, " +
+                            "sessionId=$sessionId, " +
+                            "going_to=${memberInfo.going_to}, " +
+                            "help_request=${memberInfo.help_request}"
+                    )
+
+                    updateMemberLocation(
+                        groupId, memberInfo,
+                        onSuccess = {
+                            Log.d("TRACK_SCREEN_VIEW_MODEL", "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}")
+                            sendLocationCounter = 0
+                            getMembersLocation(groupId)
+                        },
+                        onError = { error ->
+                            Log.e("TRACK_SCREEN_VIEW_MODEL", "Error sending location to server: $error")
+                        }
+                    )
+                } catch (e: Exception) {
+                    Log.e("TRACK_SCREEN_VIEW_MODEL", "Error sending location to server: ${e.message}")
+                }
+            }
+        } else {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Skipping sending location to server, counter: $sendLocationCounter")
+            sendLocationCounter += 1
+        }
+    }
+
+    fun getMembersLocation(groupId: Int) {
+        viewModelScope.launch {
+            try {
+                getGroupMembers(groupId,
+                    onSuccess = { members ->
+                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Fetched members' locations successfully")
+                        if (members != null) {
+                            _membersLocation.value = members
+                        }
+                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Members' locations: ${_membersLocation.value.size} members found")
+                    },
+                    onError = { error ->
+                        Log.e("TRACK_SCREEN_VIEW_MODEL", "Error fetching members' locations: $error")
+                    })
+
+            } catch (e: Exception) {
+                Log.e("TRACK_SCREEN_VIEW_MODEL", "Error fetching members' locations: ${e.message}")
+            }
+        }
     }
 
     fun computeIfOnTrack(currentLocation: Location) {

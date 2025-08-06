@@ -293,7 +293,7 @@ fun TrackScreen(
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
             if (sessionID.isNotEmpty()) {
-                // TODO: send updated position to the server
+                gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
             }
         }
     }
