@@ -201,8 +201,8 @@ class TrackScreenViewModel : ViewModel() {
         computeIfOnTrack(currentLocation)
     }
 
-    fun sendCurrentLocation(currentLocation: Location, sessionId: String) {
-        if (sendLocationCounter >= waitNumberOfLocations) {
+    fun sendCurrentLocation(currentLocation: Location, sessionId: String, helpRequest: Boolean = false, goingTo: String = "") {
+        if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo.isNotEmpty()) {
             viewModelScope.launch {
                 try {
                     val groupId = sessionId.toInt()
@@ -212,8 +212,8 @@ class TrackScreenViewModel : ViewModel() {
                         longitude = currentLocation.longitude,
                         accuracy = currentLocation.accuracy.toDouble(),
                         altitude = currentLocation.altitude,
-                        going_to = "",
-                        help_request = false
+                        going_to = goingTo,
+                        help_request = helpRequest
                     )
 
                     Log.d("TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
@@ -231,7 +231,6 @@ class TrackScreenViewModel : ViewModel() {
                         onSuccess = {
                             Log.d("TRACK_SCREEN_VIEW_MODEL", "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}")
                             sendLocationCounter = 0
-                            getMembersLocation(groupId)
                         },
                         onError = { error ->
                             Log.e("TRACK_SCREEN_VIEW_MODEL", "Error sending location to server: $error")
@@ -247,9 +246,11 @@ class TrackScreenViewModel : ViewModel() {
         }
     }
 
-    fun getMembersLocation(groupId: Int) {
+    fun getMembersLocation(sessionId: String) {
         viewModelScope.launch {
             try {
+                val groupId = sessionId.toInt()
+
                 getGroupMembers(groupId,
                     onSuccess = { members ->
                         Log.d("TRACK_SCREEN_VIEW_MODEL", "Fetched members' locations successfully")
