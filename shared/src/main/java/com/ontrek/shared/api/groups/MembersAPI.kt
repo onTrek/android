@@ -61,15 +61,16 @@ fun removeMemberFromGroup(
 }
 
 fun getGroupMembers(
-    id: Int,
+    groupId: Int,
     onSuccess: (List<MemberInfo>?) -> Unit,
     onError: (String) -> Unit
 ) {
-    RetrofitClient.api.getGroupMembers(id).enqueue(object : Callback<List<MemberInfo>> {
+    RetrofitClient.api.getGroupMembers(groupId).enqueue(object : Callback<List<MemberInfo>> {
         override fun onResponse(call: Call<List<MemberInfo>>, response: Response<List<MemberInfo>>) {
             if (response.isSuccessful) {
                 Log.d("API Group Members", "API Success")
-                onSuccess(response.body())
+                val members = response.body()
+                onSuccess(members)
             } else {
                 Log.e("API Group Members", "API Error: ${response.code()}")
                 onError("API Error: ${response.code()}")

@@ -10,7 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ontrek.shared.api.groups.getGroupMembers
 import com.ontrek.shared.api.groups.updateMemberLocation
+import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
@@ -79,6 +81,9 @@ class TrackScreenViewModel : ViewModel() {
     val progressState: StateFlow<Float> = progress
     private val _isOffTrack = MutableStateFlow(false)
     val isOffTrack: StateFlow<Boolean> = _isOffTrack
+
+    private val _membersLocation = MutableStateFlow(listOf<MemberInfo>())
+    val membersLocation: StateFlow<List<MemberInfo>> = _membersLocation
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -198,7 +203,6 @@ class TrackScreenViewModel : ViewModel() {
 
     fun sendCurrentLocation(currentLocation: Location, sessionId: String) {
         if (sendLocationCounter >= waitNumberOfLocations) {
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Sending location to server: $currentLocation, accuracy: ${currentLocation.accuracy}")
             viewModelScope.launch {
                 try {
                     val groupId = sessionId.toInt()
@@ -211,11 +215,23 @@ class TrackScreenViewModel : ViewModel() {
                         going_to = "",
                         help_request = false
                     )
+
+                    Log.d("TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
+                            "lat=${currentLocation.latitude}, " +
+                            "lon=${currentLocation.longitude}, " +
+                            "alt=${currentLocation.altitude}, " +
+                            "acc=${currentLocation.accuracy}, " +
+                            "sessionId=$sessionId, " +
+                            "going_to=${memberInfo.going_to}, " +
+                            "help_request=${memberInfo.help_request}"
+                    )
+
                     updateMemberLocation(
                         groupId, memberInfo,
                         onSuccess = {
-                            Log.d("TRACK_SCREEN_VIEW_MODEL", "Location sent to server: $currentLocation, accuracy: ${currentLocation.accuracy}, sessionId: $sessionId")
+                            Log.d("TRACK_SCREEN_VIEW_MODEL", "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}")
                             sendLocationCounter = 0
+                            getMembersLocation(groupId)
                         },
                         onError = { error ->
                             Log.e("TRACK_SCREEN_VIEW_MODEL", "Error sending location to server: $error")
@@ -228,6 +244,27 @@ class TrackScreenViewModel : ViewModel() {
         } else {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Skipping sending location to server, counter: $sendLocationCounter")
             sendLocationCounter += 1
+        }
+    }
+
+    fun getMembersLocation(groupId: Int) {
+        viewModelScope.launch {
+            try {
+                getGroupMembers(groupId,
+                    onSuccess = { members ->
+                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Fetched members' locations successfully")
+                        if (members != null) {
+                            _membersLocation.value = members
+                        }
+                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Members' locations: ${_membersLocation.value.size} members found")
+                    },
+                    onError = { error ->
+                        Log.e("TRACK_SCREEN_VIEW_MODEL", "Error fetching members' locations: $error")
+                    })
+
+            } catch (e: Exception) {
+                Log.e("TRACK_SCREEN_VIEW_MODEL", "Error fetching members' locations: ${e.message}")
+            }
         }
     }
 
