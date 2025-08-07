@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -45,6 +46,7 @@ import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
 import com.ontrek.wear.screens.track.components.OffTrackDialog
+import com.ontrek.wear.screens.track.components.SnoozeDialog
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
@@ -122,12 +124,13 @@ fun TrackScreen(
     // Raccoglie la distanza dal tracciato come stato osservabile
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
-    val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
 
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
+    var snoozeModalOpen by remember { mutableStateOf(false) }
 
 
     // Create PendingIntent to return to the app
@@ -243,17 +246,25 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(distanceNotification) {
-        val longArray = longArrayOf(300, 300, 300, 300, 300)
-        val vibrationPattern = intArrayOf(255, 0, 255, 0, 255)
-        if (distanceNotification) {
+    DisposableEffect(notifyOffTrackModalOpen) {
+        if (notifyOffTrackModalOpen) {
+            //get the min between distance from track and 255
+            val vibrationIntensity = (distanceFromTrack ?: 0).toInt().coerceAtMost(255)
+            val longArray = longArrayOf(300, 300)
+            val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
             vibrator?.vibrate(
                 android.os.VibrationEffect.createWaveform(
                     longArray,
                     vibrationPattern,
-                    -1
+                    0
                 )
             )
+        } else {
+            vibrator?.cancel()
+        }
+
+        onDispose {
+            vibrator?.cancel()
         }
     }
 
@@ -390,13 +401,26 @@ fun TrackScreen(
                     }
                 }
                 OffTrackDialog(
-                    showDialog = distanceNotification,
-                    onConfirm = { gpxViewModel.snoozeOffTrackNotification() },
+                    showDialog = notifyOffTrackModalOpen,
+                    onConfirm = {
+                        gpxViewModel.snoozeOffTrackNotification()
+                        Toast.makeText(context, "Snoozed for 1m", Toast.LENGTH_SHORT).show()
+                    },
                     onSnooze = {
-                        //TODO() Let the user choose the snooze time
-                        gpxViewModel.snoozeOffTrackNotification(2)
+                        snoozeModalOpen = true
                     }
                 )
+                SnoozeDialog(
+                    showDialog = snoozeModalOpen,
+                    onDismiss = {
+                        snoozeModalOpen = false
+                    },
+                    onSelectTime = { time ->
+                        gpxViewModel.snoozeOffTrackNotification(time)
+                        snoozeModalOpen = false
+                    }
+                )
+
             }
             EndTrack(
                 visible = showEndTrackDialog,

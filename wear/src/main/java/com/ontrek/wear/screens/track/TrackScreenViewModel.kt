@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.shared.api.groups.getGroupMembers
 import com.ontrek.shared.api.groups.updateMemberLocation
 import com.ontrek.shared.data.MemberInfo

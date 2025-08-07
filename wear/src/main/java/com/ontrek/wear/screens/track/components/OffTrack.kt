@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
@@ -71,13 +70,5 @@ fun OffTrackDialog(
                 )
             }
         }
-    ) {
-        item {
-            Text(
-                text = "Get back on track or snooze the notification.",
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
+    )
 }
