@@ -59,7 +59,7 @@ import com.ontrek.mobile.screens.group.components.MembersGroup
 import com.ontrek.mobile.screens.group.components.TrackSelectionDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.utils.formatDate
@@ -128,7 +128,7 @@ fun GroupDetailsScreen(
                 }
 
                 is GroupDetailsViewModel.GroupState.Error -> {
-                    ErrorViewComponent(
+                    ErrorComponent(
                         errorMsg = (groupState as GroupDetailsViewModel.GroupState.Error).message
                     )
                 }
@@ -199,6 +199,7 @@ fun GroupDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp),
                             shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
@@ -336,6 +337,7 @@ fun GroupDetailsScreen(
                                 .heightIn(min = 360.dp)
                                 .padding(top = 12.dp, bottom = 12.dp),
                             shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             MembersGroup(

@@ -43,6 +43,8 @@ fun EmptyComponent(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = title,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             style = if (fillMaxSize) {
                 MaterialTheme.typography.headlineMedium
             } else {

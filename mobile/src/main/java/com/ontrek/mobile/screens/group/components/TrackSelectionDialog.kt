@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.ontrek.mobile.screens.group.GroupsViewModel
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.shared.data.Track
 
 @Composable
@@ -92,7 +92,7 @@ fun TrackSelectionDialog(
                         )
                     }
                 } else if (tracks is GroupsViewModel.TrackState.Error) {
-                    ErrorViewComponent(tracks.message)
+                    ErrorComponent(tracks.message)
                 } else {
                     val tracks = (tracks as GroupsViewModel.TrackState.Success).tracks
                     if (tracks.isEmpty()) {

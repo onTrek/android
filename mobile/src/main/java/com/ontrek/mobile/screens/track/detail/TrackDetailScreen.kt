@@ -70,7 +70,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.shared.utils.formatDate
 import com.ontrek.shared.utils.formatDuration
 
@@ -147,7 +147,7 @@ fun TrackDetailScreen(
 
                 is TrackDetailViewModel.TrackDetailState.Error -> {
                     val errorState = trackDetailState as TrackDetailViewModel.TrackDetailState.Error
-                    ErrorViewComponent(
+                    ErrorComponent(
                         errorMsg = errorState.message,
                     )
                 }
