@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ontrek.shared.api.groups.getGroupMembers
 import com.ontrek.shared.api.groups.updateMemberLocation
 import com.ontrek.shared.data.MemberInfo
@@ -52,6 +51,12 @@ const val degreesThreshold: Double = 5.0
  */
 const val notificationTrackDistanceThreshold: Double = 25.0
 
+/* * The default snooze time for the off-track notification.
+ * If the user dismisses the off-track notification, they will be able to snooze it for this amount of time.
+ * This value is used to prevent the user from being notified too frequently.
+ */
+const val defaultSnoozeTime: Long = 1 * 60 * 1000 // 1 minute
+
 /* * The number of locations to wait before sending the location to the server.
  * This is used to avoid sending too many locations to the server in a short time.
  * The value is set to 5, meaning that the location will be sent after 5 locations have been received.
@@ -93,6 +98,7 @@ class TrackScreenViewModel : ViewModel() {
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
     private var isAtStartup by mutableStateOf(true)
+    private var lastSnoozeTime by mutableStateOf<Long>(0L)
 
     private var sendLocationCounter by mutableIntStateOf(0)
 
@@ -296,9 +302,18 @@ class TrackScreenViewModel : ViewModel() {
             _alreadyNotifiedOffTrack.value = false
         }
     }
-
-    fun dismissOffTrackNotification() {
+    fun snoozeOffTrackNotification(snoozeTimeMultiplier: Int = 1) {
         _notifyOffTrack.value = false
+        lastSnoozeTime = System.currentTimeMillis()
+        val snoozeTime = lastSnoozeTime
+
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(defaultSnoozeTime * snoozeTimeMultiplier)
+
+            //If the user rejoined the track, and then got off track again,
+            //the old snooze time is not valid anymore
+            if (snoozeTime == lastSnoozeTime) _alreadyNotifiedOffTrack.value = false
+        }
     }
 
     fun elaborateDirection(compassDirection: Float) {
