@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,13 +39,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.ontrek.mobile.screens.profile.ProfileViewModel.RequestsState.Companion.count
 import com.ontrek.mobile.screens.profile.components.ConnectionWearButton
 import com.ontrek.mobile.screens.profile.components.FriendsTab
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
 import com.ontrek.mobile.screens.profile.components.MenuDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
-import com.ontrek.mobile.screens.profile.components.RequestsDialog
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.ErrorComponent
 
@@ -60,10 +58,7 @@ fun ProfileScreen(
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
     var showMenuDialog by remember { mutableStateOf(false) }
-    var showRequestsDialog by remember { mutableStateOf(false) }
 
-    val requestsState by viewModel.requestsState.collectAsState()
-    val requestsCount = requestsState.count
     val userProfile by viewModel.userProfile.collectAsState()
     val imageProfile by viewModel.imageProfile.collectAsState()
     val connectionStatus by viewModel.connectionStatus.collectAsState()
@@ -187,17 +182,6 @@ fun ProfileScreen(
                 title = { Text(text = "Your profile") },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    IconButton(onClick = { showRequestsDialog = true }) {
-                        Icon(
-                            imageVector = if (requestsCount > 0) {
-                                Icons.Default.MarkEmailUnread
-                            } else {
-                                Icons.Default.MailOutline
-                            },
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
                     IconButton(onClick = { showMenuDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -214,6 +198,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -230,13 +215,6 @@ fun ProfileScreen(
                         clearToken()
                         viewModel.setMsgToast("You have been logged out")
                     }
-                )
-            }
-
-            if (showRequestsDialog) {
-                RequestsDialog(
-                    viewModel = viewModel,
-                    onDismiss = { showRequestsDialog = false }
                 )
             }
 
