@@ -46,6 +46,7 @@ import com.ontrek.mobile.utils.components.ErrorViewComponent
 fun ProfileScreen(
     navController: NavHostController,
     token: String,
+    currentUser: String,
     clearToken: () -> Unit
 ) {
     val context = LocalContext.current
@@ -254,7 +255,7 @@ fun ProfileScreen(
                     ConnectionWearButton(
                         connectionState = connectionStatus,
                         onConnectClick = {
-                            viewModel.sendAuthToWearable(context, token)
+                            viewModel.sendAuthToWearable(context, token, currentUser)
                         },
                         onDeleteClick = { showDeleteDialog = true }
                     )

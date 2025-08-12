@@ -82,13 +82,14 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun sendAuthToWearable(context: Context, token: String) {
+    fun sendAuthToWearable(context: Context, token: String, userID: String) {
         viewModelScope.launch {
             _connectionStatusWaer.value = ConnectionState.Loading
             try {
                 val putDataMapReq = PutDataMapRequest.create("/auth").apply {
                     dataMap.putString("token", token)
                     dataMap.putLong("timestamp", System.currentTimeMillis())
+                    dataMap.putString("user", userID)
                 }
                 val request = putDataMapReq.asPutDataRequest().setUrgent()
 
