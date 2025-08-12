@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun ErrorViewComponent(errorMsg: String) {
+fun ErrorComponent(errorMsg: String) {
     Column(
         modifier = Modifier
         .fillMaxSize()

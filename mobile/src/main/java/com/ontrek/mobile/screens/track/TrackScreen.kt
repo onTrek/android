@@ -38,7 +38,7 @@ import com.ontrek.mobile.screens.track.components.AddTrackDialog
 import com.ontrek.mobile.screens.track.components.TrackItem
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.shared.data.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,7 +195,7 @@ fun TrackScreen(
                 }
 
                 is TrackViewModel.TracksState.Error -> {
-                    ErrorViewComponent(
+                    ErrorComponent(
                         errorMsg = currentState.message
                     )
                 }
