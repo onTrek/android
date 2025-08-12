@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.DoubleArrow
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.Sos
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,12 +34,13 @@ import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
 import kotlin.math.min
 import androidx.core.graphics.toColorInt
+import androidx.wear.compose.material3.MaterialTheme
 import kotlin.math.roundToInt
 
 val distances = listOf(
     0.33f to "10m",
     0.66f to "50m",
-    0.99f to "100+m"
+    0.95f to "100+m"
 )
 
 @Composable
@@ -51,7 +54,7 @@ fun FriendRadar(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(16.dp)
     ) {
         val centerX = constraints.maxWidth / 2f
         val centerY = constraints.maxHeight / 2f
@@ -66,7 +69,7 @@ fun FriendRadar(
                     member.latitude, member.longitude
                 )
 
-                val relativeBearing = (bearingToMember - direction + 360) % 360f
+                val relativeBearing = (bearingToMember - direction + 360) % 360f // Convert to relative bearing
 
                 val polarResult = polarToCartesian(
                     centerX, centerY,
@@ -127,8 +130,8 @@ fun FriendRadar(
         // Icone membri con dimensione variabile
         memberDrawData.forEach { (member, distance, polarResult) ->
             val icon = when {
-                member.help_request -> Icons.Default.Call
-                member.going_to.isNotBlank() -> Icons.Default.DoubleArrow
+                member.help_request -> Icons.Default.Sos
+                member.going_to.isNotBlank() -> Icons.Default.PersonSearch
                 else -> Icons.Default.Person
             }
 
@@ -151,7 +154,7 @@ fun FriendRadar(
                             (polarResult.offset.y - iconHalfPx).roundToInt()
                         )
                     },
-                tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else Color.White
+                tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
             )
         }
     }

@@ -382,7 +382,7 @@ fun TrackScreen(
 
                     currentLocation?.let { userLocation ->
                         FriendRadar(
-                            direction = arrowDirection,
+                            direction = direction,
                             userLocation = userLocation,
                             members = membersLocation.filter { it.user.username != "test" }.filter { it.accuracy != -1.0 },
                             modifier = Modifier.fillMaxSize()
