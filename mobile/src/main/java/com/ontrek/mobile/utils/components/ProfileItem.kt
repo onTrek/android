@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CancelScheduleSend
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonAddAlt1
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.Card
@@ -136,12 +136,12 @@ fun ProfileItem(
                         }
                     }
                 }
-            } else if (!addMember &&  (groupOwner == "" || user.id != groupOwner)) {
+            } else if (!addMember && (groupOwner == "" || user.id != groupOwner)) {
                 IconButton(
                     onClick = { showDeleteDialog = true },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Default.Close,
                         tint = MaterialTheme.colorScheme.error,
                         contentDescription = textDelete,
                     )
