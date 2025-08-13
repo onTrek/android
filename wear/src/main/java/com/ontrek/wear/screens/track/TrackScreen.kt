@@ -13,15 +13,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Snooze
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,33 +33,29 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.wear.compose.material3.AlertDialog
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CircularProgressIndicator
-import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
-import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
+import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SosButton
+import com.ontrek.wear.screens.track.components.SosFriendDialog
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.functions.calculateFontSize
-import com.ontrek.wear.utils.media.GifRenderer
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import com.ontrek.wear.MainActivity
-import kotlin.apply
 
 
 private const val buttonSweepAngle = 60f
@@ -139,9 +127,10 @@ fun TrackScreen(
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    val showHelpFriendDialog by gpxViewModel.helpRequestState.collectAsStateWithLifecycle()
+    val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
-
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
 
@@ -306,6 +295,18 @@ fun TrackScreen(
     val infotextColor: androidx.compose.ui.graphics.Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
+    // Show the SOS friend dialog if there are friends who requested help
+    if (showHelpFriendDialog) {
+        SosFriendDialog(
+            user = listHelpRequest,
+            onDismiss = { gpxViewModel.dismissHelpRequest() },
+            onConfirm = { user ->
+                gpxViewModel.confirmGoingToFriend(user)
+            }
+        )
+    }
+
+
     if (!parsingError.isEmpty()) {
         ErrorScreen(
             "Error while parsing the GPX file: $parsingError",
@@ -395,7 +396,11 @@ fun TrackScreen(
 
                                 if (sessionID.isNotEmpty()) {
                                     if (threadSafeCurrentLocation != null) {
-                                        gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+                                        gpxViewModel.sendCurrentLocation(
+                                            threadSafeCurrentLocation,
+                                            sessionID,
+                                            true
+                                        )
                                     }
                                 }
                             },
@@ -430,101 +435,6 @@ fun TrackScreen(
     }
 }
 
-@Composable
-fun CompassCalibrationNotice(
-    modifier: Modifier = Modifier,
-) {
-    val message = "Low accuracy"
-    val subMessage = "Tilt and move the device until it vibrates"
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            modifier = Modifier.padding(top = 10.dp),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            fontSize = MaterialTheme.typography.titleMedium.fontSize
-        )
-        GifRenderer(Modifier.fillMaxSize(0.5f), R.drawable.compass, R.drawable.compassplaceholder)
-        Text(
-            text = subMessage,
-            modifier = Modifier.padding(horizontal = 15.dp),
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-fun OffTrackDialog(
-    showDialog: Boolean,
-    onConfirm: () -> Unit,
-    onSnooze: () -> Unit
-) {
-    AlertDialog(
-        visible = showDialog,
-        onDismissRequest = onConfirm,
-        icon = {
-            Icon(
-                imageVector = Icons.Outlined.Warning,
-                contentDescription = "Off Track",
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 30.dp)
-            )
-        },
-        title = {
-            Text(
-                text = "You are getting off track!",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleMedium,
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.padding(start = 4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = "Confirm",
-                )
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onSnooze,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.padding(end = 4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Snooze,
-                    contentDescription = "Snooze",
-                )
-            }
-        }
-    ) {
-        item {
-            Text(
-                text = "Get back on track or snooze the notification.",
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
