@@ -89,7 +89,7 @@ class ProfileViewModel : ViewModel() {
                 val putDataMapReq = PutDataMapRequest.create("/auth").apply {
                     dataMap.putString("token", token)
                     dataMap.putLong("timestamp", System.currentTimeMillis())
-                    dataMap.putString("user", userID)
+                    dataMap.putString("currentUser", userID)
                 }
                 val request = putDataMapReq.asPutDataRequest().setUrgent()
 

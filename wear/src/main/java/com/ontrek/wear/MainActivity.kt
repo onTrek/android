@@ -134,6 +134,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             ) {
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
                 preferencesViewModel.saveToken(dataMap.getString("token") ?: "")
+                preferencesViewModel.saveCurrentUser(dataMap.getString("currentUser") ?: "")
             }
         }
     }
