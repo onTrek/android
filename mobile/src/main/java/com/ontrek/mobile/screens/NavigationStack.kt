@@ -32,6 +32,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 ProfileScreen(
                     navController = navController,
                     token = preferencesViewModel.tokenState.value ?: "",
+                    currentUser = preferencesViewModel.currentUserState.value ?: "",
                     clearToken = {
                         preferencesViewModel.clearToken()
                     },
