@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -31,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
@@ -43,24 +43,23 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
+import com.ontrek.wear.screens.track.components.SnoozeDialog
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.screens.track.components.SosFriendDialog
-import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import java.util.Dictionary
 
 
 private const val buttonSweepAngle = 60f
@@ -131,12 +130,15 @@ fun TrackScreen(
     // Raccoglie la distanza dal tracciato come stato osservabile
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
-    val distanceNotification by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    // Raccoglie i membri della sessione come stato osservabile
+    val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
+    var snoozeModalOpen by remember { mutableStateOf(false) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -254,17 +256,25 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(distanceNotification) {
-        val longArray = longArrayOf(300, 300, 300, 300, 300)
-        val vibrationPattern = intArrayOf(255, 0, 255, 0, 255)
-        if (distanceNotification) {
+    DisposableEffect(notifyOffTrackModalOpen) {
+        if (notifyOffTrackModalOpen) {
+            //get the min between distance from track and 255
+            val vibrationIntensity = (distanceFromTrack ?: 0).toInt().coerceAtMost(255)
+            val longArray = longArrayOf(300, 300)
+            val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
             vibrator?.vibrate(
                 VibrationEffect.createWaveform(
                     longArray,
                     vibrationPattern,
-                    -1
+                    0
                 )
             )
+        } else {
+            vibrator?.cancel()
+        }
+
+        onDispose {
+            vibrator?.cancel()
         }
     }
 
@@ -386,6 +396,16 @@ fun TrackScreen(
                         endAngle = 90f - buttonWidth / 2,
                     )
 
+                    currentLocation?.let { userLocation ->
+                        FriendRadar(
+                            direction = direction,
+                            userLocation = userLocation,
+                            members = membersLocation.filter { it.user.username != "test" }
+                                .filter { it.accuracy != -1.0 },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
                     Arrow(
                         direction = arrowDirection,
                         distanceFraction = distanceFromTrack?.let {
@@ -421,11 +441,23 @@ fun TrackScreen(
                     }
                 }
                 OffTrackDialog(
-                    showDialog = distanceNotification,
-                    onConfirm = { gpxViewModel.dismissOffTrackNotification() },
+                    showDialog = notifyOffTrackModalOpen,
+                    onConfirm = {
+                        gpxViewModel.snoozeOffTrackNotification()
+                        Toast.makeText(context, "Snoozed for 1m", Toast.LENGTH_SHORT).show()
+                    },
                     onSnooze = {
-//                        gpxViewModel.snoozeOffTrack()
-                        gpxViewModel.dismissOffTrackNotification()
+                        snoozeModalOpen = true
+                    }
+                )
+                SnoozeDialog(
+                    showDialog = snoozeModalOpen,
+                    onDismiss = {
+                        snoozeModalOpen = false
+                    },
+                    onSelectTime = { time ->
+                        gpxViewModel.snoozeOffTrackNotification(time)
+                        snoozeModalOpen = false
                     }
                 )
 
@@ -456,16 +488,5 @@ fun TrackScreen(
                 trackName = trackName
             )
         }
-    }
-}
-
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun CalibrationPreview() {
-    OnTrekTheme {
-        CompassCalibrationNotice(
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }
