@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -21,11 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,9 +50,11 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
 import com.ontrek.wear.screens.track.components.SosButton
+import com.ontrek.wear.screens.track.components.SosFriendDialog
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.WarningScreen
@@ -98,7 +104,7 @@ fun TrackScreen(
         gpsAccuracy > trackPointThreshold
     }
     val gpsAccuracyText = "Low GPS signal"
-    val vibrator = getSystemService(context, android.os.Vibrator::class.java)
+    val vibrator = getSystemService(context, Vibrator::class.java)
 
     // Raccoglie il valore corrente della direzione come stato osservabile
     val direction by compassSensor.direction.collectAsStateWithLifecycle()
@@ -127,12 +133,16 @@ fun TrackScreen(
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    // Raccoglie i membri della sessione come stato osservabile
+    val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
+    val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
-
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
+
+    val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
     val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
     ContextCompat.startForegroundService(context, fallIntent)
@@ -226,7 +236,7 @@ fun TrackScreen(
         if (progress == 1f && !trackCompleted) {
             Log.d("GPS_TRACK", "Track completed")
             vibrator?.vibrate(
-                android.os.VibrationEffect.createWaveform(
+                VibrationEffect.createWaveform(
                     longArrayOf(100, 100, 500),
                     intArrayOf(100, 0, 100),
                     -1 // -1 means no repeat
@@ -240,9 +250,9 @@ fun TrackScreen(
     LaunchedEffect(accuracy) {
         if (accuracy == 3 && vibrationNeeded) {
             vibrator?.vibrate(
-                android.os.VibrationEffect.createOneShot(
+                VibrationEffect.createOneShot(
                     300,
-                    android.os.VibrationEffect.DEFAULT_AMPLITUDE
+                    VibrationEffect.DEFAULT_AMPLITUDE
                 )
             )
             compassSensor.setVibrationNeeded(false)
@@ -258,7 +268,7 @@ fun TrackScreen(
             val longArray = longArrayOf(300, 300)
             val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
             vibrator?.vibrate(
-                android.os.VibrationEffect.createWaveform(
+                VibrationEffect.createWaveform(
                     longArray,
                     vibrationPattern,
                     0
@@ -299,14 +309,30 @@ fun TrackScreen(
         gpxViewModel.getMembersLocation(sessionID)
     }
 
+    LaunchedEffect(listHelpRequest) {
+        showDialogForMember.keys.forEach { key ->
+            if (listHelpRequest.none { it.user.id == key }) {
+                showDialogForMember.remove(key)
+            }
+        }
+        listHelpRequest.forEach { member ->
+            val key = member.user.id
+            showDialogForMember.getOrPut(key) { true }
+        }
+    }
+
+
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    val infobackgroundColor: androidx.compose.ui.graphics.Color =
+    val infobackgroundColor: Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-    val infotextColor: androidx.compose.ui.graphics.Color =
+    val infotextColor: Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
-    if (!parsingError.isEmpty()) {
+
+
+
+    if (parsingError.isNotEmpty()) {
         ErrorScreen(
             "Error while parsing the GPX file: $parsingError",
             Modifier.fillMaxSize(),
@@ -375,6 +401,16 @@ fun TrackScreen(
                         endAngle = 90f - buttonWidth / 2,
                     )
 
+                    currentLocation?.let { userLocation ->
+                        FriendRadar(
+                            direction = direction,
+                            userLocation = userLocation,
+                            members = membersLocation.filter { it.user.username != "test" }
+                                .filter { it.accuracy != -1.0 },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
                     Arrow(
                         direction = arrowDirection,
                         distanceFraction = distanceFromTrack?.let {
@@ -395,7 +431,11 @@ fun TrackScreen(
 
                                 if (sessionID.isNotEmpty()) {
                                     if (threadSafeCurrentLocation != null) {
-                                        gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+                                        gpxViewModel.sendCurrentLocation(
+                                            threadSafeCurrentLocation,
+                                            sessionID,
+                                            true
+                                        )
                                     }
                                 }
                             },
@@ -426,6 +466,19 @@ fun TrackScreen(
                     }
                 )
 
+                listHelpRequest.forEach { member ->
+                    SosFriendDialog(
+                        showDialog = (showDialogForMember[member.user.id] == true) && !alone,
+                        onDismiss = {
+                            showDialogForMember[member.user.id] = false
+                        },
+                        onConfirm = {
+                            showDialogForMember[member.user.id] = false
+                            // TODO()
+                        },
+                        member = member,
+                    )
+                }
             }
             EndTrack(
                 visible = showEndTrackDialog,

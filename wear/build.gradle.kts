@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.core)
     implementation(libs.wear)
     implementation(libs.room.runtime)
+    implementation(libs.compose.material)
     ksp(libs.room.compiler)
     implementation(libs.play.services.location)
     implementation(libs.material.icons.extended)
