@@ -45,6 +45,7 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
 import com.ontrek.wear.screens.track.components.SosButton
@@ -125,6 +126,8 @@ fun TrackScreen(
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
+    // Raccoglie i membri della sessione come stato osservabile
+    val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
 
     var isSosButtonPressed by remember { mutableStateOf(false) }
 
@@ -370,6 +373,16 @@ fun TrackScreen(
                         endAngle = 90f - buttonWidth / 2,
                     )
 
+                    currentLocation?.let { userLocation ->
+                        FriendRadar(
+                            direction = direction,
+                            userLocation = userLocation,
+                            members = membersLocation.filter { it.user.username != "test" }
+                                .filter { it.accuracy != -1.0 },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
                     Arrow(
                         direction = arrowDirection,
                         distanceFraction = distanceFromTrack?.let {
@@ -390,7 +403,11 @@ fun TrackScreen(
 
                                 if (sessionID.isNotEmpty()) {
                                     if (threadSafeCurrentLocation != null) {
-                                        gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+                                        gpxViewModel.sendCurrentLocation(
+                                            threadSafeCurrentLocation,
+                                            sessionID,
+                                            true
+                                        )
                                     }
                                 }
                             },

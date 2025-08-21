@@ -42,14 +42,14 @@ data class GroupInfoResponseDoc(
 )
 
 data class MemberInfo(
-    val user: UserMinimal,
+    val user: GroupMember,
     val accuracy: Double,
     val altitude: Double,
     val going_to: String,
     val help_request: Boolean = false,
     val latitude: Double,
     val longitude: Double,
-    val time_stamp: String
+    val time_stamp: String,
 )
 
 data class MemberInfoUpdate(
