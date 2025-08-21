@@ -24,6 +24,8 @@ import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.shared.api.RetrofitClient
 import com.ontrek.wear.data.PreferencesViewModel
@@ -34,7 +36,7 @@ import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.PermissionRequester
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
+class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, MessageClient.OnMessageReceivedListener {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
@@ -118,11 +120,23 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             hasPermissions = newPermissionState
             recreate()
         }
+
+        Wearable.getMessageClient(this).addListener(this)
     }
 
     override fun onPause() {
         super.onPause()
-        dataClient.removeListener(this)
+    }
+
+    override fun onMessageReceived(event: MessageEvent) {
+        if (event.path == "/fall_detection_result") {
+            val resultStr = event.data.toString(Charsets.UTF_8)
+            Log.d("FALL_RESULT", "Ricevuto risultato: $resultStr")
+
+            if (resultStr == "FALL") {
+                // TODO()
+            }
+        }
     }
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {

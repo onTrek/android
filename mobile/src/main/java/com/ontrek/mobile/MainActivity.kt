@@ -1,5 +1,6 @@
 package com.ontrek.mobile
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,6 +43,8 @@ class MainActivity : ComponentActivity(){
             }
         }
 
+        val intent = Intent(this, FallDetectionService::class.java)
+        startService(intent)
     }
 }
 

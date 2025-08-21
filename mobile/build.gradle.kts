@@ -40,7 +40,8 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.pytorch.android.lite)
+    implementation(libs.pytorch.android.torchvision.lite)
     implementation(project(":shared"))
     implementation(libs.navigation.compose)
     implementation(libs.coil)

@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -54,6 +55,7 @@ import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
+import com.ontrek.wear.utils.services.FallDetectionForegroundService
 
 
 private const val buttonSweepAngle = 60f
@@ -131,6 +133,9 @@ fun TrackScreen(
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
+
+    val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
+    ContextCompat.startForegroundService(context, fallIntent)
 
 
     // Create PendingIntent to return to the app
@@ -431,6 +436,7 @@ fun TrackScreen(
                         // Clear the back stack to prevent going back to the track screen
                         popUpTo(Screen.TrackScreen.route) { inclusive = true }
                     }
+                    context.stopService(Intent(context, FallDetectionForegroundService::class.java))
                 },
                 trackName = trackName
             )
