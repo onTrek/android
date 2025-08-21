@@ -78,7 +78,7 @@ fun SosFriendDialog(
     ) {
         item {
             Text(
-                text = "Do you want to help your friend?",
+                text = "Do you want to go to the location of your friend?",
                 modifier = Modifier.padding(8.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center

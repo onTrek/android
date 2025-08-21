@@ -435,7 +435,10 @@ fun TrackScreen(
                         onDismiss = {
                             showDialogForMember[member.user.id] = false
                         },
-                        onConfirm = { },
+                        onConfirm = {
+                            showDialogForMember[member.user.id] = false
+                            // TODO()
+                        },
                         member = member,
                     )
                 }
