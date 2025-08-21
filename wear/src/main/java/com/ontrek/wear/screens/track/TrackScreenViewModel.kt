@@ -83,9 +83,6 @@ class TrackScreenViewModel : ViewModel() {
     private val _membersLocation = MutableStateFlow(listOf<MemberInfo>())
     val membersLocation: StateFlow<List<MemberInfo>> = _membersLocation
 
-    private val _helpRequestState = MutableStateFlow(false)
-    val helpRequestState: StateFlow<Boolean> = _helpRequestState
-
     private val _listHelpRequestState = MutableStateFlow<List<MemberInfo>>(emptyList())
     val listHelpRequestState: StateFlow<List<MemberInfo>> = _listHelpRequestState
 
@@ -308,17 +305,11 @@ class TrackScreenViewModel : ViewModel() {
         if (members.isNotEmpty()) {
             val helpRequestMembers = members.filter { it.help_request }
             if (helpRequestMembers.isNotEmpty()) {
-                _helpRequestState.value = true
                 _listHelpRequestState.value = helpRequestMembers
                 return
             }
         }
-        _helpRequestState.value = false
         _listHelpRequestState.value = emptyList()
-    }
-
-    fun dismissHelpRequest() {
-        _helpRequestState.value = false
     }
 
     // TODO
