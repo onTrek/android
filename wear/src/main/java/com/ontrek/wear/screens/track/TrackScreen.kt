@@ -144,6 +144,8 @@ fun TrackScreen(
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
+
+
     val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
     ContextCompat.startForegroundService(context, fallIntent)
 

@@ -1,5 +1,7 @@
 package com.ontrek.wear.utils.services
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.hardware.Sensor
@@ -7,6 +9,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.R
@@ -26,6 +29,19 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
     override fun onCreate() {
         super.onCreate()
 
+        val channel = NotificationChannel(
+            "fall_channel",
+            "Fall Detection Service",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Channel for fall detection service"
+        }
+
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+
+        Log.d("FallService", "Service created")
+
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         sensorManager.registerListener(
             this,
@@ -39,8 +55,8 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
         )
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
-            .setContentTitle("Monitoraggio cadute")
-            .setContentText("Servizio attivo")
+            .setContentTitle("Fall Detection")
+            .setContentText("Monitoring for falls...")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .build()
 
@@ -71,7 +87,11 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
                 window[i * 6 + 5] = gyroData[i][2]
             }
 
+            Log.d("FallService", "Sending window of size: ${window.size}")
+            Log.d("FallService", "First 6 values: ${window.take(6)}")
             sendWindowToPhone(window)
+
+
 
             // Sliding window: rimuove i primi 25 campioni
             accelData.subList(0, sliding).clear()

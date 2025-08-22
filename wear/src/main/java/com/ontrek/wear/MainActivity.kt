@@ -50,24 +50,27 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     ) { permissions ->
         when {
             permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                // Permesso di localizzazione precisa concesso
                 Log.d("GPS_PERMISSIONS", "Permesso di localizzazione precisa concesso")
             }
 
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                // Solo permesso di localizzazione approssimativa concesso
                 Log.d("GPS_PERMISSIONS", "Solo permesso di localizzazione approssimativa concesso")
             }
 
             permissions.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false) -> {
-                // Permesso di notifiche concesso
                 Log.d("GPS_PERMISSIONS", "Permesso di notifiche concesso")
             }
 
-            else -> {
-                // Nessun permesso concesso
-                Log.d("GPS_PERMISSIONS", "Permessi di localizzazione negati")
+            permissions.getOrDefault(Manifest.permission.BLUETOOTH_CONNECT, false) -> {
+                Log.d("BT_PERMISSIONS", "Permesso BLUETOOTH_CONNECT concesso")
+            }
 
+            permissions.getOrDefault(Manifest.permission.BLUETOOTH_SCAN, false) -> {
+                Log.d("BT_PERMISSIONS", "Permesso BLUETOOTH_SCAN concesso")
+            }
+
+            else -> {
+                Log.d("PERMISSIONS", "Alcuni permessi richiesti non sono stati concessi")
             }
         }
     }
@@ -181,19 +184,35 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     }
 
     private fun checkAndRequestPermissions(): Boolean {
-        if (!checkPermissions()) {
-            permissionsRequest.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.POST_NOTIFICATIONS
-                )
-            )
-        } else {
-            hasPermissions = true
-            return true
+        val neededPermissions = mutableListOf<String>()
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        return false
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
+        }
+
+        if (neededPermissions.isNotEmpty()) {
+            permissionsRequest.launch(neededPermissions.toTypedArray())
+            return false
+        }
+
+        hasPermissions = true
+        return true
     }
 
     private inner class AmbientCallback : AmbientLifecycleObserver.AmbientLifecycleCallback {
