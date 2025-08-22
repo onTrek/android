@@ -45,7 +45,6 @@ import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
 import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
-import com.ontrek.wear.data.PreferencesViewModel
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
@@ -401,7 +400,7 @@ fun TrackScreen(
                         FriendRadar(
                             direction = direction,
                             userLocation = userLocation,
-                            members = membersLocation.filter{ it.user.username != "test"}
+                            members = membersLocation.filter { it.user.username != "test" } //TODO()
                                 .filter { it.accuracy != -1.0 },
                             modifier = Modifier.fillMaxSize()
                         )
