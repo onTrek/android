@@ -11,11 +11,19 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import com.ontrek.mobile.screens.profile.ProfileViewModel.RequestsState.Companion.count
+import com.ontrek.shared.api.friends.acceptFriendRequest
+import com.ontrek.shared.api.friends.deleteFriend
+import com.ontrek.shared.api.friends.deleteFriendRequest
+import com.ontrek.shared.api.friends.getFriendRequests
+import com.ontrek.shared.api.friends.getFriends
 import com.ontrek.shared.api.profile.deleteProfile
 import com.ontrek.shared.api.profile.getImageProfile
 import com.ontrek.shared.api.profile.getProfile
 import com.ontrek.shared.api.profile.uploadImageProfile
+import com.ontrek.shared.data.FriendRequest
 import com.ontrek.shared.data.Profile
+import com.ontrek.shared.data.UserMinimal
 
 class ProfileViewModel : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfileState>(UserProfileState.Loading)
@@ -26,6 +34,12 @@ class ProfileViewModel : ViewModel() {
 
     private val _connectionStatusWaer = MutableStateFlow<ConnectionState>(ConnectionState.Success(false))
     val connectionStatus: StateFlow<ConnectionState> = _connectionStatusWaer.asStateFlow()
+
+    private val _friendsState = MutableStateFlow<FriendsState>(FriendsState.Loading)
+    val friendsState: StateFlow<FriendsState> = _friendsState.asStateFlow()
+
+    private val _requestsState = MutableStateFlow<RequestsState>(RequestsState.Loading)
+    val requestsState: StateFlow<RequestsState> = _requestsState.asStateFlow()
 
     private val _msgToast = MutableStateFlow("")
     val msgToast: StateFlow<String> = _msgToast.asStateFlow()
@@ -151,14 +165,139 @@ class ProfileViewModel : ViewModel() {
         return name
     }
 
-    fun logout(clearToken: () -> Unit) {
+    // -------- Friends Management --------
+    fun fetchFriends() {
         viewModelScope.launch {
-            _userProfile.value = UserProfileState.Loading
-            try {
-                _msgToast.value = "Log out successfully"
-                clearToken()
-            } catch (e: Exception) {
-                _msgToast.value = "Error during logout: ${e.message}"
+            _friendsState.value = FriendsState.Loading
+            getFriends(
+                onSuccess = { friends ->
+                    if (friends.isNullOrEmpty()) {
+                        _friendsState.value = FriendsState.Empty
+                    } else {
+                        _friendsState.value = FriendsState.Success(friends)
+                    }
+                },
+                onError = { error ->
+                    _friendsState.value = FriendsState.Error(error)
+                }
+            )
+        }
+    }
+
+    fun removeFriend(friendId: String) {
+        viewModelScope.launch {
+            // Simulazione chiamata API
+            deleteFriend(
+                id = friendId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    removeFriendFromList(friendId)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
+        }
+    }
+
+    private fun removeFriendFromList(friendId: String) {
+        viewModelScope.launch {
+            _friendsState.value = when (val currentState = _friendsState.value) {
+                is FriendsState.Success -> {
+                    val updatedFriends = currentState.friends.filter { it.id != friendId }
+                    FriendsState.Success(updatedFriends)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+    private fun addFriendToList(friend: UserMinimal) {
+        viewModelScope.launch {
+            _friendsState.value = when (val currentState = _friendsState.value) {
+                is FriendsState.Success -> {
+                    val updatedFriends = currentState.friends.toMutableList().apply { add(friend) }
+                    FriendsState.Success(updatedFriends)
+                }
+                else -> currentState
+            }
+        }
+    }
+
+
+    // -------- Friend Requests Management --------
+    fun loadFriendRequests() {
+        viewModelScope.launch {
+            _requestsState.value = RequestsState.Loading
+            getFriendRequests(
+                onSuccess = { requests ->
+                    if (requests.isNullOrEmpty()) {
+                        _requestsState.value = RequestsState.Empty
+                    } else {
+                        _requestsState.value = RequestsState.Success(requests)
+                    }
+                },
+                onError = { error ->
+                    _requestsState.value = RequestsState.Error(error)
+                }
+            )
+        }
+    }
+
+    // Accetta richiesta di amicizia
+    fun acceptRequest(user: FriendRequest) {
+        viewModelScope.launch {
+            // Simulazione chiamata API
+            acceptFriendRequest(
+                id = user.id,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    removeRequestFromList(user.id)
+                    val friend = UserMinimal(
+                        id = user.id,
+                        username = user.username,
+                    )
+                    addFriendToList(friend)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
+        }
+    }
+
+    // Rifiuta richiesta di amicizia
+    fun rejectFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            // Simulazione chiamata API
+            deleteFriendRequest(
+                id = requestId,
+                onSuccess = { message ->
+                    _msgToast.value = message
+                    removeRequestFromList(requestId)
+                },
+                onError = { error ->
+                    _msgToast.value = error
+                }
+            )
+        }
+    }
+
+    private fun removeRequestFromList(requestId: String) {
+        viewModelScope.launch {
+            _requestsState.value = when (val currentState = _requestsState.value) {
+                is RequestsState.Success -> {
+                    val updatedRequests = currentState.requests.filter { it.id != requestId }
+                    RequestsState.Success(updatedRequests)
+                }
+                else -> currentState
+            }
+
+            if (_requestsState.value is RequestsState.Success) {
+                val count = (_requestsState.value as RequestsState.Success).count
+                if (count == 0) {
+                    _requestsState.value = RequestsState.Empty
+                }
             }
         }
     }
@@ -167,8 +306,8 @@ class ProfileViewModel : ViewModel() {
         _msgToast.value = ""
     }
 
-    fun setMsgToast(message: String) {
-        _msgToast.value = message
+    fun setMsgToast(msg: String) {
+        _msgToast.value = msg
     }
 
     sealed class UserProfileState {
@@ -187,5 +326,27 @@ class ProfileViewModel : ViewModel() {
         data class Success(val isConnected: Boolean) : ConnectionState()
         data class Error(val message: String) : ConnectionState()
         object Loading : ConnectionState()
+    }
+
+    sealed class FriendsState {
+        data class Success(val friends: List<UserMinimal>) : FriendsState()
+        data class Error(val message: String) : FriendsState()
+        object Loading : FriendsState()
+        object Empty : FriendsState()
+    }
+
+    sealed class RequestsState {
+        data class Success(val requests: List<FriendRequest>) : RequestsState()
+        data class Error(val message: String) : RequestsState()
+        object Loading : RequestsState()
+        object Empty : RequestsState()
+
+        companion object {
+            val RequestsState.count: Int
+                get() = when (this) {
+                    is Success -> requests.size
+                    else -> 0
+                }
+        }
     }
 }

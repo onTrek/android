@@ -7,10 +7,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ExitToApp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -19,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,16 +34,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ontrek.mobile.screens.profile.components.ConnectionWearButton
+import com.ontrek.mobile.screens.profile.components.FriendsTab
 import com.ontrek.mobile.screens.profile.components.ImageProfileDialog
+import com.ontrek.mobile.screens.profile.components.MenuDialog
 import com.ontrek.mobile.screens.profile.components.ProfileCard
 import com.ontrek.mobile.utils.components.BottomNavBar
-import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,10 +55,10 @@ fun ProfileScreen(
     currentUser: String,
     clearToken: () -> Unit
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel()
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showMenuDialog by remember { mutableStateOf(false) }
 
     val userProfile by viewModel.userProfile.collectAsState()
     val imageProfile by viewModel.imageProfile.collectAsState()
@@ -157,6 +163,8 @@ fun ProfileScreen(
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
+        viewModel.fetchFriends()
+        viewModel.loadFriendRequests()
     }
 
     if (msgToast.isNotEmpty()) {
@@ -167,14 +175,17 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text(text = "Your profile") },
+                scrollBehavior = scrollBehavior,
                 actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
+                    IconButton(onClick = { showMenuDialog = true }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                            imageVector = Icons.Default.MoreVert,
                             contentDescription = "Logout",
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -188,34 +199,23 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            if (showLogoutDialog) {
-                DeleteConfirmationDialog(
-                    title = "Logout",
-                    text = "Are you sure you want to logout?",
-                    textButton = "Logout",
-                    onConfirm = {
-                        viewModel.logout { clearToken() }
-                        showLogoutDialog = false
-                    },
-                    onDismiss = { showLogoutDialog = false },
-                )
-            }
-
-            if (showDeleteDialog) {
-                DeleteConfirmationDialog(
-                    title = "Delete Profile",
-                    text = "Are you sure you want to delete your profile? This action cannot be undone.",
-                    onConfirm = {
+            if (showMenuDialog) {
+                MenuDialog(
+                    onDismiss = { showMenuDialog = false },
+                    onDeleteProfile = {
                         viewModel.deleteProfile(
                             clearToken = { clearToken() },
                         )
-                        showDeleteDialog = false
+                        viewModel.setMsgToast("Your profile has been deleted")
                     },
-                    onDismiss = { showDeleteDialog = false },
+                    onLogoutClick = {
+                        clearToken()
+                        viewModel.setMsgToast("You have been logged out")
+                    }
                 )
             }
 
@@ -238,7 +238,13 @@ fun ProfileScreen(
 
             when (userProfile) {
                 is ProfileViewModel.UserProfileState.Loading -> {
-                    CircularProgressIndicator()
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
 
                 is ProfileViewModel.UserProfileState.Success -> {
@@ -252,18 +258,25 @@ fun ProfileScreen(
                         onImageClick = { showFilePicker = true }
                     )
 
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
                     ConnectionWearButton(
                         connectionState = connectionStatus,
                         onConnectClick = {
                             viewModel.sendAuthToWearable(context, token, currentUser)
                         },
-                        onDeleteClick = { showDeleteDialog = true }
+                    )
+
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                    FriendsTab(
+                        viewModel = viewModel,
                     )
                 }
 
                 is ProfileViewModel.UserProfileState.Error -> {
                     val errorMsg = (userProfile as ProfileViewModel.UserProfileState.Error).message
-                    ErrorViewComponent(errorMsg = errorMsg)
+                    ErrorComponent(errorMsg = errorMsg)
                 }
             }
         }
