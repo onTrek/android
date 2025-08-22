@@ -24,7 +24,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     override fun onCreate() {
         super.onCreate()
         // Carica modello TorchScript dal folder assets
-        module = Module.load(assetFilePath("fall_model_50hz.pt"))
+        module = Module.load(assetFilePath("fall_model_50hz.pt")) //TODO()
         Wearable.getMessageClient(this).addListener(this)
     }
 
@@ -35,13 +35,19 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    // Qui ricevi finestre di dati raw dallo smartwatch
+    private fun byteArrayToFloatArray(bytes: ByteArray): FloatArray {
+        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+        val floats = FloatArray(bytes.size / 4)
+        buffer.asFloatBuffer().get(floats)
+        return floats
+    }
+
     override fun onMessageReceived(event: MessageEvent) {
         if (event.path == "/fall_window") {
             val rawData = event.data // ByteArray con float accel+gyro
             val floatData = byteArrayToFloatArray(rawData)
 
-            // 1. Applica filtro di Kalman
+            // 1. Applica filtro di Kalman alle colonne (ax0..axN, ay0..ayN, ecc.)
             val filteredData = applyKalman(floatData)
 
             // 2. Crea tensore Torch (shape [1, windowSize, numFeatures])
@@ -61,49 +67,58 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
         }
     }
 
-    private fun byteArrayToFloatArray(bytes: ByteArray): FloatArray {
-        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
-        val floats = FloatArray(bytes.size / 4)
-        buffer.asFloatBuffer().get(floats)
-        return floats
-    }
-
-    // Applica filtro Kalman (semplificato, traduzione dal Python che usavi)
+    // Applica filtro di Kalman a ciascuna colonna (feature)
     private fun applyKalman(data: FloatArray): FloatArray {
-        val n = data.size / numFeatures
+        val nRows = data.size / numFeatures   // numero di time step = windowSize
         val result = data.copyOf()
 
+        // per ogni colonna (ax, ay, az, gx, gy, gz)
         for (col in 0 until numFeatures) {
-            val column = FloatArray(n) { i -> data[i * numFeatures + col] }
-            val filtered = kalmanFilter1D(column)
-            for (i in 0 until n) {
-                result[i * numFeatures + col] = filtered[i]
+            // estrai la sequenza temporale della colonna (es. ax0..axN)
+            val columnValues = FloatArray(nRows) { row ->
+                data[row * numFeatures + col]
+            }
+
+            // applica filtro Kalman alla colonna
+            val filteredColumn = kalmanFilter1D(columnValues)
+
+            // reinserisci nel risultato nello stesso layout row-major
+            for (row in 0 until nRows) {
+                result[row * numFeatures + col] = filteredColumn[row]
             }
         }
         return result
     }
 
-    private fun kalmanFilter1D(data: FloatArray,
-                               processVar: Float = 1e-5f,
-                               measurementVar: Float = 1e-2f): FloatArray {
+    // Filtro Kalman 1D (semplificato)
+    private fun kalmanFilter1D(
+        data: FloatArray,
+        processVar: Float = 1e-5f,
+        measurementVar: Float = 1e-2f
+    ): FloatArray {
         val n = data.size
-        val xEst = FloatArray(n)
-        val P = FloatArray(n)
+        val xEst = FloatArray(n)  // stima
+        val P = FloatArray(n)     // covarianza errore
 
-        val Q = processVar
-        val R = measurementVar
+        val Q = processVar        // rumore di processo
+        val R = measurementVar    // rumore di misura
 
+        // inizializzazione
         xEst[0] = data[0]
         P[0] = 1f
 
+        // ciclo Kalman
         for (k in 1 until n) {
+            // Predizione
             val xPred = xEst[k - 1]
             val PPred = P[k - 1] + Q
 
+            // Aggiornamento
             val K = PPred / (PPred + R)
             xEst[k] = xPred + K * (data[k] - xPred)
             P[k] = (1 - K) * PPred
         }
+
         return xEst
     }
 
