@@ -21,11 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
@@ -38,10 +36,8 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.compose.material3.touchTargetAwareSize
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.screens.track.TrackScreenViewModel
 import com.ontrek.wear.screens.track.components.FriendRadar
-import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 
