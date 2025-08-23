@@ -23,14 +23,14 @@ data class GroupUI(
     val created_at: String,
     val created_by: String,
     val member_number: Int,
-    val track: TrackInfo
+    val track: TrackInfo,
+    val downloadState: DownloadState,
 )
 
 sealed class DownloadState {
     object NotStarted : DownloadState()
     object InProgress : DownloadState()
     object Completed : DownloadState()
-    class Error(val message: String) : DownloadState()
 }
 
 class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
@@ -44,8 +44,8 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     private val _groupsListState = MutableStateFlow<List<GroupUI>>(listOf())
     val groupListState: StateFlow<List<GroupUI>> = _groupsListState
 
-    private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotStarted)
-    val downloadState: StateFlow<DownloadState> = _downloadState
+    private val _downloadError = MutableStateFlow<String?>(null)
+    val downloadError: StateFlow<String?> = _downloadError
 
 
     fun fetchGroupsList() {
@@ -62,26 +62,33 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
     }
 
     fun updateGroups(data: List<GroupDoc>?) {
-        Log.d("WearOS", "Data updated: $data")
-        if (data != null) {
-            _groupsListState.value = data.map { group ->
-                GroupUI(
-                    group_id = group.group_id,
-                    description = group.description,
-                    created_at = group.created_at,
-                    created_by = group.created_by,
-                    member_number = group.members_number,
-                    track = TrackInfo(
-                        id = group.track.id,
-                        title = group.track.title
+        viewModelScope.launch {
+            Log.d("WearOS", "Data updated: $data")
+            if (data != null) {
+                _groupsListState.value = data.map { group ->
+                    GroupUI(
+                        group_id = group.group_id,
+                        description = group.description,
+                        created_at = group.created_at,
+                        created_by = group.created_by,
+                        member_number = group.members_number,
+                        track = TrackInfo(
+                            id = group.track.id,
+                            title = group.track.title
+                        ),
+                        downloadState = if (checkIfTrackExists(group.track.id)) {
+                            DownloadState.Completed
+                        } else {
+                            DownloadState.NotStarted
+                        }
                     )
-                )
+                }
+                _fetchError.value = null
+            } else {
+                Log.e("WearOS", "Data is null")
             }
-            _fetchError.value = null
-        } else {
-            Log.e("WearOS", "Data is null")
+            _isLoading.value = false
         }
-        _isLoading.value = false
     }
 
     fun setError(error: String?) {
@@ -91,39 +98,42 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         _isLoading.value = false
     }
 
-    fun checkIfTrackExists(trackID: Int): Boolean {
+    private suspend fun checkIfTrackExists(trackID: Int): Boolean {
         if (trackID == -1) {
-            Log.d("WearOS", "Track ID is -1, skipping check")
+            Log.d("GroupTrack", "Track ID is -1, skipping check")
             return false
         }
         val exists = MutableLiveData<Boolean>()
-        viewModelScope.launch {
-            exists.value = db.trackDao().getTrackById(trackID) != null
-        }
+        exists.value = db.trackDao().getTrackById(trackID) != null
+
+        Log.d("GroupTrack", "Track exists: ${exists.value} for ID: $trackID")
         return exists.value == true  // because it can be null
     }
 
-    fun downloadTrack(trackId: Int, context: Context) {
+    fun downloadTrack(groupIndex: Int, trackId: Int, context: Context) {
         viewModelScope.launch {
-            _downloadState.value = DownloadState.InProgress
+            // Update the download state to InProgress
+            updateDownloadState(groupIndex, DownloadState.InProgress)
+
 
             // get the track details and wait for completion
-            val trackDetail = getTrackSuspending(trackId)
+            val trackDetail = getTrackSuspending(groupIndex, trackId)
 
             // Check if we got the track details successfully
             if (trackDetail == null) {
                 Log.e("DownloadTrack", "Track not found for ID: $trackId")
-                _downloadState.value = DownloadState.Error(message = "Track not found")
+                updateDownloadState(groupIndex, DownloadState.NotStarted)
+                _downloadError.value = "Track not found"
                 return@launch
             }
 
             // download the GPX file
             val filename = "${trackDetail.id}.gpx"
-            downloadGpxSuspending(trackDetail.id, filename, trackDetail, context)
+            downloadGpxSuspending(groupIndex, trackDetail.id, filename, trackDetail, context)
         }
     }
 
-    private suspend fun getTrackSuspending(trackId: Int): Track? {
+    private suspend fun getTrackSuspending(groupIndex: Int, trackId: Int): Track? {
         return kotlin.coroutines.suspendCoroutine { continuation ->
             getTrack(
                 id = trackId,
@@ -133,20 +143,22 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                 },
                 onError = { errorMessage ->
                     Log.e("DownloadTrack", "Error getting track: $errorMessage")
-                    _downloadState.value = DownloadState.Error(message = "Failed to download track")
+                    updateDownloadState(groupIndex, DownloadState.NotStarted)
+                    _downloadError.value = "Failed to get track details"
                     continuation.resumeWith(Result.success(null))
                 }
             )
         }
     }
 
-    private suspend fun downloadGpxSuspending(gpxId: Int, filename: String, trackDetail: Track, context: Context) {
+    private suspend fun downloadGpxSuspending(groupIndex: Int, gpxId: Int, filename: String, trackDetail: Track, context: Context) {
         return kotlin.coroutines.suspendCoroutine { continuation ->
             downloadGpx(
                 gpxID = gpxId,
                 onError = { errorMessage ->
                     Log.e("DownloadTrack", "Error occurred: $errorMessage")
-                    _downloadState.value = DownloadState.Error(message = "Failed to download track")
+                    updateDownloadState(groupIndex, DownloadState.NotStarted)
+                    _downloadError.value = "Failed to download GPX file"
                     continuation.resumeWith(Result.success(Unit))
                 },
                 onSuccess = { fileContent ->
@@ -167,7 +179,7 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
                     }
                     saveFile(fileContent, filename, context)
                     Log.d("DownloadTrack", "File downloaded successfully: ${trackDetail.title}")
-                    _downloadState.value = DownloadState.Completed
+                    updateDownloadState(groupIndex, DownloadState.Completed)
                     continuation.resumeWith(Result.success(Unit))
                 }
             )
@@ -178,6 +190,20 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
         context.openFileOutput(filename, Context.MODE_PRIVATE).use {
             it.write(fileContent)
         }
+    }
+
+    private fun updateDownloadState(groupIndex: Int, newState: DownloadState) {
+        _groupsListState.value = _groupsListState.value.mapIndexed { index, groupUI ->
+            if (index == groupIndex) {
+                groupUI.copy(downloadState = newState)
+            } else {
+                groupUI
+            }
+        }
+    }
+
+    fun clearDownloadError() {
+        _downloadError.value = null
     }
 
     class Factory(private val db: AppDatabase) : ViewModelProvider.Factory {

@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
-import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
@@ -49,7 +49,7 @@ fun GroupSelectionScreen(
     val isLoading by groupSelectionViewModel.isLoading.collectAsStateWithLifecycle()
     val fetchError by groupSelectionViewModel.fetchError.collectAsStateWithLifecycle()
     val groups by groupSelectionViewModel.groupListState.collectAsStateWithLifecycle()
-    val downloadState by groupSelectionViewModel.downloadState.collectAsStateWithLifecycle()
+    val downloadError by groupSelectionViewModel.downloadError.collectAsStateWithLifecycle()
 
     val listState = rememberScalingLazyListState()
 
@@ -59,9 +59,10 @@ fun GroupSelectionScreen(
         groupSelectionViewModel.fetchGroupsList()
     }
 
-    LaunchedEffect(downloadState) {
-        if (downloadState is DownloadState.Error) {
-            Toast.makeText(context, (downloadState as DownloadState.Error).message, Toast.LENGTH_LONG).show()
+    LaunchedEffect(downloadError) {
+        if (!downloadError.isNullOrEmpty()) {
+            Toast.makeText(context, downloadError, Toast.LENGTH_LONG).show()
+            groupSelectionViewModel.clearDownloadError()
         }
     }
 
@@ -99,13 +100,13 @@ fun GroupSelectionScreen(
                     text = "Hiking groups",
                 )
             }
-            items(groups) { group ->
+            itemsIndexed(groups) { index, group ->
                 GroupButton(
                     group = group,
-                    downloadState = downloadState,
-                    downloadIfNecessary = {
-                        if (groupSelectionViewModel.checkIfTrackExists(group.track.id)) return@GroupButton
+                    downloadState = group.downloadState,
+                    downloadTrack = {
                         groupSelectionViewModel.downloadTrack(
+                            groupIndex = index,
                             trackId = group.track.id,
                             context = context
                         )
