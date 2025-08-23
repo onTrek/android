@@ -1,13 +1,17 @@
 package com.ontrek.mobile
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import org.pytorch.IValue
+import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
 import org.pytorch.Tensor
 import java.io.File
@@ -23,9 +27,31 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
     override fun onCreate() {
         super.onCreate()
+        Log.d("FALL_DETECTION", "Service created")
+
+        val channel = NotificationChannel(
+            "fall_channel",
+            "Fall Detection Service",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Channel for fall detection service"
+        }
+
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+
+        val notification = NotificationCompat.Builder(this, "fall_channel")
+            .setContentTitle("Fall Detection")
+            .setContentText("Monitoring for falls...")
+            .setSmallIcon(R.drawable.hiking)
+            .build()
+
         // Carica modello TorchScript dal folder assets
-        module = Module.load(assetFilePath("fall_model_50hz.pt")) //TODO()
+        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_50hz_lite.pt"))
+
         Wearable.getMessageClient(this).addListener(this)
+
+        startForeground(1, notification)
     }
 
     override fun onDestroy() {
@@ -43,6 +69,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     }
 
     override fun onMessageReceived(event: MessageEvent) {
+        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
         if (event.path == "/fall_window") {
             val rawData = event.data // ByteArray con float accel+gyro
             val floatData = byteArrayToFloatArray(rawData)
@@ -123,6 +150,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     }
 
     private fun sendResultToWatch(result: FloatArray) {
+        Log.d("FALL_DETECTION", "Sending result to watch: ${result.joinToString()}")
         val resultStr = if (result[0] > 0.5f) "FALL" else "NO_FALL"
         val bytes = resultStr.toByteArray()
 

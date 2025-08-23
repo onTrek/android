@@ -132,6 +132,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     }
 
     override fun onMessageReceived(event: MessageEvent) {
+        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
         if (event.path == "/fall_detection_result") {
             val resultStr = event.data.toString(Charsets.UTF_8)
             Log.d("FALL_RESULT", "Ricevuto risultato: $resultStr")

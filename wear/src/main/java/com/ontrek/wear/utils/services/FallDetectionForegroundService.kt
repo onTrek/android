@@ -11,6 +11,8 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.R
 import java.nio.ByteBuffer
@@ -20,7 +22,7 @@ private const val freq = 40_000 // 40Hz, 25ms
 private const val windowSize = 62 // 62 samples for 2.5 seconds at 25Hz
 private const val sliding = (windowSize * (1 - 0.20)).toInt()
 
-class FallDetectionForegroundService : Service(), SensorEventListener {
+class FallDetectionForegroundService : Service(), SensorEventListener, MessageClient.OnMessageReceivedListener {
 
     private lateinit var sensorManager: SensorManager
     private val accelData = mutableListOf<FloatArray>()
@@ -28,6 +30,8 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
+
+        Log.d("FALL_DETECTION", "Service created")
 
         val channel = NotificationChannel(
             "fall_channel",
@@ -57,7 +61,7 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
         val notification = NotificationCompat.Builder(this, "fall_channel")
             .setContentTitle("Fall Detection")
             .setContentText("Monitoring for falls...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.hiking)
             .build()
 
         startForeground(1, notification)
@@ -87,8 +91,8 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
                 window[i * 6 + 5] = gyroData[i][2]
             }
 
-            Log.d("FallService", "Sending window of size: ${window.size}")
-            Log.d("FallService", "First 6 values: ${window.take(6)}")
+            Log.d("FALL_DETECTION", "Sending window of size: ${window.size}")
+            Log.d("FALL_DETECTION", "First 6 values: ${window.take(6)}")
             sendWindowToPhone(window)
 
 
@@ -100,12 +104,41 @@ class FallDetectionForegroundService : Service(), SensorEventListener {
     }
 
     private fun sendWindowToPhone(window: FloatArray) {
+        Log.d("FALL_DETECTION", "Preparing to send window to phone")
+
         val nodeClient = Wearable.getNodeClient(this)
         nodeClient.connectedNodes.addOnSuccessListener { nodes ->
-            val nodeId = nodes.firstOrNull()?.id ?: return@addOnSuccessListener
+            val nodeId = nodes.firstOrNull()?.id
+            if (nodeId == null) {
+                Log.w("FALL_DETECTION", "Nodes not found")
+                return@addOnSuccessListener
+            }
+
             val byteBuffer = ByteBuffer.allocate(window.size * 4).order(ByteOrder.LITTLE_ENDIAN)
             window.forEach { byteBuffer.putFloat(it) }
-            Wearable.getMessageClient(this).sendMessage(nodeId, "/fall_window", byteBuffer.array())
+
+            Wearable.getMessageClient(this)
+                .sendMessage(nodeId, "/fall_window", byteBuffer.array())
+                .addOnSuccessListener {
+                    Log.d("FALL_DETECTION", "Successfully sent window to phone with nodeId: $nodeId" )
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FALL_DETECTION", "Error sending message", e)
+                }
+        }.addOnFailureListener { e ->
+            Log.e("FALL_DETECTION", "Error getting connected nodes", e)
+        }
+    }
+
+    override fun onMessageReceived(event: MessageEvent) {
+        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
+        if (event.path == "/fall_detection_result") {
+            val resultStr = event.data.toString(Charsets.UTF_8)
+            Log.d("FALL_RESULT", "Result: $resultStr")
+
+            if (resultStr == "FALL") {
+                //TODO()
+            }
         }
     }
 
