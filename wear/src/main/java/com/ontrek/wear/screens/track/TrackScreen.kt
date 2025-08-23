@@ -82,6 +82,7 @@ fun TrackScreen(
     trackID: String,
     trackName: String,
     sessionID: String,
+    currentUserId: String,
     modifier: Modifier = Modifier
 ) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
@@ -400,7 +401,10 @@ fun TrackScreen(
                         FriendRadar(
                             direction = direction,
                             userLocation = userLocation,
-                            members = membersLocation.filter { it.user.username != "test" } //TODO()
+                            members = membersLocation.filter {
+                                Log.d("userId", "Member ID: ${it.user.id} | Current user ID: $currentUserId")
+                                it.user.id != currentUserId
+                            }
                                 .filter { it.accuracy != -1.0 },
                             modifier = Modifier.fillMaxSize()
                         )

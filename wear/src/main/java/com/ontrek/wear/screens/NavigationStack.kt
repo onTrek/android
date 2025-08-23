@@ -76,6 +76,7 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 trackID = it.arguments?.getString("trackID").toString(),
                 trackName = it.arguments?.getString("trackName").toString(),
                 sessionID = it.arguments?.getString("sessionID").toString(),
+                currentUserId = preferencesViewModel.currentUserState.value ?: "",
                 modifier = modifier
             )
         }
