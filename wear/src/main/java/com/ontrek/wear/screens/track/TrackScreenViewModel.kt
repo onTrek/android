@@ -62,7 +62,7 @@ const val defaultSnoozeTime: Long = 1 * 60 * 1000 // 1 minute
  */
 const val waitNumberOfLocations = 5
 
-class TrackScreenViewModel : ViewModel() {
+class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
     val trackPointListState: StateFlow<List<TrackPoint>> = trackPoints
@@ -308,9 +308,10 @@ class TrackScreenViewModel : ViewModel() {
     }
 
     fun checkHelpRequest() {
+        Log.d("CheckHelpRequest", "Checking for help requests among members. Current member: $currentUserId")
         val members = _membersLocation.value
         if (members.isNotEmpty()) {
-            val helpRequestMembers = members.filter { it.help_request }
+            val helpRequestMembers = members.filter { it.help_request && it.user.id != currentUserId }
             if (helpRequestMembers.isNotEmpty()) {
                 _listHelpRequestState.value = helpRequestMembers
                 return

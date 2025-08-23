@@ -1,5 +1,6 @@
 package com.ontrek.wear.screens.sos
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,15 +11,19 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.outlined.Dangerous
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.material3.AlertDialog
@@ -34,22 +39,87 @@ import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.compose.material3.touchTargetAwareSize
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.ontrek.wear.screens.track.TrackScreenViewModel
+import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.theme.OnTrekTheme
+import com.ontrek.wear.utils.sensors.CompassSensor
+import com.ontrek.wear.utils.sensors.GpsSensor
 
 
 @Composable
-fun SOSScreen(navController: NavHostController) {
+fun SOSScreen(
+    navController: NavHostController,
+    sessionID: String,
+    currentUserId: String
+) {
+    val context = LocalContext.current
+    val sosViewModel = remember { TrackScreenViewModel(currentUserId) }
+
     var showDialog by remember { mutableStateOf(false) }
+
     val textColor = MaterialTheme.colorScheme.onErrorContainer
+
+    val gpsSensor = remember { GpsSensor(context) }
+
+    val compassSensor = remember { CompassSensor(context) }
+
+    val isInitialized by sosViewModel.isInitialized.collectAsStateWithLifecycle()
+
+    val accuracy by compassSensor.accuracy.collectAsStateWithLifecycle()
+
+    val direction by compassSensor.direction.collectAsStateWithLifecycle()
+
+    val currentLocation by gpsSensor.location.collectAsStateWithLifecycle()
+
+    val membersLocation by sosViewModel.membersLocation.collectAsStateWithLifecycle()
+
+    DisposableEffect(compassSensor, gpsSensor) {
+        // Avvia la lettura dei dati dai sensori
+        compassSensor.start()
+        gpsSensor.start()
+
+        // Pulisce le risorse quando il componente viene rimosso dalla composizione
+        onDispose {
+            compassSensor.stop()
+            gpsSensor.stop()
+        }
+    }
+
+    LaunchedEffect(direction) {
+        if (accuracy < 3) return@LaunchedEffect
+        sosViewModel.elaborateDirection(direction)
+    }
+
+    LaunchedEffect(currentLocation) {
+        Log.d("GPS_LOCATION", "Current location updated: $currentLocation")
+        val threadSafeCurrentLocation = currentLocation
+
+        if (threadSafeCurrentLocation == null) {
+            Log.d("GPS_LOCATION", "Location not available")
+            return@LaunchedEffect
+        }
+
+        if (isInitialized == null || isInitialized == false) {
+            // Startup function
+            sosViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
+        } else if (isInitialized == true) {
+            // If we are near the track, we can proceed to elaborate the position
+            sosViewModel.elaboratePosition(threadSafeCurrentLocation)
+            if (sessionID.isNotEmpty()) {
+                sosViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
+            }
+        }
+        sosViewModel.getMembersLocation(sessionID)
+    }
 
     ScreenScaffold(
         modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer),
         timeText = {
             TimeText(
-                backgroundColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.8f)
+                backgroundColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.4f)
             ) { time ->
                 curvedText(
-                    text = "Help coming!",  // TODO: SOS send (if no one responded yet)
+                    text = if (membersLocation.any { it.going_to == currentUserId }) "Help coming!" else "SOS sent!",
 //                    CurvedModifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
                     color = textColor,
@@ -62,6 +132,18 @@ fun SOSScreen(navController: NavHostController) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            currentLocation?.let { userLocation ->
+                FriendRadar(
+                    direction = direction,
+                    userLocation = userLocation,
+                    members = membersLocation.filter {
+                        Log.d("userId", "Member ID: ${it.user.id} | Current user ID: $currentUserId")
+                        it.user.id != currentUserId
+                    }.filter { it.accuracy != -1.0 }.filter { it.going_to == currentUserId},
+                    modifier = Modifier.fillMaxSize(),
+                    radarColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.6f)
+                )
+            }
             Icon(
                 imageVector = Icons.Filled.MyLocation,
                 contentDescription = "Location",
@@ -79,6 +161,7 @@ fun SOSScreen(navController: NavHostController) {
                     .align(Alignment.BottomCenter)
                     .touchTargetAwareSize(25.dp),
             ) {
+
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
@@ -155,12 +238,4 @@ fun DismissSOSDialog(
 fun closeScreen(navController: NavHostController) {
     // call api to remove SOS
     navController.popBackStack()
-}
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    OnTrekTheme {
-        SOSScreen(rememberNavController())
-    }
 }

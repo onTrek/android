@@ -95,7 +95,8 @@ fun TrackScreen(
     // Inizializza il sensore GPS
     val gpsSensor = remember { GpsSensor(context) }
     // Contiene il file GPX caricato
-    val gpxViewModel = remember { TrackScreenViewModel() }
+
+    val gpxViewModel = remember { TrackScreenViewModel(currentUserId) }
 
     // Raccoglie l'accuratezza del sensore GPS come stato osservabile
     val gpsAccuracy by gpsSensor.accuracy.collectAsStateWithLifecycle()
@@ -401,11 +402,7 @@ fun TrackScreen(
                         FriendRadar(
                             direction = direction,
                             userLocation = userLocation,
-                            members = membersLocation.filter {
-                                Log.d("userId", "Member ID: ${it.user.id} | Current user ID: $currentUserId")
-                                it.user.id != currentUserId
-                            }
-                                .filter { it.accuracy != -1.0 },
+                            members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -424,7 +421,7 @@ fun TrackScreen(
                         SosButton(
                             sweepAngle = buttonSweepAngle,
                             onSosTriggered = {
-                                navController.navigate(route = Screen.SOSScreen.route)
+                                navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
                                 Log.d("SOS_BUTTON", "SOS button pressed")
                                 val threadSafeCurrentLocation = currentLocation
 
