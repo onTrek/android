@@ -80,9 +80,23 @@ fun NavigationStack(modifier: Modifier = Modifier) {
                 modifier = modifier
             )
         }
-        composable(route = Screen.SOSScreen.route) {
+        composable(
+            route = Screen.SOSScreen.route + "?sessionID={sessionID}&currentUserId={currentUserId}",
+            arguments = listOf(
+                navArgument("sessionID") {
+                    type = NavType.StringType
+                    nullable = false
+                },
+                navArgument("currentUserId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+            ) {
             SOSScreen(
                 navController = navController,
+                sessionID = it.arguments?.getString("sessionID").toString(),
+                currentUserId = preferencesViewModel.currentUserState.value ?: ""
             )
         }
     }

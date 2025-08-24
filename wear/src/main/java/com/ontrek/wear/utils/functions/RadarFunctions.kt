@@ -19,10 +19,12 @@ fun polarToCartesian(
     val clampedDistance = distanceMeters.coerceIn(0f, maxDistanceMeters)
 
     val radius = when {
-        clampedDistance <= 10f -> (clampedDistance / 10f) * (0.33f * maxRadiusPx)
-        clampedDistance <= 50f -> (0.33f * maxRadiusPx) + ((clampedDistance - 10f) / 40f) * (0.33f * maxRadiusPx)
-        else -> (0.66f * maxRadiusPx) + ((clampedDistance - 50f) / (maxDistanceMeters - 50f)) * (0.33f * maxRadiusPx)
-    }.coerceAtMost(0.99f * maxRadiusPx - 12f)
+        clampedDistance <= 50f -> (clampedDistance / 50f) * (0.33f * maxRadiusPx)
+        clampedDistance <= 250f -> (0.33f * maxRadiusPx) +
+                ((clampedDistance - 50f) / 200f) * (0.33f * maxRadiusPx)
+        else -> (0.66f * maxRadiusPx) +
+                ((clampedDistance - 250f) / (maxDistanceMeters - 250f)) * (0.33f * maxRadiusPx)
+    }.coerceAtMost(0.97f * maxRadiusPx)
 
     val angleRad = Math.toRadians(bearingDegrees.toDouble() - 90)
     val x = centerX + (radius * cos(angleRad)).toFloat()
