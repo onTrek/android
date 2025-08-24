@@ -16,9 +16,10 @@ import com.ontrek.wear.R
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-private const val freq = 40_000 // 40Hz, 25ms
-private const val windowSize = 62 // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
-private const val sliding = (windowSize * (1 - 0.20)).toInt()
+private const val freq = 25
+private const val samplingPeriodUs = (1_000_000 / freq) // in microseconds
+private const val windowSize = (freq * 2.5).toInt() // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
+private const val sliding = (freq * 2)
 
 class FallDetectionForegroundService : Service(), SensorEventListener{
 
@@ -48,12 +49,12 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            freq
+            samplingPeriodUs
         )
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-            freq
+            samplingPeriodUs
         )
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
