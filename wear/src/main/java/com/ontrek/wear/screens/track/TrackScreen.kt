@@ -332,8 +332,6 @@ fun TrackScreen(
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
 
-
-
     if (parsingError.isNotEmpty()) {
         ErrorScreen(
             "Error while parsing the GPX file: $parsingError",

@@ -188,7 +188,6 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             }
     }
 
-    // Utility per caricare file TorchScript da assets
     private fun assetFilePath(assetName: String): String {
         val file = File(filesDir, assetName)
         if (file.exists() && file.length() > 0) {
