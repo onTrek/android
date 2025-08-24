@@ -31,7 +31,7 @@ import com.ontrek.wear.utils.components.Loading
 fun GroupButton(
     group: GroupUI,
     downloadState: DownloadState,
-    downloadIfNecessary: (trackId: Int) -> Unit,
+    downloadTrack: (trackId: Int) -> Unit,
     navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -65,7 +65,7 @@ fun GroupButton(
             onDismiss = { showDialog = false },
             onConfirm = {
                 if (downloadState == DownloadState.NotStarted) {
-                    downloadIfNecessary(group.track.id)
+                    downloadTrack(group.track.id)
                 } else {
                     navigateToTrack(group.track.id, group.track.title, group.group_id)
                 }
@@ -144,8 +144,7 @@ fun GroupDialog(
                         Loading()
                     }
 
-                    is DownloadState.Error,
-                    DownloadState.NotStarted -> {
+                    is DownloadState.NotStarted -> {
                         Icon(
                             imageVector = Icons.Default.Download,
                             contentDescription = "Download",
