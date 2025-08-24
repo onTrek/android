@@ -35,6 +35,8 @@ import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.PermissionRequester
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, MessageClient.OnMessageReceivedListener {
 
@@ -133,12 +135,27 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
 
     override fun onMessageReceived(event: MessageEvent) {
         Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
-        if (event.path == "/fall_detection_result") {
-            val resultStr = event.data.toString(Charsets.UTF_8)
-            Log.d("FALL_RESULT", "Ricevuto risultato: $resultStr")
 
-            if (resultStr == "FALL") {
-                // TODO()
+        if (event.path == "/fall_detection_result") {
+            val bytes = event.data
+            if (bytes.size % 4 != 0) {
+                Log.e("FALL_RESULT", "Invalid float array size: ${bytes.size}")
+                return
+            }
+
+            // Ricostruisci i float dall'array di byte
+            val floatArray = FloatArray(bytes.size / 4)
+            ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatArray)
+
+            Log.d("FALL_RESULT", "Result floats: ${floatArray.joinToString()}")
+
+            // Esempio: se consideri caduta se probabilità > 0.5
+            val probabilityFall = floatArray[0]
+            if (probabilityFall > 0.5) {
+                Log.d("FALL_RESULT", "Fall detected!")
+                // TODO: azioni in caso di caduta
+            } else {
+                Log.d("FALL_RESULT", "No fall")
             }
         }
     }

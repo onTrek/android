@@ -11,18 +11,16 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.wearable.MessageClient
-import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.R
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 private const val freq = 40_000 // 40Hz, 25ms
-private const val windowSize = 62 // 62 samples for 2.5 seconds at 25Hz
+private const val windowSize = 62 // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
 private const val sliding = (windowSize * (1 - 0.20)).toInt()
 
-class FallDetectionForegroundService : Service(), SensorEventListener, MessageClient.OnMessageReceivedListener {
+class FallDetectionForegroundService : Service(), SensorEventListener{
 
     private lateinit var sensorManager: SensorManager
     private val accelData = mutableListOf<FloatArray>()
@@ -96,7 +94,6 @@ class FallDetectionForegroundService : Service(), SensorEventListener, MessageCl
             sendWindowToPhone(window)
 
 
-
             // Sliding window: rimuove i primi 25 campioni
             accelData.subList(0, sliding).clear()
             gyroData.subList(0, sliding).clear()
@@ -130,17 +127,6 @@ class FallDetectionForegroundService : Service(), SensorEventListener, MessageCl
         }
     }
 
-    override fun onMessageReceived(event: MessageEvent) {
-        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
-        if (event.path == "/fall_detection_result") {
-            val resultStr = event.data.toString(Charsets.UTF_8)
-            Log.d("FALL_RESULT", "Result: $resultStr")
-
-            if (resultStr == "FALL") {
-                //TODO()
-            }
-        }
-    }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }

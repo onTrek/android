@@ -22,7 +22,7 @@ import java.nio.ByteOrder
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var module: Module
-    private val windowSize = 62  // per modello 50Hz, oppure 62 se 25Hz
+    private val windowSize = 62  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
 
     override fun onCreate() {
@@ -47,7 +47,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_50hz_lite.pt"))
+        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_25hz_lite.pt"))
 
         Wearable.getMessageClient(this).addListener(this)
 
@@ -70,29 +70,50 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
     override fun onMessageReceived(event: MessageEvent) {
         Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
+
         if (event.path == "/fall_window") {
-            val rawData = event.data // ByteArray con float accel+gyro
+            val rawData = event.data
+
+            // 1. Converte ByteArray -> FloatArray
             val floatData = byteArrayToFloatArray(rawData)
 
-            // 1. Applica filtro di Kalman alle colonne (ax0..axN, ay0..ayN, ecc.)
+            // 2. Filtro di Kalman
             val filteredData = applyKalman(floatData)
 
-            // 2. Crea tensore Torch (shape [1, windowSize, numFeatures])
+            // 3. Crea tensore Torch
             val inputTensor = Tensor.fromBlob(
                 filteredData,
                 longArrayOf(1, windowSize.toLong(), numFeatures.toLong())
             )
 
-            // 3. Inference
-            val output = module.forward(IValue.from(inputTensor)).toTensor()
-            val result = output.dataAsFloatArray
+            // 4. Inference
+            try {
+                val output = module.forward(IValue.from(inputTensor)).toTensor()
+                val probabilityFall = getFallProbability(output)
 
-            Log.d("FALL_DETECTION", "Output ML: ${result.joinToString()}")
-
-            // 4. Invia risultato allo smartwatch
-            sendResultToWatch(result)
+                // Invia al smartwatch
+                sendResultToWatch(floatArrayOf(probabilityFall.toFloat()))
+                Log.d("FALL_DETECTION", "Probability sent: $probabilityFall")
+            } catch (e: Exception) {
+                Log.e("FALL_DETECTION", "Error during inference", e)
+            }
         }
     }
+
+    fun getFallProbability(outputTensor: Tensor): Double {
+        val logits = outputTensor.dataAsFloatArray
+        if (logits.size != 2) {
+            throw IllegalArgumentException("Expected 2-class output, got ${logits.size} elements")
+        }
+
+        val exp0 = Math.exp(logits[0].toDouble())
+        val exp1 = Math.exp(logits[1].toDouble())
+        val sumExp = exp0 + exp1
+
+        return exp1 / sumExp  // probabilità della classe "caduta"
+    }
+
+
 
     // Applica filtro di Kalman a ciascuna colonna (feature)
     private fun applyKalman(data: FloatArray): FloatArray {
@@ -151,8 +172,11 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
     private fun sendResultToWatch(result: FloatArray) {
         Log.d("FALL_DETECTION", "Sending result to watch: ${result.joinToString()}")
-        val resultStr = if (result[0] > 0.5f) "FALL" else "NO_FALL"
-        val bytes = resultStr.toByteArray()
+        val bytes = result
+            .fold(ByteBuffer.allocate(4 * result.size).order(ByteOrder.LITTLE_ENDIAN)) { buf, f ->
+                buf.putFloat(f)
+            }
+            .array()
 
         Wearable.getNodeClient(this).connectedNodes
             .addOnSuccessListener { nodes ->
