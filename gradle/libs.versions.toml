@@ -1,7 +1,6 @@
 [versions]
-agp = "8.11.1"
+agp = "8.12.1"
 androidGpxParser = "2.3.1"
-coilComposeVersion = "2.7.0"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
 core = "1.17.0"
@@ -16,7 +15,6 @@ playServicesWearable = "19.0.0"
 composeBom = "2025.08.00"
 composeMaterial = "1.4.1"
 composeFoundation = "1.4.1"
-playServicesWearableVersion = "19.0.0"
 runtime = "1.9.0"
 roomRuntime = "2.7.2"
 runtimeLivedata = "1.9.0"
@@ -34,13 +32,11 @@ lifecycleRuntimeKtx = "2.9.2"
 appcompat = "1.7.1"
 material = "1.12.0"
 material3Android = "1.3.2"
-datastorePreferencesCoreAndroid = "1.1.7"
 
 [libraries]
 android-gpx-parser = { module = "com.github.ticofab:android-gpx-parser", version.ref = "androidGpxParser" }
 coil = { module = "io.coil-kt:coil", version.ref = "coilCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-coil-compose-v270 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core = { module = "androidx.core:core", version.ref = "core" }
@@ -52,7 +48,6 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-play-services-wearable-v1810 = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearableVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
@@ -81,7 +76,6 @@ material3 = { group = "androidx.compose.material3", name = "material3" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
-datastore-preferences-core-android = { group = "androidx.datastore", name = "datastore-preferences-core-android", version.ref = "datastorePreferencesCoreAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
