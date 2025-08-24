@@ -139,6 +139,7 @@ fun TrackScreen(
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
 
+    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
@@ -306,11 +307,11 @@ fun TrackScreen(
         } else if (isInitialized == true) {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
-            if (sessionID.isNotEmpty()) {
+            if (!alone) {
                 gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
+                gpxViewModel.getMembersLocation(sessionID)
             }
         }
-        gpxViewModel.getMembersLocation(sessionID)
     }
 
     LaunchedEffect(listHelpRequest) {
@@ -326,7 +327,6 @@ fun TrackScreen(
     }
 
 
-    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     val infobackgroundColor: Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
@@ -403,13 +403,15 @@ fun TrackScreen(
                         endAngle = 90f - buttonWidth / 2,
                     )
 
-                    currentLocation?.let { userLocation ->
-                        FriendRadar(
-                            direction = direction,
-                            userLocation = userLocation,
-                            members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                    if (!alone) {
+                        currentLocation?.let { userLocation ->
+                            FriendRadar(
+                                direction = direction,
+                                userLocation = userLocation,
+                                members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
 
                     Arrow(
@@ -475,7 +477,7 @@ fun TrackScreen(
                         },
                         onConfirm = {
                             showDialogForMember[member.user.id] = false
-                            // TODO()
+                            gpxViewModel.confirmGoingToFriend(member)
                         },
                         member = member,
                     )
