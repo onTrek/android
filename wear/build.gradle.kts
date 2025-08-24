@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.android.gpx.parser)
     implementation(libs.datastore.preferences)
     implementation(libs.fragment.ktx)
-    implementation(libs.play.services.wearable.v1810)
+    implementation(libs.play.services.wearable)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.runtime.livedata)
