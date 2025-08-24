@@ -46,7 +46,7 @@ import com.ontrek.mobile.screens.Screen
 import com.ontrek.mobile.screens.group.components.AddGroupButton
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.EmptyComponent
-import com.ontrek.mobile.utils.components.ErrorViewComponent
+import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.shared.data.GroupDoc
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +140,7 @@ fun GroupsScreen(navController: NavHostController) {
                 }
 
                 is GroupsViewModel.GroupsState.Error -> {
-                    ErrorViewComponent(
+                    ErrorComponent(
                         errorMsg = (listGroupState as GroupsViewModel.GroupsState.Error).message
                     )
                 }

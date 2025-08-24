@@ -100,7 +100,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
                         PermissionRequester(context, ambientModeEnabled)
                     }
 
-                    token!!.isEmpty() -> Login(preferencesViewModel::saveToken)
+                    token!!.isEmpty() -> Login(
+                        preferencesViewModel::saveToken,
+                        preferencesViewModel::saveCurrentUser,
+                    )
                     else -> AppScaffold {
                         NavigationStack()
                     }
@@ -169,6 +172,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
             ) {
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
                 preferencesViewModel.saveToken(dataMap.getString("token") ?: "")
+                preferencesViewModel.saveCurrentUser(dataMap.getString("currentUser") ?: "")
             }
         }
     }

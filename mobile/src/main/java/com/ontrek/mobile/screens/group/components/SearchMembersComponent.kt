@@ -1,30 +1,44 @@
-package com.ontrek.mobile.utils.components
+package com.ontrek.mobile.screens.group.components
 
-import android.util.Log
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ontrek.mobile.utils.components.EmptyComponent
+import com.ontrek.mobile.utils.components.ProfileItem
 import com.ontrek.shared.api.search.searchUsers
 import com.ontrek.shared.data.UserMinimal
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PersonAddAlt1
-import androidx.compose.ui.text.style.TextOverflow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchUsersDialog(
+fun SearchMembersComponent(
     onDismiss: () -> Unit,
     onUserSelected: (user: UserMinimal) -> Unit,
-    onlyFriend: Boolean = false,
-    title: String = "Search Users",
 ) {
     var query by remember { mutableStateOf("") }
     var searchResults: List<UserMinimal> by remember { mutableStateOf(emptyList()) }
@@ -37,7 +51,7 @@ fun SearchUsersDialog(
             shape = MaterialTheme.shapes.medium,
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text("Search Friends", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
@@ -51,7 +65,7 @@ fun SearchUsersDialog(
                                 try {
                                     searchUsers(
                                         query = it,
-                                        friendOnly = onlyFriend,
+                                        friendOnly = true,
                                         onSuccess = { results ->
                                             searchResults = results ?: emptyList()
                                         },
@@ -69,7 +83,7 @@ fun SearchUsersDialog(
                             searchResults = emptyList()
                         }
                     },
-                    label = { Text( if (onlyFriend) "Search Friends" else "Search Users" ) },
+                    label = { Text("Search Friends") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -89,24 +103,10 @@ fun SearchUsersDialog(
                         .height(300.dp)
                 ) {
                     items(searchResults) { user ->
-                        ListItem(
-                            headlineContent = { Text(
-                                "@${user.username}",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            ) },
-                            leadingContent = {
-                                Icon(Icons.Default.PersonAddAlt1, contentDescription = "User")
-                            },
-                            trailingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add utente",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-                            modifier = Modifier.clickable {
+                        ProfileItem(
+                            user = user,
+                            addMember = true,
+                            onClick = {
                                 onUserSelected(user)
                                 onDismiss()
                             }
@@ -114,11 +114,11 @@ fun SearchUsersDialog(
                     }
                     if (searchResults.isEmpty()) {
                         item {
-                            Text(
-                                text = "No results found",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            EmptyComponent(
+                                title = "No results found",
+                                description = "Try searching with a different username.",
+                                icon = Icons.Default.Search,
+                                fillMaxSize = false
                             )
                         }
                     }

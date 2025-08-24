@@ -21,7 +21,8 @@ import androidx.wear.compose.material3.Text
 
 @Composable
 fun Login(
-    saveToken: (String) -> Unit
+    saveToken: (String) -> Unit,
+    saveCurrentUser: (String) -> Unit,
 ) {
     ScreenScaffold(
     ) {
@@ -48,6 +49,7 @@ fun Login(
             CompactButton(
                 onClick = {
                     saveToken("b35e0a16-1d06-4396-acfd-375a57c43383") //fuck it we ball
+                    saveCurrentUser("de04e82f-4efa-4cfe-af69-bbb8139e2d65")
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.95f)

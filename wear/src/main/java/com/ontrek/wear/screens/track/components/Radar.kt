@@ -38,9 +38,9 @@ import androidx.wear.compose.material3.MaterialTheme
 import kotlin.math.roundToInt
 
 val distances = listOf(
-    0.33f to "10m",
-    0.66f to "50m",
-    0.95f to "100+m"
+    0.33f to "50m",
+    0.66f to "250m",
+    0.96f to "1000+m"
 )
 
 @Composable
@@ -49,7 +49,8 @@ fun FriendRadar(
     userLocation: Location,
     members: List<MemberInfo>,
     modifier: Modifier = Modifier,
-    maxDistanceMeters: Float = 100f
+    maxDistanceMeters: Float = 1000f,
+    radarColor: Color = Color.Gray.copy(alpha = 0.2f),
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -89,7 +90,7 @@ fun FriendRadar(
                 val radiusPx = distance * maxRadiusPx
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawCircle(
-                        color = Color.Gray.copy(alpha = 0.2f),
+                        color = radarColor,
                         radius = radiusPx,
                         center = Offset(centerX, centerY),
                         style = Stroke(width = 2f)
@@ -102,7 +103,7 @@ fun FriendRadar(
                 CurvedTextOnCircle(
                     text = label,
                     radius = radiusPx + 2f,
-                    color = Color.Gray.copy(alpha = 0.5f),
+                    color = radarColor,
                     textSize = 12f
                 )
             }
@@ -112,8 +113,8 @@ fun FriendRadar(
         Canvas(modifier = Modifier.fillMaxSize()) {
             memberDrawData.forEach { (member, distance, polarResult) ->
                 val radiusDp = when {
-                    distance <= 10 -> 10.dp
-                    distance <= 50 -> 8.dp
+                    distance <= 50 -> 10.dp
+                    distance <= 250 -> 8.dp
                     else -> 6.dp
                 }
                 val radiusPx = with(density) { radiusDp.toPx() }
@@ -136,8 +137,8 @@ fun FriendRadar(
             }
 
             val iconSizeDp = when {
-                distance <= 10 -> 14.dp
-                distance <= 50 -> 12.dp
+                distance <= 50 -> 14.dp
+                distance <= 250 -> 12.dp
                 else -> 10.dp
             }
 
