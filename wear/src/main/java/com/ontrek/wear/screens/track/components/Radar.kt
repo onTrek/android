@@ -2,20 +2,19 @@ package com.ontrek.wear.screens.track.components
 
 import android.location.Location
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.DoubleArrow
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Sos
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,12 +28,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
+import androidx.wear.compose.material3.MaterialTheme
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
 import kotlin.math.min
-import androidx.core.graphics.toColorInt
-import androidx.wear.compose.material3.MaterialTheme
 import kotlin.math.roundToInt
 
 val distances = listOf(
@@ -63,26 +62,28 @@ fun FriendRadar(
         val density = LocalDensity.current
 
         // Calcola le posizioni una volta sola e salva anche la distanza
-        val memberDrawData = remember(members, userLocation, direction, maxRadiusPx, maxDistanceMeters) {
-            members.map { member ->
-                val (distance, bearingToMember) = computeDistanceAndBearing(
-                    userLocation.latitude, userLocation.longitude,
-                    member.latitude, member.longitude
-                )
+        val memberDrawData =
+            remember(members, userLocation, direction, maxRadiusPx, maxDistanceMeters) {
+                members.map { member ->
+                    val (distance, bearingToMember) = computeDistanceAndBearing(
+                        userLocation.latitude, userLocation.longitude,
+                        member.latitude, member.longitude
+                    )
 
-                val relativeBearing = (bearingToMember - direction + 360) % 360f // Convert to relative bearing
+                    val relativeBearing =
+                        (bearingToMember - direction + 360) % 360f // Convert to relative bearing
 
-                val polarResult = polarToCartesian(
-                    centerX, centerY,
-                    distance,
-                    relativeBearing,
-                    maxDistanceMeters,
-                    maxRadiusPx
-                )
+                    val polarResult = polarToCartesian(
+                        centerX, centerY,
+                        distance,
+                        relativeBearing,
+                        maxDistanceMeters,
+                        maxRadiusPx
+                    )
 
-                Triple(member, distance, polarResult)
+                    Triple(member, distance, polarResult)
+                }
             }
-        }
 
         // Radar + etichette
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -132,6 +133,9 @@ fun FriendRadar(
         memberDrawData.forEach { (member, distance, polarResult) ->
             val icon = when {
                 member.help_request -> Icons.Default.Sos
+                System.currentTimeMillis() - java.time.OffsetDateTime.parse(member.time_stamp)
+                    .toInstant().toEpochMilli() > 90000L -> Icons.Default.CloudOff
+
                 member.going_to.isNotBlank() -> Icons.Default.PersonSearch
                 else -> Icons.Default.Person
             }
@@ -155,13 +159,13 @@ fun FriendRadar(
                             (polarResult.offset.y - iconHalfPx).roundToInt()
                         )
                     },
-                tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+                tint = if (polarResult.isCapped) member.user.color.toColorInt()
+                    .let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
             )
         }
     }
 
 }
-
 
 
 @Composable
