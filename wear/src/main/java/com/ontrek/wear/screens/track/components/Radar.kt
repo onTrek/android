@@ -37,6 +37,7 @@ import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
 import kotlin.math.min
 import com.ontrek.wear.utils.functions.PolarResult
+import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import kotlin.collections.first
 import kotlin.math.*
 import kotlin.math.roundToInt
@@ -55,13 +56,20 @@ data class MemberCluster(
 
 @Composable
 fun FriendRadar(
-    direction: Float,
+    newDirection: Float,
+    oldDirection: Float,
     userLocation: Location,
     members: List<MemberInfo>,
     modifier: Modifier = Modifier,
     maxDistanceMeters: Float = 1000f,
     radarColor: Color = Color.Gray.copy(alpha = 0.2f),
 ) {
+    var direction = oldDirection
+    if (shouldUpdateDirection(newDirection.toDouble(), oldDirection.toDouble())) {
+        Log.d("FriendRadar", "Updating direction to $newDirection")
+        direction = newDirection
+    }
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
