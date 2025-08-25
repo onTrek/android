@@ -51,6 +51,7 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FallDialog
 import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
@@ -149,7 +150,7 @@ fun TrackScreen(
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
-    var showFallDialog by remember { mutableStateOf(false) }
+    var showFallDialog by remember { mutableStateOf(true) }  // TODO: change to false
     var oldLocation by remember { mutableStateOf<Location?>(null) }
     var oldDirection by remember { mutableStateOf<Float?>(null) }
 
@@ -503,6 +504,34 @@ fun TrackScreen(
                             gpxViewModel.confirmGoingToFriend(member)
                         },
                         member = member,
+                    )
+                }
+
+                if (!alone) {
+                    FallDialog(
+                        openDialog = showFallDialog,
+                        onDismiss = {
+                            showFallDialog = false
+                        },
+                        onConfirm = {
+                            showFallDialog = false
+                            navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
+                            Log.d(
+                                "FALL_DETECTION",
+                                "User confirmed fall dialog, navigating to SOS screen"
+                            )
+                            val threadSafeCurrentLocation = currentLocation
+
+                            if (sessionID.isNotEmpty()) {
+                                if (threadSafeCurrentLocation != null) {
+                                    gpxViewModel.sendCurrentLocation(
+                                        threadSafeCurrentLocation,
+                                        sessionID,
+                                        true
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }
