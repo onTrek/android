@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.location.Location
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -49,6 +48,7 @@ import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
+import com.ontrek.wear.screens.track.components.DistantFromTrackDialog
 import com.ontrek.wear.screens.track.components.EndTrack
 import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
@@ -57,7 +57,6 @@ import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.screens.track.components.SosFriendDialog
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
-import com.ontrek.wear.utils.components.WarningScreen
 import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
@@ -120,8 +119,8 @@ fun TrackScreen(
     //val totalLength by gpxViewModel.totalLengthState.collectAsStateWithLifecycle()
     // Raccoglie eventuali errori di parsing del file GPX come stato osservabile
     val parsingError by gpxViewModel.parsingErrorState.collectAsStateWithLifecycle()
-    // Raccoglie lo stato di vicinanza al tracciato come stato osservabile
-    val isInitialized by gpxViewModel.isInitialized.collectAsStateWithLifecycle()
+    // Raccoglie l'informazione se siamo stati vicini al tracciato come stato osservabile
+    val hasBeenNearTheTrack by gpxViewModel.hasBeenNearTheTrack.collectAsStateWithLifecycle()
     // Raccoglie se stiamo all'inizio o alla fine del tracciato come stato osservabile
     val isOffTrack by gpxViewModel.isOffTrack.collectAsStateWithLifecycle()
     // Raccoglie l'angolo della freccia come stato osservabile
@@ -132,10 +131,13 @@ fun TrackScreen(
     val progress by gpxViewModel.progressState.collectAsStateWithLifecycle()
     // Raccoglie la distanza dal tracciato come stato osservabile
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
+    // Raccoglie la distanza in linea d'aria
+    val distanceAirLine by gpxViewModel.distanceAirLine.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
     // Raccoglie i membri della sessione come stato osservabile
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
+    // Raccoglie la lista delle richieste di aiuto come stato osservabile
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
@@ -143,8 +145,7 @@ fun TrackScreen(
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
-    var oldLocation by remember { mutableStateOf<Location?>(null) }
-    var oldDirection by remember { mutableStateOf<Float?>(null) }
+    var distantAtStartupModalOpen by remember { mutableStateOf(false) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -284,15 +285,9 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(direction, currentLocation) {
+    LaunchedEffect(direction) {
         if (accuracy < 3) return@LaunchedEffect
-        if (currentLocation?.latitude != oldLocation?.latitude || currentLocation?.longitude != oldLocation?.longitude || direction != oldDirection) {
-            Log.d("DIRECTION", "Old location: $oldLocation, old direction: $oldDirection")
-            Log.d("DIRECTION", "Current location: $currentLocation, direction: $direction")
-            gpxViewModel.elaborateDirection(direction)
-            oldLocation = currentLocation
-            oldDirection = direction
-        }
+        gpxViewModel.elaborateDirection(direction)
     }
 
     LaunchedEffect(currentLocation) {
@@ -303,16 +298,29 @@ fun TrackScreen(
             return@LaunchedEffect
         }
 
-        if (isInitialized == null || isInitialized == false) {
+        if (hasBeenNearTheTrack == null) {
             // Startup function
             gpxViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
-        } else if (isInitialized == true) {
+        } else {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
             if (!alone) {
                 gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
                 gpxViewModel.getMembersLocation(sessionID)
             }
+        }
+    }
+
+    LaunchedEffect(hasBeenNearTheTrack) {
+        val threadSafeDistanceAirLine = distanceAirLine
+        if (hasBeenNearTheTrack == false && threadSafeDistanceAirLine != null && threadSafeDistanceAirLine > 100) {
+            distantAtStartupModalOpen = true
+            vibrator?.vibrate(
+                VibrationEffect.createOneShot(
+                    300,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
         }
     }
 
@@ -331,11 +339,9 @@ fun TrackScreen(
 
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     val infobackgroundColor: Color =
-        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+        if (isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val infotextColor: Color =
-        if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-
-
+        if (isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
 
     if (parsingError.isNotEmpty()) {
@@ -345,14 +351,7 @@ fun TrackScreen(
             null,
             null
         )
-    } else if (isInitialized != null && isInitialized != true) {
-        WarningScreen(
-            "You are too distant from the selected track",
-            Modifier.fillMaxSize(),
-            null,
-            null
-        )
-    } else if (trackPoints.isEmpty() || isInitialized == null) {
+    } else if (trackPoints.isEmpty() || hasBeenNearTheTrack == null) {
         Loading(Modifier.fillMaxSize())
     } else {
         AnimatedVisibility(
@@ -382,6 +381,7 @@ fun TrackScreen(
                             val displayText = when {
                                 isOffTrack -> "Off track!"
                                 progress == 1f -> "Track Completed"
+                                !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 isGpsAccuracyLow() -> gpsAccuracyText
                                 else -> time
                             }
@@ -402,7 +402,7 @@ fun TrackScreen(
                 ) {
 
                     CircularProgressIndicator(
-                        progress = { progress },
+                        progress = { if (hasBeenNearTheTrack == true) progress else 0f },
                         startAngle = 90f + buttonWidth / 2,
                         endAngle = 90f - buttonWidth / 2,
                     )
@@ -487,6 +487,18 @@ fun TrackScreen(
                     )
                 }
             }
+            DistantFromTrackDialog(
+                showDialog = distantAtStartupModalOpen,
+                onConfirm = {
+                    distantAtStartupModalOpen = false
+                },
+                onClose = {
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(Screen.TrackScreen.route) { inclusive = true }
+                    }
+                },
+                metersAway = distanceAirLine?.toInt() ?: 0
+            )
             EndTrack(
                 visible = showEndTrackDialog,
                 onDismiss = { showEndTrackDialog = false },

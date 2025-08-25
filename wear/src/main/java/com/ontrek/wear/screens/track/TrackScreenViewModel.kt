@@ -18,7 +18,6 @@ import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.computeDistanceFromTrack
 import com.ontrek.wear.utils.functions.findNextTrackPoint
 import com.ontrek.wear.utils.functions.getDistanceTo
-import com.ontrek.wear.utils.functions.getNearestPoints
 import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
@@ -29,7 +28,6 @@ import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sin
 
 /* * The threshold to consider a track point as surpassed.
@@ -68,8 +66,10 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     val trackPointListState: StateFlow<List<TrackPoint>> = trackPoints
     private val parsingError = MutableStateFlow<String>("")
     val parsingErrorState: StateFlow<String> = parsingError
-    private val _isInitialized = MutableStateFlow<Boolean?>(null)
-    val isInitialized: StateFlow<Boolean?> = _isInitialized
+    private val _hasBeenNearTheTrack = MutableStateFlow<Boolean?>(null)
+    val hasBeenNearTheTrack: StateFlow<Boolean?> = _hasBeenNearTheTrack
+    private val _distanceAirLine = MutableStateFlow<Double?>(null)
+    val distanceAirLine: StateFlow<Double?> = _distanceAirLine
     private val arrowDirection = MutableStateFlow<Float>(0F)
     val arrowDirectionState: StateFlow<Float> = arrowDirection
 
@@ -100,7 +100,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
-    private var isAtStartup by mutableStateOf(true)
     private var lastSnoozeTime by mutableStateOf<Long>(0L)
 
     private var sendLocationCounter by mutableIntStateOf(0)
@@ -158,35 +157,20 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     fun checkTrackDistanceAndInitialize(currentLocation: Location, direction: Float) {
         position.value = currentLocation
         if (trackPoints.value.isNotEmpty()) {
-            val nearestPoint = getNearestPoints(
-                currentLocation, trackPoints.value
-            )[0]
-            val thresholdDistance =
-                (trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE)
-            val isNearTrackValue =
-                nearestPoint.distanceToUser < 100 || nearestPoint.distanceToUser < thresholdDistance
+            val finderResult = findNextTrackPoint(
+                currentLocation, trackPoints.value, null
+            )
+            nextTrackPoint.value = finderResult.nextTrackPoint
+            probablePointIndex.value = finderResult.nextProbablePoint
+            elaboratePosition(currentLocation)
+            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
             Log.d(
                 "TRACK_SCREEN_VIEW_MODEL",
-                "Nearest point: ${nearestPoint.index}, distance to user: ${nearestPoint.distanceToUser}"
+                "Starting from ${nextTrackPoint.value?.index ?: "unknown"}"
             )
-            if (isNearTrackValue) {
-                val finderResult = findNextTrackPoint(
-                    currentLocation, trackPoints.value, null
-                )
-                nextTrackPoint.value = finderResult.nextTrackPoint
-                probablePointIndex.value = finderResult.nextProbablePoint
-                Log.d(
-                    "TRACK_SCREEN_VIEW_MODEL",
-                    "Starting from ${nextTrackPoint.value?.index ?: "unknown"}"
-                )
-                progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-                //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
-                //but this is a first approximation, more accurate results will be obtained when accuracy improves
-                computeIfOnTrack(currentLocation)
-                elaborateDirection(direction)
-            }
-            //Change UI screen state
-            _isInitialized.value = isNearTrackValue
+            //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
+            //but this is a first approximation, more accurate results will be obtained when accuracy improves
+            elaborateDirection(direction)
         }
     }
 
@@ -206,11 +190,12 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
-            if (isAtStartup) isAtStartup = false
             progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
         }
-
         computeIfOnTrack(currentLocation)
+
+        //to uncomment only on debug
+        //elaborateDirection(0f)
     }
 
     fun sendCurrentLocation(
@@ -268,10 +253,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 }
             }
         } else {
-            Log.d(
-                "TRACK_SCREEN_VIEW_MODEL",
-                "Skipping sending location to server, counter: $sendLocationCounter"
-            )
             sendLocationCounter += 1
         }
     }
@@ -336,38 +317,31 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     fun computeIfOnTrack(currentLocation: Location) {
         _distanceFromTrack.value =
             computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
-
-        val distance = if (isAtStartup) getDistanceTo(
+        _distanceAirLine.value = getDistanceTo(
             currentLocation.toSimplePoint(),
-            nextTrackPoint.value!!.toSimplePoint()
-        ) else _distanceFromTrack.value!!
+            trackPoints.value[probablePointIndex.value!!].toSimplePoint()
+        )
 
-        val notificationThreshold = if (isAtStartup) {
-            val initialThreshold =
-                max((trackPoints.value.maxOfOrNull { it.distanceToPrevious } ?: Double.MIN_VALUE),
-                    100.0) + notificationTrackDistanceThreshold
-            Log.d(
-                "ON_TRACK_COMPUTATION",
-                "At startup, using initial threshold: $initialThreshold, distance: $distance, notification threshold: $notificationTrackDistanceThreshold"
-            )
-            initialThreshold
-        } else {
-            //Log.d("ON_TRACK_COMPUTATION", "distance: $distance")
-            notificationTrackDistanceThreshold
-        }
+        val distance = _distanceFromTrack.value!!
 
-        _isOffTrack.value = distance > notificationThreshold
+        val notificationThreshold = notificationTrackDistanceThreshold
+
+        if (_hasBeenNearTheTrack.value == null) _hasBeenNearTheTrack.value = distance < notificationThreshold
+
+        _isOffTrack.value = distance > notificationThreshold && _hasBeenNearTheTrack.value == true
+
+        Log.d(
+            "ON_TRACK_COMPUTATION",
+            "Distance from track: $distance, by air line: ${_distanceAirLine.value}",
+        )
 
         if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
-            Log.d(
-                "ON_TRACK_COMPUTATION",
-                "User is off track, notifying, distance from track: $distance"
-            )
         } else if (!_isOffTrack.value) {
             _notifyOffTrack.value = false
             _alreadyNotifiedOffTrack.value = false
+            _hasBeenNearTheTrack.value = distance < notificationThreshold
         }
     }
     fun snoozeOffTrackNotification(snoozeTimeMultiplier: Int = 1) {
@@ -404,7 +378,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
         if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
             lastPublishedDirection.value = angle
@@ -417,7 +390,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         trackPoints.value = emptyList()
         totalLength.value = 0F
         parsingError.value = ""
-        _isInitialized.value = null
+        _hasBeenNearTheTrack.value = null
         nextTrackPoint.value = null
         arrowDirection.value = 0F
         position.value = null
