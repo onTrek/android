@@ -1,6 +1,7 @@
 package com.ontrek.wear.screens.track.components
 
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
@@ -33,13 +35,14 @@ import com.ontrek.shared.data.MemberInfo
 import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
 import com.ontrek.wear.utils.functions.PolarResult
+import kotlin.collections.first
 import kotlin.math.*
 import kotlin.math.roundToInt
 
 val distances = listOf(
     0.33f to "50m",
-    0.66f to "250m",
-    0.96f to "1000+m"
+    0.64f to "250m",
+    0.95f to "1000+m"
 )
 
 data class MemberCluster(
@@ -117,144 +120,31 @@ fun FriendRadar(
             }
         }
 
-        // Canvas: cerchi membri o cluster
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            clusters.forEach { cluster ->
-                if (cluster.members.size == 1) {
-                    // singolo membro, disegno come prima
-                    val member = cluster.members.first()
-                    val (_, distance, polarResult) = memberDrawData.first { it.first == member }
-
-                    val radiusDp = when {
-                        distance <= 50 -> 10.dp
-                        distance <= 250 -> 8.dp
-                        else -> 6.dp
-                    }
-                    val radiusPx = with(density) { radiusDp.toPx() }
-
-                    drawCircle(
-                        color = member.user.color.toColorInt().let { Color(it) },
-                        radius = radiusPx,
-                        center = polarResult.offset,
-                        style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
-                    )
-                } else {
-                    // cluster: disegna i membri attorno al punto medio
-                    var radiusAround: Float
-                    val angleStep = 360f / cluster.members.size
-
-                    cluster.members.forEachIndexed { index, member ->
-                        val (_, distance, polarResult) = memberDrawData.first { it.first == member }
-
-                        radiusAround = when {
-                            distance <= 50 -> 12f
-                            distance <= 250 -> 10f
-                            else -> 8f
-                        }
-
-                        val angleRad = Math.toRadians((index * angleStep).toDouble())
-                        val offsetX = (cos(angleRad) * radiusAround).toFloat()
-                        val offsetY = (sin(angleRad) * radiusAround).toFloat()
-
-                        val radiusDp = when {
-                            distance <= 50 -> 10.dp
-                            distance <= 250 -> 8.dp
-                            else -> 6.dp
-                        }
-                        val radiusPx = with(density) { radiusDp.toPx() }
-
-                        drawCircle(
-                            color = member.user.color.toColorInt().let { Color(it) },
-                            radius = radiusPx,
-                            center = cluster.center + Offset(offsetX, offsetY),
-                            style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
-                        )
-                    }
-                }
-            }
-        }
-
-        // Icone membri singoli (i cluster non hanno icone)
+        // Membri
         clusters.forEach { cluster ->
-            if (cluster.members.size == 1) {
+            val clusterSize = cluster.members.size
+            if (clusterSize == 1) {
                 val member = cluster.members.first()
                 val (_, distance, polarResult) = memberDrawData.first { it.first == member }
 
-                val icon = when {
-                    member.help_request -> Icons.Default.Sos
-                    member.going_to.isNotBlank() -> Icons.Default.PersonSearch
-                    // TODO() non riceve aggiornamenti sullo stato di tracking
-                    else -> Icons.Default.Person
-                }
-
-                val iconSizeDp = when {
-                    distance <= 50 -> 14.dp
-                    distance <= 250 -> 12.dp
-                    else -> 10.dp
-                }
-
-                val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
-
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(iconSizeDp)
-                        .offset {
-                            IntOffset(
-                                (polarResult.offset.x - iconHalfPx).roundToInt(),
-                                (polarResult.offset.y - iconHalfPx).roundToInt()
-                            )
-                        },
-                    tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+                MemberCluster(
+                    distance = distance,
+                    polarResult = polarResult,
+                    member = member,
+                    density = density
                 )
             } else {
-                var radiusAround: Float
-                val angleStep = 360f / cluster.members.size
+                val angleStep = (360f / clusterSize)
 
                 cluster.members.forEachIndexed { index, member ->
-                    val icon = when {
-                        member.help_request -> Icons.Default.Sos
-                        member.going_to.isNotBlank() -> Icons.Default.PersonSearch
-                        // TODO() non riceve aggiornamenti sullo stato di tracking
-                        else -> Icons.Default.Person
-                    }
-
-                    val (_, distance, polarResult) = memberDrawData.first { it.first == member }
-
-                    radiusAround = when {
-                        distance <= 50 -> 12f
-                        distance <= 250 -> 10f
-                        else -> 8f
-                    }
-
-                    val iconSizeDp = when {
-                        distance <= 50 -> 14.dp
-                        distance <= 250 -> 12.dp
-                        else -> 10.dp
-                    }
-
-                    val angleRad = Math.toRadians((index * angleStep).toDouble())
-                    val offsetX = (cos(angleRad) * radiusAround).toFloat()
-                    val offsetY = (sin(angleRad) * radiusAround).toFloat()
-
-                    val centerX = cluster.center.x + offsetX
-                    val centerY = cluster.center.y + offsetY
-
-                    val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
-
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(iconSizeDp)
-                            .offset {
-                                IntOffset(
-                                    (centerX - iconHalfPx).roundToInt(),
-                                    (centerY - iconHalfPx).roundToInt()
-                                )
-                            },
-                        tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+                    val (_, distance, polarResult)  = memberDrawData.first { it.first == member }
+                    MemberCluster(
+                        distance = distance,
+                        polarResult = polarResult,
+                        member = member,
+                        density = density,
+                        angleRad = index * angleStep,
+                        center = cluster.center
                     )
                 }
             }
@@ -291,7 +181,131 @@ fun clusterMembers(
     return clusters
 }
 
-fun Offset.getDistance(): Float = sqrt(this.x * this.x + this.y * this.y)
+
+@Composable
+fun MemberCluster(
+    distance: Float,
+    polarResult: PolarResult,
+    member: MemberInfo,
+    density: Density,
+    angleRad: Float = 0f,
+    center: Offset = Offset(0f, 0f)
+) {
+    // Canvas: cerchio membro
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        if (angleRad == 0f) {
+
+            val radiusDp = when {
+                distance <= 50 -> 10.dp
+                distance <= 250 -> 8.dp
+                else -> 6.dp
+            }
+            val radiusPx = with(density) { radiusDp.toPx() }
+
+            drawCircle(
+                color = member.user.color.toColorInt().let { Color(it) },
+                radius = radiusPx,
+                center = polarResult.offset,
+                style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
+            )
+
+        } else {
+
+            val radiusAround = when {
+                distance <= 50 -> 12f
+                distance <= 250 -> 10f
+                else -> 8f
+            }
+
+            val offsetX = (cos(angleRad) * radiusAround)
+            val offsetY = (sin(angleRad) * radiusAround)
+
+            val radiusDp = when {
+                distance <= 50 -> 10.dp
+                distance <= 250 -> 8.dp
+                else -> 6.dp
+            }
+            val radiusPx = with(density) { radiusDp.toPx() }
+
+            drawCircle(
+                color = member.user.color.toColorInt().let { Color(it) },
+                radius = radiusPx,
+                center = center + Offset(offsetX, offsetY),
+                style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
+            )
+        }
+    }
+
+    if (angleRad == 0f) {
+        val icon = when {
+            member.help_request -> Icons.Default.Sos
+            member.going_to.isNotBlank() -> Icons.Default.PersonSearch
+            else -> Icons.Default.Person
+        }
+
+        val iconSizeDp = when {
+            distance <= 50 -> 14.dp
+            distance <= 250 -> 12.dp
+            else -> 10.dp
+        }
+
+        val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
+
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier
+                .size(iconSizeDp)
+                .offset {
+                    IntOffset(
+                        (polarResult.offset.x - iconHalfPx).roundToInt(),
+                        (polarResult.offset.y - iconHalfPx).roundToInt()
+                    )
+                },
+            tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+        )
+    } else {
+        val icon = when {
+            member.help_request -> Icons.Default.Sos
+            member.going_to.isNotBlank() -> Icons.Default.PersonSearch
+            else -> Icons.Default.Person
+        }
+
+        val radiusAround = when {
+            distance <= 50 -> 12f
+            distance <= 250 -> 10f
+            else -> 8f
+        }
+
+        val iconSizeDp = when {
+            distance <= 50 -> 14.dp
+            distance <= 250 -> 12.dp
+            else -> 10.dp
+        }
+
+        val offsetX = (cos(angleRad) * radiusAround).toFloat()
+        val offsetY = (sin(angleRad) * radiusAround).toFloat()
+
+        val centerX = center.x + offsetX
+        val centerY = center.y + offsetY
+
+        val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
+
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier
+                .size(iconSizeDp)
+                .offset {
+                    IntOffset(
+                        (centerX - iconHalfPx).roundToInt(),
+                        (centerY - iconHalfPx).roundToInt()
+                    )
+                },
+            tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+        )
+    }
+}
 
 @Composable
 fun CurvedTextOnCircle(
