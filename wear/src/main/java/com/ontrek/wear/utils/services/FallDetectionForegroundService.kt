@@ -3,6 +3,7 @@ package com.ontrek.wear.utils.services
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -12,6 +13,8 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.Wearable
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.ontrek.wear.R
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -21,11 +24,20 @@ private const val samplingPeriodUs = (1_000_000 / freq) // in microseconds
 private const val windowSize = (freq * 2.5).toInt() // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
 private const val sliding = (freq * 2)
 
+private const val test = true
+
+data class MockItem(
+    val sequence: List<List<Double>>,
+    val label: Int
+)
+
 class FallDetectionForegroundService : Service(), SensorEventListener{
 
     private lateinit var sensorManager: SensorManager
     private val accelData = mutableListOf<FloatArray>()
     private val gyroData = mutableListOf<FloatArray>()
+    private val test = true
+    private var mockData = null as List<MockItem>?
 
     override fun onCreate() {
         super.onCreate()
@@ -42,6 +54,15 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
 
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
+
+        if (test) {
+            Thread {
+                mockData = loadMockData()
+                Log.d("FALL_DETECTION", "Mock data loaded with ${mockData?.size} items")
+            }.start()
+        } else {
+            mockData = null
+        }
 
         Log.d("FallService", "Service created")
 
@@ -66,6 +87,16 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
         startForeground(1, notification)
     }
 
+    fun Context.loadMockData(): List<MockItem> {
+        val json = readJsonFromAssets("test_dataset.json")
+        val type = object : TypeToken<List<MockItem>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+
+    fun Context.readJsonFromAssets(fileName: String): String {
+        return assets.open(fileName).bufferedReader().use { it.readText() }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
@@ -79,7 +110,23 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
             Sensor.TYPE_GYROSCOPE -> gyroData.add(event.values.clone())
         }
 
+        var testWindow: FloatArray = FloatArray(0)
+        var item: MockItem = MockItem(listOf(), 0)
+
         if (accelData.size >= windowSize && gyroData.size >= windowSize) {
+            if (test) {
+                item = mockData?.random() ?: return
+                testWindow = FloatArray(item.sequence.size * 6)
+                for (i in item.sequence.indices) {
+                    testWindow[i * 6 + 0] = item.sequence[i][0].toFloat()
+                    testWindow[i * 6 + 1] = item.sequence[i][1].toFloat()
+                    testWindow[i * 6 + 2] = item.sequence[i][2].toFloat()
+                    testWindow[i * 6 + 3] = item.sequence[i][3].toFloat()
+                    testWindow[i * 6 + 4] = item.sequence[i][4].toFloat()
+                    testWindow[i * 6 + 5] = item.sequence[i][5].toFloat()
+                }
+            }
+
             val window = FloatArray(windowSize * 6)
             for (i in 0 until windowSize) {
                 window[i * 6 + 0] = accelData[i][0]
@@ -90,15 +137,21 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
                 window[i * 6 + 5] = gyroData[i][2]
             }
 
-            Log.d("FALL_DETECTION", "Sending window of size: ${window.size}")
-            Log.d("FALL_DETECTION", "First 6 values: ${window.take(6)}")
-            sendWindowToPhone(window)
+            if (test) {
+                Log.d("FALL_DETECTION", "Sending window of size: ${testWindow.size}")
+                Log.d("FALL_DETECTION", "First 6 values: ${testWindow.take(6)}")
+                Log.d("FALL_RESULT", "True label: ${item.label}")
+                sendWindowToPhone(testWindow)
+            } else {
+                Log.d("FALL_DETECTION", "Sending window of size: ${window.size}")
+                Log.d("FALL_DETECTION", "First 6 values: ${window.take(6)}")
+                sendWindowToPhone(window)
+            }
 
-
-            // Sliding window: rimuove i primi 25 campioni
             accelData.subList(0, sliding).clear()
             gyroData.subList(0, sliding).clear()
         }
+
     }
 
     private fun sendWindowToPhone(window: FloatArray) {
