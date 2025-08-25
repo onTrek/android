@@ -281,7 +281,7 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(direction) {
+    LaunchedEffect(direction, currentLocation) {
         if (accuracy < 3) return@LaunchedEffect
         gpxViewModel.elaborateDirection(direction)
     }

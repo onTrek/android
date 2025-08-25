@@ -385,7 +385,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     }
 
     fun elaborateDirection(compassDirection: Float) {
-
         val threadSafePosition = position.value
         val threadSafeNextPoint = nextTrackPoint.value
         if (threadSafePosition == null || threadSafeNextPoint == null) {
@@ -406,6 +405,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         val angle = (compassDirection - targetBearing + 360) % 360
         if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
             lastPublishedDirection.value = angle
             arrowDirection.value = angle.toFloat()
         }
