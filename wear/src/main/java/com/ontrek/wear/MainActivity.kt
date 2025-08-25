@@ -157,6 +157,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
             if (probabilityFall > 0.5) {
                 Log.d("FALL_RESULT", "Fall detected!")
                 // TODO: azioni in caso di caduta
+
             } else {
                 Log.d("FALL_RESULT", "No fall")
             }

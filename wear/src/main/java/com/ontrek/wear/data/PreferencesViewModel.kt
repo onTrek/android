@@ -40,6 +40,13 @@ class PreferencesViewModel(
             initialValue = null
         )
 
+    val fallDetectedState: StateFlow<Boolean> =
+        preferencesStore.fallDetected.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
+
     fun saveToken(userName: String) {
         viewModelScope.launch {
             preferencesStore.saveToken(userName)
@@ -60,5 +67,17 @@ class PreferencesViewModel(
 
     override fun getToken(): String? {
         return tokenState.value
+    }
+
+    fun setFallDetected() {
+        viewModelScope.launch {
+            preferencesStore.setFallDetected()
+        }
+    }
+
+    fun clearFallDetected() {
+        viewModelScope.launch {
+            preferencesStore.clearFallDetected()
+        }
     }
 }
