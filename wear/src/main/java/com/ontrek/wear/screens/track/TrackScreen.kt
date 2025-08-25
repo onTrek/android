@@ -62,6 +62,7 @@ import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 import com.ontrek.wear.utils.services.FallDetectionForegroundService
+import kotlinx.coroutines.flow.StateFlow
 
 
 private const val buttonSweepAngle = 60f
@@ -85,6 +86,8 @@ fun TrackScreen(
     trackName: String,
     sessionID: String,
     currentUserId: String,
+    fallDetectionState: StateFlow<Boolean>,
+    clearFallDetection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
@@ -138,12 +141,14 @@ fun TrackScreen(
     // Raccoglie i membri della sessione come stato osservabile
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
+    val fallDetected by fallDetectionState.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
+    var showFallDialog by remember { mutableStateOf(false) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -151,6 +156,14 @@ fun TrackScreen(
     if (!alone) {
         val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
         ContextCompat.startForegroundService(context, fallIntent)
+
+        LaunchedEffect(fallDetected) {
+            if (fallDetected) {
+                Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
+                showFallDialog = true
+                clearFallDetection()
+            }
+        }
     }
 
 
