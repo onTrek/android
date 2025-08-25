@@ -3,18 +3,19 @@ package com.ontrek.wear.screens.track.components
 import android.location.Location
 import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Sos
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import androidx.wear.compose.material3.MaterialTheme
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
+import kotlin.math.min
 import com.ontrek.wear.utils.functions.PolarResult
 import kotlin.collections.first
 import kotlin.math.*
@@ -50,7 +52,6 @@ data class MemberCluster(
     val center: Offset
 )
 
-// TODO() Creare i componenti per i pallini in modo che non si vedano male se overlappati
 
 @Composable
 fun FriendRadar(
@@ -72,26 +73,28 @@ fun FriendRadar(
         val density = LocalDensity.current
 
         // Calcola le posizioni una volta sola e salva anche la distanza
-        val memberDrawData = remember(members, userLocation, direction, maxRadiusPx, maxDistanceMeters) {
-            members.map { member ->
-                val (distance, bearingToMember) = computeDistanceAndBearing(
-                    userLocation.latitude, userLocation.longitude,
-                    member.latitude, member.longitude
-                )
+        val memberDrawData =
+            remember(members, userLocation, direction, maxRadiusPx, maxDistanceMeters) {
+                members.map { member ->
+                    val (distance, bearingToMember) = computeDistanceAndBearing(
+                        userLocation.latitude, userLocation.longitude,
+                        member.latitude, member.longitude
+                    )
 
-                val relativeBearing = (bearingToMember - direction + 360) % 360f // Convert to relative bearing
+                    val relativeBearing =
+                        (bearingToMember - direction + 360) % 360f // Convert to relative bearing
 
-                val polarResult = polarToCartesian(
-                    centerX, centerY,
-                    distance,
-                    relativeBearing,
-                    maxDistanceMeters,
-                    maxRadiusPx
-                )
+                    val polarResult = polarToCartesian(
+                        centerX, centerY,
+                        distance,
+                        relativeBearing,
+                        maxDistanceMeters,
+                        maxRadiusPx
+                    )
 
-                Triple(member, distance, polarResult)
+                    Triple(member, distance, polarResult)
+                }
             }
-        }
 
         val clusters = clusterMembers(memberDrawData, minDistancePx = 16f)
 
@@ -236,21 +239,23 @@ fun MemberCluster(
         }
     }
 
+    val icon = when {
+        member.help_request -> Icons.Default.Sos
+        System.currentTimeMillis() - java.time.OffsetDateTime.parse(member.time_stamp)
+            .toInstant().toEpochMilli() > 90000L -> Icons.Default.CloudOff
+        member.going_to.isNotBlank() -> Icons.Default.PersonSearch
+        else -> Icons.Default.Person
+    }
+
+    val iconSizeDp = when {
+        distance <= 50 -> 14.dp
+        distance <= 250 -> 12.dp
+        else -> 10.dp
+    }
+
+    val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
+
     if (angleRad == 0f) {
-        val icon = when {
-            member.help_request -> Icons.Default.Sos
-            member.going_to.isNotBlank() -> Icons.Default.PersonSearch
-            else -> Icons.Default.Person
-        }
-
-        val iconSizeDp = when {
-            distance <= 50 -> 14.dp
-            distance <= 250 -> 12.dp
-            else -> 10.dp
-        }
-
-        val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
-
         Icon(
             imageVector = icon,
             contentDescription = null,
@@ -265,31 +270,17 @@ fun MemberCluster(
             tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
         )
     } else {
-        val icon = when {
-            member.help_request -> Icons.Default.Sos
-            member.going_to.isNotBlank() -> Icons.Default.PersonSearch
-            else -> Icons.Default.Person
-        }
-
         val radiusAround = when {
             distance <= 50 -> 12f
             distance <= 250 -> 10f
             else -> 8f
         }
 
-        val iconSizeDp = when {
-            distance <= 50 -> 14.dp
-            distance <= 250 -> 12.dp
-            else -> 10.dp
-        }
-
-        val offsetX = (cos(angleRad) * radiusAround).toFloat()
-        val offsetY = (sin(angleRad) * radiusAround).toFloat()
+        val offsetX = (cos(angleRad) * radiusAround)
+        val offsetY = (sin(angleRad) * radiusAround)
 
         val centerX = center.x + offsetX
         val centerY = center.y + offsetY
-
-        val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
 
         Icon(
             imageVector = icon,
