@@ -404,6 +404,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
         if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
             lastPublishedDirection.value = angle

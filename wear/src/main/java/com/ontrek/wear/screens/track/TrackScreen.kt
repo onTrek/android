@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -142,6 +143,8 @@ fun TrackScreen(
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
+    var oldLocation by remember { mutableStateOf<Location?>(null) }
+    var oldDirection by remember { mutableStateOf<Float?>(null) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -283,7 +286,13 @@ fun TrackScreen(
 
     LaunchedEffect(direction, currentLocation) {
         if (accuracy < 3) return@LaunchedEffect
-        gpxViewModel.elaborateDirection(direction)
+        if (currentLocation?.latitude != oldLocation?.latitude || currentLocation?.longitude != oldLocation?.longitude || direction != oldDirection) {
+            Log.d("DIRECTION", "Old location: $oldLocation, old direction: $oldDirection")
+            Log.d("DIRECTION", "Current location: $currentLocation, direction: $direction")
+            gpxViewModel.elaborateDirection(direction)
+            oldLocation = currentLocation
+            oldDirection = direction
+        }
     }
 
     LaunchedEffect(currentLocation) {
