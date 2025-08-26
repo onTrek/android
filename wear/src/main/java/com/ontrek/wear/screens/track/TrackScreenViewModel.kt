@@ -204,7 +204,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
 
         //to uncomment only on debug
-        elaborateDirection(0f)
+        //elaborateDirection(0f)
     }
 
     fun sendCurrentLocation(
