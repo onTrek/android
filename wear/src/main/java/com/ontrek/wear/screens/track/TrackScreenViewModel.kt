@@ -18,6 +18,7 @@ import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.computeDistanceFromTrack
 import com.ontrek.wear.utils.functions.findNextTrackPoint
 import com.ontrek.wear.utils.functions.getDistanceTo
+import com.ontrek.wear.utils.functions.getNearestPoints
 import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
@@ -194,8 +195,16 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
         computeIfOnTrack(currentLocation)
 
+        Log.d("TRACK_SCREEN_VIEW_MODEL", "Is... Initial: ${_hasBeenNearTheTrack.value}, Offtrack: ${_isOffTrack.value}")
+
+        if (_isOffTrack.value || _hasBeenNearTheTrack.value == false) {
+            val nearestPoint = getNearestPoints(currentLocation, trackPoints.value)[0]
+            nextTrackPoint.value = trackPoints.value[nearestPoint.index]
+            _distanceAirLine.value = nearestPoint.distanceToUser
+        }
+
         //to uncomment only on debug
-        //elaborateDirection(0f)
+        elaborateDirection(0f)
     }
 
     fun sendCurrentLocation(
@@ -317,10 +326,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     fun computeIfOnTrack(currentLocation: Location) {
         _distanceFromTrack.value =
             computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
-        _distanceAirLine.value = getDistanceTo(
-            currentLocation.toSimplePoint(),
-            trackPoints.value[probablePointIndex.value!!].toSimplePoint()
-        )
 
         val distance = _distanceFromTrack.value!!
 

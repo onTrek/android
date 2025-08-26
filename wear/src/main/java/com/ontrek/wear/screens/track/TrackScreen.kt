@@ -400,12 +400,12 @@ fun TrackScreen(
                     contentAlignment = Alignment.Center,
                     modifier = modifier.fillMaxSize()
                 ) {
-
-                    CircularProgressIndicator(
-                        progress = { if (hasBeenNearTheTrack == true) progress else 0f },
-                        startAngle = 90f + buttonWidth / 2,
-                        endAngle = 90f - buttonWidth / 2,
-                    )
+                    if (hasBeenNearTheTrack == true && !isOffTrack)
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            startAngle = 90f + buttonWidth / 2,
+                            endAngle = 90f - buttonWidth / 2,
+                        )
 
                     if (!alone) {
                         currentLocation?.let { userLocation ->
