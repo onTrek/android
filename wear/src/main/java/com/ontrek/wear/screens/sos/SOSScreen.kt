@@ -69,6 +69,8 @@ fun SOSScreen(
 
     val membersLocation by sosViewModel.membersLocation.collectAsStateWithLifecycle()
 
+    var oldDirection by remember { mutableStateOf<Float?>(null) }
+
     DisposableEffect(compassSensor, gpsSensor) {
         // Avvia la lettura dei dati dai sensori
         compassSensor.start()
@@ -84,6 +86,9 @@ fun SOSScreen(
     LaunchedEffect(direction) {
         if (accuracy < 3) return@LaunchedEffect
         sosViewModel.elaborateDirection(direction)
+        if (oldDirection != direction) {
+            oldDirection = direction
+        }
     }
 
     LaunchedEffect(currentLocation) {
@@ -130,7 +135,8 @@ fun SOSScreen(
         ) {
             currentLocation?.let { userLocation ->
                 FriendRadar(
-                    direction = direction,
+                    newDirection = direction,
+                    oldDirection = if (oldDirection != null) oldDirection!! else 0.0f,
                     userLocation = userLocation,
                     members = membersLocation.filter {
                         Log.d("userId", "Member ID: ${it.user.id} | Current user ID: $currentUserId")

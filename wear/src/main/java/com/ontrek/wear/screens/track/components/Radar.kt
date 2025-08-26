@@ -15,8 +15,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Sos
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -35,11 +35,9 @@ import androidx.wear.compose.material3.MaterialTheme
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
-import kotlin.math.min
 import com.ontrek.wear.utils.functions.PolarResult
-import kotlin.collections.first
+import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import kotlin.math.*
-import kotlin.math.roundToInt
 
 val distances = listOf(
     0.33f to "50m",
@@ -52,53 +50,68 @@ data class MemberCluster(
     val center: Offset
 )
 
-
 @Composable
 fun FriendRadar(
-    direction: Float,
+    newDirection: Float,
+    oldDirection: Float,
     userLocation: Location,
     members: List<MemberInfo>,
     modifier: Modifier = Modifier,
     maxDistanceMeters: Float = 1000f,
     radarColor: Color = Color.Gray.copy(alpha = 0.2f),
 ) {
+    var heading by rememberSaveable { mutableFloatStateOf(oldDirection) }
+    LaunchedEffect(newDirection, oldDirection) {
+        if (shouldUpdateDirection(newDirection.toDouble(), heading.toDouble())) {
+            heading = newDirection
+        }
+    }
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        val centerX = constraints.maxWidth / 2f
-        val centerY = constraints.maxHeight / 2f
-        val maxRadiusPx = min(centerX, centerY) - 12f
         val density = LocalDensity.current
 
-        // Calcola le posizioni una volta sola e salva anche la distanza
-        val memberDrawData =
-            remember(members, userLocation, direction, maxRadiusPx, maxDistanceMeters) {
-                members.map { member ->
-                    val (distance, bearingToMember) = computeDistanceAndBearing(
-                        userLocation.latitude, userLocation.longitude,
-                        member.latitude, member.longitude
-                    )
+        val centerX = constraints.maxWidth / 2f
+        val centerY = constraints.maxHeight / 2f
+        val maxRadiusPx = min(centerX, centerY) - with(density) { 12.dp.toPx() }
 
-                    val relativeBearing =
-                        (bearingToMember - direction + 360) % 360f // Convert to relative bearing
+        var memberDrawData by remember {
+            mutableStateOf<List<Triple<MemberInfo, Float, PolarResult>>>(emptyList())
+        }
+        var clusters by remember { mutableStateOf<List<MemberCluster>>(emptyList()) }
 
-                    val polarResult = polarToCartesian(
-                        centerX, centerY,
-                        distance,
-                        relativeBearing,
-                        maxDistanceMeters,
-                        maxRadiusPx
-                    )
+        LaunchedEffect(
+            heading,
+            userLocation.latitude, userLocation.longitude,
+            members,
+            maxRadiusPx, maxDistanceMeters
+        ) {
+            memberDrawData = members.map { member ->
+                val (distance, bearingToMember) = computeDistanceAndBearing(
+                    userLocation.latitude, userLocation.longitude,
+                    member.latitude, member.longitude
+                )
 
-                    Triple(member, distance, polarResult)
-                }
+                val relativeBearing = (bearingToMember - heading + 360f) % 360f
+
+                val polarResult = polarToCartesian(
+                    centerX, centerY,
+                    distance,
+                    relativeBearing,
+                    maxDistanceMeters,
+                    maxRadiusPx
+                )
+
+                Triple(member, distance, polarResult)
             }
 
-        val clusters = clusterMembers(memberDrawData, minDistancePx = 16f)
+            clusters = clusterMembers(memberDrawData, minDistancePx = 16f)
+        }
 
-        // Radar + etichette
+        // 5) Radar + etichette
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             distances.forEach { (distance, _) ->
                 val radiusPx = distance * maxRadiusPx
@@ -123,30 +136,31 @@ fun FriendRadar(
             }
         }
 
-        // Membri
+        // 6) Disegno dei membri (rispetta i cluster)
         clusters.forEach { cluster ->
             val clusterSize = cluster.members.size
             if (clusterSize == 1) {
                 val member = cluster.members.first()
                 val (_, distance, polarResult) = memberDrawData.first { it.first == member }
 
-                MemberCluster(
+                MemberMarker(
                     distance = distance,
                     polarResult = polarResult,
                     member = member,
                     density = density
                 )
             } else {
-                val angleStep = (360f / clusterSize)
-
+                val angleStepDeg = 360f / clusterSize
                 cluster.members.forEachIndexed { index, member ->
-                    val (_, distance, polarResult)  = memberDrawData.first { it.first == member }
-                    MemberCluster(
+                    val (_, distance, polarResult) = memberDrawData.first { it.first == member }
+                    val angleRad = Math.toRadians((index * angleStepDeg).toDouble()).toFloat()
+
+                    MemberMarker(
                         distance = distance,
                         polarResult = polarResult,
                         member = member,
                         density = density,
-                        angleRad = index * angleStep,
+                        angleRad = angleRad,
                         center = cluster.center
                     )
                 }
@@ -166,14 +180,14 @@ fun clusterMembers(
         if (member in visited) return@forEach
 
         val closeMembers = memberDrawData.filter { (other, _, otherPolar) ->
-            val distance = (polarResult.offset - otherPolar.offset).getDistance()
-            distance <= minDistancePx
+            val d = (polarResult.offset - otherPolar.offset).getDistance()
+            d <= minDistancePx
         }
 
         val membersInCluster = closeMembers.map { it.first }
         visited.addAll(membersInCluster)
 
-        // calcola il centroide del cluster
+        // centroide
         val avgX = closeMembers.map { it.third.offset.x }.average().toFloat()
         val avgY = closeMembers.map { it.third.offset.y }.average().toFloat()
         val clusterCenter = Offset(avgX, avgY)
@@ -184,9 +198,8 @@ fun clusterMembers(
     return clusters
 }
 
-
 @Composable
-fun MemberCluster(
+fun MemberMarker( // rinominato per evitare ambiguità col data class
     distance: Float,
     polarResult: PolarResult,
     member: MemberInfo,
@@ -194,10 +207,9 @@ fun MemberCluster(
     angleRad: Float = 0f,
     center: Offset = Offset(0f, 0f)
 ) {
-    // Canvas: cerchio membro
+    // Cerchio membro
     Canvas(modifier = Modifier.fillMaxSize()) {
         if (angleRad == 0f) {
-
             val radiusDp = when {
                 distance <= 50 -> 10.dp
                 distance <= 250 -> 8.dp
@@ -211,17 +223,14 @@ fun MemberCluster(
                 center = polarResult.offset,
                 style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
             )
-
         } else {
-
             val radiusAround = when {
                 distance <= 50 -> 12f
                 distance <= 250 -> 10f
                 else -> 8f
             }
-
-            val offsetX = (cos(angleRad) * radiusAround)
-            val offsetY = (sin(angleRad) * radiusAround)
+            val offsetX = cos(angleRad) * radiusAround
+            val offsetY = sin(angleRad) * radiusAround
 
             val radiusDp = when {
                 distance <= 50 -> 10.dp
@@ -242,7 +251,7 @@ fun MemberCluster(
     val icon = when {
         member.help_request -> Icons.Default.Sos
         System.currentTimeMillis() - java.time.OffsetDateTime.parse(member.time_stamp)
-            .toInstant().toEpochMilli() > 90000L -> Icons.Default.CloudOff
+            .toInstant().toEpochMilli() > 90_000L -> Icons.Default.CloudOff
         member.going_to.isNotBlank() -> Icons.Default.PersonSearch
         else -> Icons.Default.Person
     }
@@ -267,7 +276,9 @@ fun MemberCluster(
                         (polarResult.offset.y - iconHalfPx).roundToInt()
                     )
                 },
-            tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+            tint = if (polarResult.isCapped)
+                member.user.color.toColorInt().let { Color(it) }
+            else MaterialTheme.colorScheme.surfaceContainer
         )
     } else {
         val radiusAround = when {
@@ -275,10 +286,8 @@ fun MemberCluster(
             distance <= 250 -> 10f
             else -> 8f
         }
-
-        val offsetX = (cos(angleRad) * radiusAround)
-        val offsetY = (sin(angleRad) * radiusAround)
-
+        val offsetX = cos(angleRad) * radiusAround
+        val offsetY = sin(angleRad) * radiusAround
         val centerX = center.x + offsetX
         val centerY = center.y + offsetY
 
@@ -293,7 +302,9 @@ fun MemberCluster(
                         (centerY - iconHalfPx).roundToInt()
                     )
                 },
-            tint = if (polarResult.isCapped) member.user.color.toColorInt().let { Color(it) } else MaterialTheme.colorScheme.surfaceContainer
+            tint = if (polarResult.isCapped)
+                member.user.color.toColorInt().let { Color(it) }
+            else MaterialTheme.colorScheme.surfaceContainer
         )
     }
 }
@@ -313,7 +324,6 @@ fun CurvedTextOnCircle(
                 isAntiAlias = true
                 textAlign = android.graphics.Paint.Align.CENTER
             }
-
             val path = android.graphics.Path().apply {
                 addCircle(
                     size.width / 2,
@@ -322,7 +332,6 @@ fun CurvedTextOnCircle(
                     android.graphics.Path.Direction.CW
                 )
             }
-
             canvas.nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
         }
     }
