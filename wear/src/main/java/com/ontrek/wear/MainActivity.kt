@@ -156,7 +156,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
             val probabilityFall = floatArray[0]
             if (probabilityFall > 0.5) {
                 Log.d("FALL_RESULT", "Fall detected!")
-                // TODO: azioni in caso di caduta
+                preferencesViewModel.setFallDetected()
             } else {
                 Log.d("FALL_RESULT", "No fall")
             }

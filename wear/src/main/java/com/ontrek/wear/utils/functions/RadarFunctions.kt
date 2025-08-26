@@ -24,7 +24,7 @@ fun polarToCartesian(
                 ((clampedDistance - 50f) / 200f) * (0.33f * maxRadiusPx)
         else -> (0.66f * maxRadiusPx) +
                 ((clampedDistance - 250f) / (maxDistanceMeters - 250f)) * (0.33f * maxRadiusPx)
-    }.coerceAtMost(0.97f * maxRadiusPx)
+    }.coerceAtMost(0.99f * maxRadiusPx)
 
     val angleRad = Math.toRadians(bearingDegrees.toDouble() - 90)
     val x = centerX + (radius * cos(angleRad)).toFloat()

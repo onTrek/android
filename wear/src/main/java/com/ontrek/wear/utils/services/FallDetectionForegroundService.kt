@@ -19,12 +19,12 @@ import com.ontrek.wear.R
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-private const val freq = 25
+private const val freq = 50
 private const val samplingPeriodUs = (1_000_000 / freq) // in microseconds
 private const val windowSize = (freq * 2.5).toInt() // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
 private const val sliding = (freq * 2)
-
-private const val test = true
+private const val test = false
+private const val testSet = "test_dataset${freq}Hz.json"
 
 data class MockItem(
     val sequence: List<List<Double>>,
@@ -36,7 +36,6 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
     private lateinit var sensorManager: SensorManager
     private val accelData = mutableListOf<FloatArray>()
     private val gyroData = mutableListOf<FloatArray>()
-    private val test = true
     private var mockData = null as List<MockItem>?
 
     override fun onCreate() {
@@ -88,7 +87,7 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
     }
 
     fun Context.loadMockData(): List<MockItem> {
-        val json = readJsonFromAssets("test_dataset.json")
+        val json = readJsonFromAssets(testSet)
         val type = object : TypeToken<List<MockItem>>() {}.type
         return Gson().fromJson(json, type)
     }

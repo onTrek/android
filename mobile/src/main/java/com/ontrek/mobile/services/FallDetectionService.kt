@@ -22,7 +22,7 @@ import java.nio.ByteOrder
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var module: Module
-    private val windowSize = 62  // 125 per modello 50Hz, oppure 62 se 25Hz
+    private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
 
     override fun onCreate() {
@@ -47,7 +47,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_25hz_lite.pt"))
+        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_50hz_lite.pt"))
 
         Wearable.getMessageClient(this).addListener(this)
 

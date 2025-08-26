@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -50,6 +51,7 @@ import com.ontrek.wear.screens.Screen
 import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FallDialog
 import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
@@ -62,6 +64,7 @@ import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 import com.ontrek.wear.utils.services.FallDetectionForegroundService
+import kotlinx.coroutines.flow.StateFlow
 
 
 private const val buttonSweepAngle = 60f
@@ -85,6 +88,8 @@ fun TrackScreen(
     trackName: String,
     sessionID: String,
     currentUserId: String,
+    fallDetectionState: StateFlow<Boolean>,
+    clearFallDetection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
@@ -138,18 +143,32 @@ fun TrackScreen(
     // Raccoglie i membri della sessione come stato osservabile
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
+    val fallDetected by fallDetectionState.collectAsStateWithLifecycle()
 
+    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
+    var showFallDialog by remember { mutableStateOf(false) }
+    var oldLocation by remember { mutableStateOf<Location?>(null) }
+    var oldDirection by remember { mutableStateOf<Float?>(null) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
 
+    if (!alone) {
+        val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
+        ContextCompat.startForegroundService(context, fallIntent)
 
-    val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
-    ContextCompat.startForegroundService(context, fallIntent)
+        LaunchedEffect(fallDetected) {
+            if (fallDetected) {
+                Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
+                showFallDialog = true
+                clearFallDetection()
+            }
+        }
+    }
 
 
     // Create PendingIntent to return to the app
@@ -287,9 +306,15 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(direction) {
+    LaunchedEffect(direction, currentLocation) {
         if (accuracy < 3) return@LaunchedEffect
-        gpxViewModel.elaborateDirection(direction)
+        if (currentLocation?.latitude != oldLocation?.latitude || currentLocation?.longitude != oldLocation?.longitude || direction != oldDirection) {
+            Log.d("DIRECTION", "Old location: $oldLocation, old direction: $oldDirection")
+            Log.d("DIRECTION", "Current location: $currentLocation, direction: $direction")
+            gpxViewModel.elaborateDirection(direction)
+            oldLocation = currentLocation
+            oldDirection = direction
+        }
     }
 
     LaunchedEffect(currentLocation) {
@@ -306,11 +331,11 @@ fun TrackScreen(
         } else if (isInitialized == true) {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
-            if (sessionID.isNotEmpty()) {
+            if (!alone) {
                 gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
+                gpxViewModel.getMembersLocation(sessionID)
             }
         }
-        gpxViewModel.getMembersLocation(sessionID)
     }
 
     LaunchedEffect(listHelpRequest) {
@@ -326,7 +351,6 @@ fun TrackScreen(
     }
 
 
-    val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     val buttonWidth = if (alone) 0f else buttonSweepAngle
     val infobackgroundColor: Color =
         if (isGpsAccuracyLow() || isOffTrack) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
@@ -403,13 +427,19 @@ fun TrackScreen(
                         endAngle = 90f - buttonWidth / 2,
                     )
 
-                    currentLocation?.let { userLocation ->
-                        FriendRadar(
-                            direction = direction,
-                            userLocation = userLocation,
-                            members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                    if (!alone) {
+                        currentLocation?.let { userLocation ->
+                            FriendRadar(
+                                newDirection = direction,
+                                oldDirection = if (oldDirection != null) oldDirection!! else 0.0f,
+                                userLocation = userLocation,
+                                members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
+                                modifier = Modifier.fillMaxSize(),
+                                onUserClick = { memberId ->
+                                    showDialogForMember[memberId] = true
+                                }
+                            )
+                        }
                     }
 
                     Arrow(
@@ -475,9 +505,37 @@ fun TrackScreen(
                         },
                         onConfirm = {
                             showDialogForMember[member.user.id] = false
-                            // TODO()
+                            gpxViewModel.confirmGoingToFriend(member)
                         },
                         member = member,
+                    )
+                }
+
+                if (!alone) {
+                    FallDialog(
+                        openDialog = showFallDialog,
+                        onDismiss = {
+                            showFallDialog = false
+                        },
+                        onConfirm = {
+                            showFallDialog = false
+                            navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
+                            Log.d(
+                                "FALL_DETECTION",
+                                "User confirmed fall dialog, navigating to SOS screen"
+                            )
+                            val threadSafeCurrentLocation = currentLocation
+
+                            if (sessionID.isNotEmpty()) {
+                                if (threadSafeCurrentLocation != null) {
+                                    gpxViewModel.sendCurrentLocation(
+                                        threadSafeCurrentLocation,
+                                        sessionID,
+                                        true
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }
