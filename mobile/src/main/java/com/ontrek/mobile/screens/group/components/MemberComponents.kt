@@ -104,6 +104,7 @@ fun MembersGroup(
                     ProfileItem(
                         textDelete = "Remove Member",
                         user = user,
+                        currentUserId = currentUserID,
                         groupOwner = owner,
                         color = Color(member.color.toColorInt()),
                         onClick = { viewModel.removeMember(groupId, member.id) },
