@@ -150,7 +150,7 @@ fun TrackScreen(
     var showEndTrackDialog by remember { mutableStateOf(false) }
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
-    var showFallDialog by remember { mutableStateOf(true) }  // TODO: change to false
+    var showFallDialog by remember { mutableStateOf(false) }
     var oldLocation by remember { mutableStateOf<Location?>(null) }
     var oldDirection by remember { mutableStateOf<Float?>(null) }
 
