@@ -18,12 +18,17 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.pow
+
+private const val THRESHOLD = 0.9
 
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var module: Module
     private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
+
+    private var lastFallTime = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -80,6 +85,23 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             // 2. Filtro di Kalman
             val filteredData = applyKalman(floatData)
 
+            // 2a. Controllo picchi accelerometro > 2.5g
+            val accelPeaks = (0 until filteredData.size step 6)
+                .any { i ->
+                    val ax = filteredData[i]
+                    val ay = filteredData[i + 1]
+                    val az = filteredData[i + 2]
+                    ax > 2.5f || ay > 2.5f || az > 2.5f
+                }
+
+            // 2b. Controllo inattività (solo per log/monitoraggio)
+            val accelValues = (0 until filteredData.size step 6).flatMap { i ->
+                listOf(filteredData[i], filteredData[i + 1], filteredData[i + 2])
+            }
+            val mean = accelValues.average()
+            val variance = accelValues.map { (it - mean).pow(2) }.average()
+            val inactive = variance < 0.01
+
             // 3. Crea tensore Torch
             val inputTensor = Tensor.fromBlob(
                 filteredData,
@@ -91,14 +113,25 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
                 val output = module.forward(IValue.from(inputTensor)).toTensor()
                 val probabilityFall = getFallProbability(output)
 
-                // Invia al smartwatch
-                sendResultToWatch(floatArrayOf(probabilityFall.toFloat()))
-                Log.d("FALL_DETECTION", "Probability sent: $probabilityFall")
+                val currentTime = System.currentTimeMillis()
+                // Invia caduta se supera la soglia e timeout, indipendentemente dall'inattività
+                if (probabilityFall > THRESHOLD && (currentTime - lastFallTime) > 5000) {
+                    sendResultToWatch(1f)
+                    lastFallTime = currentTime
+                    Log.d("FALL_DETECTION", "Probability sent: $probabilityFall")
+
+                    if (inactive) {
+                        Log.d("FALL_DETECTION", "User is inactive post-fall")
+                        // Qui puoi aggiungere allarmi o monitoraggio post-caduta
+                    }
+                }
+
             } catch (e: Exception) {
                 Log.e("FALL_DETECTION", "Error during inference", e)
             }
         }
     }
+
 
     fun getFallProbability(outputTensor: Tensor): Double {
         val logits = outputTensor.dataAsFloatArray
@@ -170,13 +203,9 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
         return xEst
     }
 
-    private fun sendResultToWatch(result: FloatArray) {
-        Log.d("FALL_DETECTION", "Sending result to watch: ${result.joinToString()}")
-        val bytes = result
-            .fold(ByteBuffer.allocate(4 * result.size).order(ByteOrder.LITTLE_ENDIAN)) { buf, f ->
-                buf.putFloat(f)
-            }
-            .array()
+    private fun sendResultToWatch(result: Float) {
+        Log.d("FALL_DETECTION", "Sending result to watch: $result")
+        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(result).array()
 
         Wearable.getNodeClient(this).connectedNodes
             .addOnSuccessListener { nodes ->

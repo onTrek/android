@@ -265,8 +265,8 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
 
     val icon = when {
         member.help_request -> Icons.Default.Sos
-        System.currentTimeMillis() - OffsetDateTime.parse(member.time_stamp)
-            .toInstant().toEpochMilli() > 90_000L -> Icons.Default.CloudOff
+        //System.currentTimeMillis() - OffsetDateTime.parse(member.time_stamp)
+        //    .toInstant().toEpochMilli() > 90_000L -> Icons.Default.CloudOff
         member.going_to.isNotBlank() -> Icons.Default.PersonSearch
         else -> Icons.Default.Person
     }

@@ -22,8 +22,8 @@ import java.nio.ByteOrder
 private const val freq = 50
 private const val samplingPeriodUs = (1_000_000 / freq) // in microseconds
 private const val windowSize = (freq * 2.5).toInt() // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
-private const val sliding = (freq * 2)
-private const val test = false
+private const val sliding = 62
+private const val test = true
 private const val testSet = "test_dataset${freq}Hz.json"
 
 data class MockItem(
@@ -109,8 +109,8 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
             Sensor.TYPE_GYROSCOPE -> gyroData.add(event.values.clone())
         }
 
-        var testWindow: FloatArray = FloatArray(0)
-        var item: MockItem = MockItem(listOf(), 0)
+        var testWindow = FloatArray(0)
+        var item = MockItem(listOf(), 0)
 
         if (accelData.size >= windowSize && gyroData.size >= windowSize) {
             if (test) {

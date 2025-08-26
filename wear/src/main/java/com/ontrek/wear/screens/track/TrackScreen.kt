@@ -228,6 +228,8 @@ fun TrackScreen(
             Log.d("NOTIFICATION_BUILDER", "Destroying notification for ongoing track navigation")
             // Cancel the notification to stop the ongoing activity
             notificationManager.cancel(NOTIFICATION_ID)
+            val stopIntent = Intent(context, FallDetectionForegroundService::class.java)
+            context.stopService(stopIntent)
         }
     }
 

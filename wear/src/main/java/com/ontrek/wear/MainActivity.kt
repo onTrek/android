@@ -141,20 +141,20 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
 
         if (event.path == "/fall_detection_result") {
             val bytes = event.data
-            if (bytes.size % 4 != 0) {
-                Log.e("FALL_RESULT", "Invalid float array size: ${bytes.size}")
+            if (bytes.size != 4) {
+                Log.e("FALL_RESULT", "Invalid data size: ${bytes.size}, expected 4")
                 return
             }
 
-            // Ricostruisci i float dall'array di byte
-            val floatArray = FloatArray(bytes.size / 4)
-            ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatArray)
+            // Ricostruisci il singolo float
+            val result = ByteBuffer.wrap(bytes)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .float
 
-            Log.d("FALL_RESULT", "Result floats: ${floatArray.joinToString()}")
+            Log.d("FALL_RESULT", "Fall probability: $result")
 
-            // Esempio: se consideri caduta se probabilità > 0.5
-            val probabilityFall = floatArray[0]
-            if (probabilityFall > 0.5) {
+            // Logica di rilevamento caduta
+            if (result == 1f) {
                 Log.d("FALL_RESULT", "Fall detected!")
                 preferencesViewModel.setFallDetected()
             } else {
