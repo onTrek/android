@@ -1,14 +1,17 @@
 package com.ontrek.wear.screens.track.components
 
+import android.graphics.Paint
+import android.graphics.Path
 import android.location.Location
-import android.util.Log
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Person
@@ -19,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -37,12 +41,13 @@ import com.ontrek.wear.utils.functions.computeDistanceAndBearing
 import com.ontrek.wear.utils.functions.polarToCartesian
 import com.ontrek.wear.utils.functions.PolarResult
 import com.ontrek.wear.utils.functions.shouldUpdateDirection
+import java.time.OffsetDateTime
 import kotlin.math.*
 
 val distances = listOf(
     0.33f to "50m",
-    0.64f to "250m",
-    0.95f to "1000+m"
+    0.66f to "250m",
+    0.98f to "1000+m"
 )
 
 data class MemberCluster(
@@ -59,6 +64,7 @@ fun FriendRadar(
     modifier: Modifier = Modifier,
     maxDistanceMeters: Float = 1000f,
     radarColor: Color = Color.Gray.copy(alpha = 0.2f),
+    onUserClick: (String) -> Unit = {}
 ) {
     var heading by rememberSaveable { mutableFloatStateOf(oldDirection) }
     LaunchedEffect(newDirection, oldDirection) {
@@ -76,7 +82,7 @@ fun FriendRadar(
 
         val centerX = constraints.maxWidth / 2f
         val centerY = constraints.maxHeight / 2f
-        val maxRadiusPx = min(centerX, centerY) - with(density) { 12.dp.toPx() }
+        val maxRadiusPx = min(centerX, centerY) - with(density) { 6.dp.toPx() }
 
         var memberDrawData by remember {
             mutableStateOf<List<Triple<MemberInfo, Float, PolarResult>>>(emptyList())
@@ -139,6 +145,10 @@ fun FriendRadar(
         // 6) Disegno dei membri (rispetta i cluster)
         clusters.forEach { cluster ->
             val clusterSize = cluster.members.size
+
+            val clusterInfo: List<Pair<String, Boolean>> =
+                cluster.members.map { member -> member.user.id to member.help_request }
+
             if (clusterSize == 1) {
                 val member = cluster.members.first()
                 val (_, distance, polarResult) = memberDrawData.first { it.first == member }
@@ -147,7 +157,8 @@ fun FriendRadar(
                     distance = distance,
                     polarResult = polarResult,
                     member = member,
-                    density = density
+                    density = density,
+                    onUserClick = onUserClick
                 )
             } else {
                 val angleStepDeg = 360f / clusterSize
@@ -161,7 +172,9 @@ fun FriendRadar(
                         member = member,
                         density = density,
                         angleRad = angleRad,
-                        center = cluster.center
+                        center = cluster.center,
+                        cluster = clusterInfo,
+                        onUserClick = onUserClick
                     )
                 }
             }
@@ -179,7 +192,7 @@ fun clusterMembers(
     memberDrawData.forEach { (member, _, polarResult) ->
         if (member in visited) return@forEach
 
-        val closeMembers = memberDrawData.filter { (other, _, otherPolar) ->
+        val closeMembers = memberDrawData.filter { (_, _, otherPolar) ->
             val d = (polarResult.offset - otherPolar.offset).getDistance()
             d <= minDistancePx
         }
@@ -205,7 +218,9 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
     member: MemberInfo,
     density: Density,
     angleRad: Float = 0f,
-    center: Offset = Offset(0f, 0f)
+    center: Offset = Offset(0f, 0f),
+    onUserClick: (String) -> Unit = {},
+    cluster: List<Pair<String, Boolean>> = emptyList()
 ) {
     // Cerchio membro
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -250,7 +265,7 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
 
     val icon = when {
         member.help_request -> Icons.Default.Sos
-        System.currentTimeMillis() - java.time.OffsetDateTime.parse(member.time_stamp)
+        System.currentTimeMillis() - OffsetDateTime.parse(member.time_stamp)
             .toInstant().toEpochMilli() > 90_000L -> Icons.Default.CloudOff
         member.going_to.isNotBlank() -> Icons.Default.PersonSearch
         else -> Icons.Default.Person
@@ -265,21 +280,28 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
     val iconHalfPx = with(density) { iconSizeDp.toPx() / 2f }
 
     if (angleRad == 0f) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
+        Box(
             modifier = Modifier
-                .size(iconSizeDp)
+                .size(iconSizeDp) // dimensione cerchio
                 .offset {
                     IntOffset(
                         (polarResult.offset.x - iconHalfPx).roundToInt(),
                         (polarResult.offset.y - iconHalfPx).roundToInt()
                     )
-                },
-            tint = if (polarResult.isCapped)
-                member.user.color.toColorInt().let { Color(it) }
-            else MaterialTheme.colorScheme.surfaceContainer
-        )
+                }
+                .clip(CircleShape)
+                .clickable(enabled = member.help_request) {
+                    onUserClick(member.user.id) },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (polarResult.isCapped)
+                    member.user.color.toColorInt().let { Color(it) }
+                else MaterialTheme.colorScheme.surfaceContainer
+            )
+        }
     } else {
         val radiusAround = when {
             distance <= 50 -> 12f
@@ -290,6 +312,23 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
         val offsetY = sin(angleRad) * radiusAround
         val centerX = center.x + offsetX
         val centerY = center.y + offsetY
+
+        Box(
+            modifier = Modifier
+                .size(iconSizeDp)
+                .offset {
+                    IntOffset(
+                        (center.x - iconHalfPx).roundToInt(),
+                        (center.y - iconHalfPx).roundToInt()
+                    )
+                }
+                .clip(CircleShape)
+                .clickable(enabled = cluster.any { it.second }) {
+                    for ((id, value) in cluster) {
+                        if (value) onUserClick(id)
+                }
+            },
+        )
 
         Icon(
             imageVector = icon,
@@ -318,18 +357,18 @@ fun CurvedTextOnCircle(
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawIntoCanvas { canvas ->
-            val paint = android.graphics.Paint().apply {
+            val paint = Paint().apply {
                 this.color = color.toArgb()
                 this.textSize = textSize
                 isAntiAlias = true
-                textAlign = android.graphics.Paint.Align.CENTER
+                textAlign = Paint.Align.CENTER
             }
-            val path = android.graphics.Path().apply {
+            val path = Path().apply {
                 addCircle(
                     size.width / 2,
                     size.height / 2,
                     radius,
-                    android.graphics.Path.Direction.CW
+                    Path.Direction.CW
                 )
             }
             canvas.nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
