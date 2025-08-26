@@ -51,6 +51,7 @@ fun FallDialog(
     // Reset progress when dialog opens
     LaunchedEffect(openDialog) {
         if (openDialog) {
+            // TODO() add vibration
             progress = 1f
             scrollState.scrollToItem(1)
         }
