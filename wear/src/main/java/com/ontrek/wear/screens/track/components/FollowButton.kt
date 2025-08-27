@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material3.AlertDialog
+import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
@@ -36,7 +41,7 @@ fun FollowButton(
     stopFollow: () -> Unit,
 ) {
 
-    var showConfirmDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
 
     val widthFactor = remember(sweepAngle) {
         val normalizedAngle = (sweepAngle / 360f).coerceIn(0f, 1f)
@@ -77,7 +82,7 @@ fun FollowButton(
                     color = getContrastingTextColor(userColor),
                 )
                 IconButton(
-                    onClick = { showConfirmDialog = true }
+                    onClick = { showDialog = true }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
@@ -89,4 +94,56 @@ fun FollowButton(
         }
     }
 
+    AlertDialog(
+        visible = showDialog,
+        onDismissRequest = { showDialog = false },
+        icon = {
+            Icon(
+                imageVector = Icons.Outlined.Warning,
+                contentDescription = "Off Track",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 30.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Do you want to stop following $username?",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    stopFollow()
+                    showDialog = false
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Confirm",
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { showDialog = false },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(end = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Snooze",
+                )
+            }
+        }
+    )
 }

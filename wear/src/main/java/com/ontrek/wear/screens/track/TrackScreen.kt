@@ -150,7 +150,7 @@ fun TrackScreen(
     )
     // TODO: collect this variable as viewmodel states
     val followedUser = object {
-        val username = "user"
+        val username = "tizio caduto"
         val distance = 9999
         val color = Color(possibleColors[2].toColorInt())
     }
