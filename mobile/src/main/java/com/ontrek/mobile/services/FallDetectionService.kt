@@ -21,13 +21,18 @@ import java.nio.ByteOrder
 import kotlin.math.pow
 
 private const val THRESHOLD = 0.9
+private const val VARIANCE_THRESHOLD = 0.01
+private const val ACCELL_THRESHOLD = 2.5f
+private const val PROCEESS_VAR = 1e-5f
+private const val MEASUREMENT_VAR = 1e-2f
+private const val MODEL_NAME = "fall_model_cicb_50hz_lite.pt"
+
 
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var module: Module
     private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
-
     private var lastFallTime = 0L
 
     override fun onCreate() {
@@ -52,7 +57,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_50hz_lite.pt"))
+        module = LiteModuleLoader.load(assetFilePath(MODEL_NAME))
 
         Wearable.getMessageClient(this).addListener(this)
 
@@ -91,7 +96,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
                     val ax = filteredData[i]
                     val ay = filteredData[i + 1]
                     val az = filteredData[i + 2]
-                    ax > 2.5f || ay > 2.5f || az > 2.5f
+                    ax > ACCELL_THRESHOLD || ay > ACCELL_THRESHOLD || az > ACCELL_THRESHOLD
                 }
 
             // 2b. Controllo inattività (solo per log/monitoraggio)
@@ -100,7 +105,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             }
             val mean = accelValues.average()
             val variance = accelValues.map { (it - mean).pow(2) }.average()
-            val inactive = variance < 0.01
+            val inactive = variance < VARIANCE_THRESHOLD
 
             // 3. Crea tensore Torch
             val inputTensor = Tensor.fromBlob(
@@ -115,10 +120,10 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
                 val currentTime = System.currentTimeMillis()
                 // Invia caduta se supera la soglia e timeout, indipendentemente dall'inattività
-                if (probabilityFall > THRESHOLD && (currentTime - lastFallTime) > 5000) {
+                if (probabilityFall > THRESHOLD && accelPeaks && (currentTime - lastFallTime) > 5000) {
                     sendResultToWatch(1f)
                     lastFallTime = currentTime
-                    Log.d("FALL_DETECTION", "Probability sent: $probabilityFall")
+                    Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
 
                     if (inactive) {
                         Log.d("FALL_DETECTION", "User is inactive post-fall")
@@ -174,8 +179,8 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     // Filtro Kalman 1D (semplificato)
     private fun kalmanFilter1D(
         data: FloatArray,
-        processVar: Float = 1e-5f,
-        measurementVar: Float = 1e-2f
+        processVar: Float = PROCEESS_VAR,
+        measurementVar: Float = MEASUREMENT_VAR
     ): FloatArray {
         val n = data.size
         val xEst = FloatArray(n)  // stima
