@@ -146,6 +146,7 @@ fun TrackScreen(
     var trackCompleted by remember { mutableStateOf(false) }
     var snoozeModalOpen by remember { mutableStateOf(false) }
     var distantAtStartupModalOpen by remember { mutableStateOf(false) }
+    var oldDirection by remember { mutableStateOf<Float?>(null) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -287,6 +288,9 @@ fun TrackScreen(
 
     LaunchedEffect(direction) {
         if (accuracy < 3) return@LaunchedEffect
+        if (oldDirection != direction) {
+            oldDirection = direction
+        }
         gpxViewModel.elaborateDirection(direction)
     }
 
