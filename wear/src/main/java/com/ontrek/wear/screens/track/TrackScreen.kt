@@ -63,7 +63,6 @@ import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 import com.ontrek.wear.utils.services.FallDetectionForegroundService
-import kotlinx.coroutines.flow.StateFlow
 
 
 private const val buttonSweepAngle = 60f
@@ -87,14 +86,14 @@ fun TrackScreen(
     trackName: String,
     sessionID: String,
     currentUserId: String,
-    fallDetectionState: StateFlow<Boolean>,
-    clearFallDetection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
     val applicationContext = context.applicationContext
-    val isAmbientMode by (LocalActivity.current as MainActivity).isInAmbientMode.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current as MainActivity
+    val isAmbientMode by activity.isInAmbientMode.collectAsStateWithLifecycle()
+    val fallDetected by activity.fallDetectionState.collectAsStateWithLifecycle()
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
@@ -145,7 +144,6 @@ fun TrackScreen(
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     // Raccoglie la lista delle richieste di aiuto come stato osservabile
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
-    val fallDetected by fallDetectionState.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
@@ -535,7 +533,7 @@ fun TrackScreen(
                         openDialog = showFallDialog,
                         onDismiss = {
                             showFallDialog = false
-                            clearFallDetection()
+                            activity.resetFallDetectionState()
                         },
                         onConfirm = {
                             showFallDialog = false
@@ -555,7 +553,7 @@ fun TrackScreen(
                                     )
                                 }
                             }
-                            clearFallDetection()
+                            activity.resetFallDetectionState()
                         }
                     )
                 }

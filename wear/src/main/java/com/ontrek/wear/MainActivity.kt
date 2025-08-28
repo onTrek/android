@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     private lateinit var ambientController: AmbientLifecycleObserver
     val isInAmbientMode = MutableStateFlow(false)
     private var ambientModeEnabled by mutableStateOf(false)
+    val fallDetectionState = MutableStateFlow(false)
 
     private var fallService: FallDetectionForegroundService? = null
     private var bound = false
@@ -168,7 +169,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
         if (event.path == "/fall_detection_result") {
             connectServieIfNotBound()
             if (bound) {
-                fallService?.elaborateResponse(event, { preferencesViewModel.setFallDetected() })
+                fallService?.elaborateResponse(event, { fallDetectionState.value = true })
             }
         }
     }
@@ -185,6 +186,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
                 preferencesViewModel.saveCurrentUser(dataMap.getString("currentUser") ?: "")
             }
         }
+    }
+
+    fun resetFallDetectionState() {
+        fallDetectionState.value = false
     }
 
     fun checkPermissions(): Boolean {
