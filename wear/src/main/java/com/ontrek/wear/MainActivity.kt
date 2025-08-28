@@ -156,10 +156,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
             // Esempio: se consideri caduta se probabilità > 0.5
             val probabilityFall = floatArray[0]
             if (probabilityFall > 0.5) {
-                Log.d("FALL_RESULT", "Fall detected!")
+                Log.d("FALL_RESULT_MAIN", "Fall detected!")
                 fallDetectionState.value = true
             } else {
-                Log.d("FALL_RESULT", "No fall")
+                Log.d("FALL_RESULT_MAIN", "No fall")
             }
         }
     }
