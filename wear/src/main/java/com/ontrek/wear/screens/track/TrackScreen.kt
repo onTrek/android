@@ -156,9 +156,9 @@ fun TrackScreen(
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
+    val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
 
     if (!alone) {
-        val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
         ContextCompat.startForegroundService(context, fallIntent)
 
         DisposableEffect(fallDetected) {
@@ -181,7 +181,6 @@ fun TrackScreen(
             }
         }
     }
-
 
     // Create PendingIntent to return to the app
     val pendingIntent = remember {
@@ -240,6 +239,8 @@ fun TrackScreen(
             Log.d("NOTIFICATION_BUILDER", "Destroying notification for ongoing track navigation")
             // Cancel the notification to stop the ongoing activity
             notificationManager.cancel(NOTIFICATION_ID)
+
+            context.stopService(fallIntent)
         }
     }
 
@@ -578,7 +579,7 @@ fun TrackScreen(
                         // Clear the back stack to prevent going back to the track screen
                         popUpTo(Screen.TrackScreen.route) { inclusive = true }
                     }
-                    context.stopService(Intent(context, FallDetectionForegroundService::class.java))
+                    context.stopService(fallIntent)
                 },
                 trackName = trackName
             )

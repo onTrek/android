@@ -18,12 +18,23 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.pow
+
+private const val THRESHOLD = 0.8
+private const val VARIANCE_THRESHOLD = 0.01
+private const val ACCELL_THRESHOLD = 2.5f
+private const val PROCEESS_VAR = 1e-5f
+private const val MEASUREMENT_VAR = 1e-2f
+private const val MODEL_NAME = "fall_model_cicb_50hz_lite.pt"
+
 
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var module: Module
     private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
+    private var lastFallTime = 0L
+
 
     override fun onCreate() {
         super.onCreate()
@@ -47,7 +58,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath("fall_model_cicb_50hz_lite.pt"))
+        module = LiteModuleLoader.load(assetFilePath(MODEL_NAME))
 
         Wearable.getMessageClient(this).addListener(this)
 
@@ -80,25 +91,55 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             // 2. Filtro di Kalman
             val filteredData = applyKalman(floatData)
 
+            // 2a. Controllo picchi accelerometro > 2.5g
+            val accelPeaks = (0 until filteredData.size step 6)
+                .any { i ->
+                    val ax = filteredData[i]
+                    val ay = filteredData[i + 1]
+                    val az = filteredData[i + 2]
+                    ax > ACCELL_THRESHOLD || ay > ACCELL_THRESHOLD || az > ACCELL_THRESHOLD
+                }
+
+            // 2b. Controllo inattività (solo per log/monitoraggio)
+            val accelValues = (0 until filteredData.size step 6).flatMap { i ->
+                listOf(filteredData[i], filteredData[i + 1], filteredData[i + 2])
+            }
+            val mean = accelValues.average()
+            val variance = accelValues.map { (it - mean).pow(2) }.average()
+            val inactive = variance < VARIANCE_THRESHOLD
+
             // 3. Crea tensore Torch
             val inputTensor = Tensor.fromBlob(
                 filteredData,
                 longArrayOf(1, windowSize.toLong(), numFeatures.toLong())
             )
 
+            Log.d("FALL_DETECTION", "Accel peaks: $accelPeaks, Inactive: $inactive")
+
             // 4. Inference
             try {
                 val output = module.forward(IValue.from(inputTensor)).toTensor()
                 val probabilityFall = getFallProbability(output)
 
-                // Invia al smartwatch
-                sendResultToWatch(floatArrayOf(probabilityFall.toFloat()))
-                Log.d("FALL_DETECTION", "Probability sent: $probabilityFall")
+                val currentTime = System.currentTimeMillis()
+                // Invia caduta se supera la soglia e timeout, indipendentemente dall'inattività
+                if (probabilityFall > THRESHOLD && accelPeaks && (currentTime - lastFallTime) > 5000) {
+                    sendResultToWatch(1f)
+                    lastFallTime = currentTime
+                    Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
+
+                    if (inactive) {
+                        Log.d("FALL_DETECTION", "User is inactive post-fall")
+                        // Qui puoi aggiungere allarmi o monitoraggio post-caduta
+                    }
+                }
+
             } catch (e: Exception) {
                 Log.e("FALL_DETECTION", "Error during inference", e)
             }
         }
     }
+
 
     fun getFallProbability(outputTensor: Tensor): Double {
         val logits = outputTensor.dataAsFloatArray
@@ -141,8 +182,8 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     // Filtro Kalman 1D (semplificato)
     private fun kalmanFilter1D(
         data: FloatArray,
-        processVar: Float = 1e-5f,
-        measurementVar: Float = 1e-2f
+        processVar: Float = PROCEESS_VAR,
+        measurementVar: Float = MEASUREMENT_VAR
     ): FloatArray {
         val n = data.size
         val xEst = FloatArray(n)  // stima
@@ -170,13 +211,9 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
         return xEst
     }
 
-    private fun sendResultToWatch(result: FloatArray) {
-        Log.d("FALL_DETECTION", "Sending result to watch: ${result.joinToString()}")
-        val bytes = result
-            .fold(ByteBuffer.allocate(4 * result.size).order(ByteOrder.LITTLE_ENDIAN)) { buf, f ->
-                buf.putFloat(f)
-            }
-            .array()
+    private fun sendResultToWatch(result: Float) {
+        Log.d("FALL_DETECTION", "Sending result to watch: $result")
+        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(result).array()
 
         Wearable.getNodeClient(this).connectedNodes
             .addOnSuccessListener { nodes ->
