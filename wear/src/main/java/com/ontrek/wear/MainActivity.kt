@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     private lateinit var ambientController: AmbientLifecycleObserver
     val isInAmbientMode = MutableStateFlow(false)
     private var ambientModeEnabled by mutableStateOf(false)
+    val fallDetectionState = MutableStateFlow(false)
 
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -156,7 +157,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
             val probabilityFall = floatArray[0]
             if (probabilityFall > 0.5) {
                 Log.d("FALL_RESULT", "Fall detected!")
-                preferencesViewModel.setFallDetected()
+                fallDetectionState.value = true
             } else {
                 Log.d("FALL_RESULT", "No fall")
             }
@@ -175,6 +176,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
                 preferencesViewModel.saveCurrentUser(dataMap.getString("currentUser") ?: "")
             }
         }
+    }
+
+    fun resetFallDetectionState() {
+        fallDetectionState.value = false
     }
 
     fun checkPermissions(): Boolean {
