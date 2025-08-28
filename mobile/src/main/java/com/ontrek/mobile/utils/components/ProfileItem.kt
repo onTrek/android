@@ -36,6 +36,7 @@ fun ProfileItem(
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit = {},
     groupOwner: String = "",
+    currentUserId: String = "",
     textDelete: String = "Delete Friendship",
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -136,24 +137,7 @@ fun ProfileItem(
                         }
                     }
                 }
-            } else if (!addMember && (groupOwner == "" || user.id != groupOwner)) {
-                IconButton(
-                    onClick = { showDeleteDialog = true },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        tint = MaterialTheme.colorScheme.error,
-                        contentDescription = textDelete,
-                    )
-                }
-            } else if (groupOwner == user.id) {
-                Text(
-                    text = "Group Owner",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
-                )
-            } else {
+            } else if (addMember) {
                 IconButton(
                     onClick = { onClick() },
                     modifier = Modifier.padding(start = 8.dp)
@@ -162,6 +146,23 @@ fun ProfileItem(
                         imageVector = Icons.Default.PersonAddAlt1,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Add Member",
+                    )
+                }
+            }  else if (groupOwner == user.id) {
+                Text(
+                    text = "Group Owner",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+                )
+            } else if (currentUserId == groupOwner) {
+                IconButton(
+                    onClick = { showDeleteDialog = true },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        tint = MaterialTheme.colorScheme.error,
+                        contentDescription = textDelete,
                     )
                 }
             }

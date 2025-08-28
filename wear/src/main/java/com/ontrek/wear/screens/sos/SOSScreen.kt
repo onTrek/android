@@ -59,7 +59,7 @@ fun SOSScreen(
 
     val compassSensor = remember { CompassSensor(context) }
 
-    val isInitialized by sosViewModel.isInitialized.collectAsStateWithLifecycle()
+    val isInitialized by sosViewModel.hasBeenNearTheTrack.collectAsStateWithLifecycle()
 
     val accuracy by compassSensor.accuracy.collectAsStateWithLifecycle()
 
@@ -100,10 +100,10 @@ fun SOSScreen(
             return@LaunchedEffect
         }
 
-        if (isInitialized == null || isInitialized == false) {
+        if (isInitialized == null) {
             // Startup function
             sosViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
-        } else if (isInitialized == true) {
+        } else {
             // If we are near the track, we can proceed to elaborate the position
             sosViewModel.elaboratePosition(threadSafeCurrentLocation)
             if (sessionID.isNotEmpty()) {
