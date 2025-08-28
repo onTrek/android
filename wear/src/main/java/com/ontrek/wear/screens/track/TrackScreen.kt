@@ -156,7 +156,6 @@ fun TrackScreen(
     var distantAtStartupModalOpen by remember { mutableStateOf(false) }
     var oldDirection by remember { mutableStateOf<Float?>(null) }
     var showFallDialog by remember { mutableStateOf(false) }
-    var oldLocation by remember { mutableStateOf<Location?>(null) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -169,7 +168,6 @@ fun TrackScreen(
             if (fallDetected) {
                 Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
                 showFallDialog = true
-                clearFallDetection()
             }
         }
     }
@@ -524,6 +522,7 @@ fun TrackScreen(
                         openDialog = showFallDialog,
                         onDismiss = {
                             showFallDialog = false
+                            clearFallDetection()
                         },
                         onConfirm = {
                             showFallDialog = false
@@ -543,6 +542,7 @@ fun TrackScreen(
                                     )
                                 }
                             }
+                            clearFallDetection()
                         }
                     )
                 }
