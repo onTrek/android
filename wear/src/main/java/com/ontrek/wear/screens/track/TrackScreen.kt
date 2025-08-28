@@ -167,12 +167,12 @@ fun TrackScreen(
                 showFallDialog = true
                 vibrator?.vibrate(
                     VibrationEffect.createWaveform(
-                        longArrayOf(0, 300, 300, 300),
-                        intArrayOf(0, 255, 0, 255),
+                        longArrayOf(100, 300),
+                        intArrayOf(0, 255),
                         0
                     )
                 )
-            } else {
+            } else if(!notifyOffTrackModalOpen) {
                 vibrator?.cancel()
             }
 
@@ -310,7 +310,7 @@ fun TrackScreen(
                     0
                 )
             )
-        } else {
+        } else if (!fallDetected){
             vibrator?.cancel()
         }
 
