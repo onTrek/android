@@ -101,7 +101,6 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, proba
             continue // Skip the first and last points
         }
         val distanceOfPointInExam = computeDistanceFromTrack(threadSafePosition, trackPoints, point.index)
-        Log.d("TrackScreenUtils", "Examining point ${point.index} with distance from track: $distanceOfPointInExam")
         if (distanceOfPointInExam <= bestPointDistanceFromTrack) {
             bestPointDistanceFromTrack = distanceOfPointInExam
             pointIndex = point.index
