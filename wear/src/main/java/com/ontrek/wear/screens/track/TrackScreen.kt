@@ -163,10 +163,23 @@ fun TrackScreen(
         val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
         ContextCompat.startForegroundService(context, fallIntent)
 
-        LaunchedEffect(fallDetected) {
+        DisposableEffect(fallDetected) {
             if (fallDetected) {
                 Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
                 showFallDialog = true
+                vibrator?.vibrate(
+                    VibrationEffect.createWaveform(
+                        longArrayOf(0, 300, 300, 300),
+                        intArrayOf(0, 255, 0, 255),
+                        0
+                    )
+                )
+            } else {
+                vibrator?.cancel()
+            }
+
+            onDispose {
+                vibrator?.cancel()
             }
         }
     }
