@@ -169,7 +169,7 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
 
     }
 
-    fun elaborateResponse(event: MessageEvent, function: () -> Unit) {
+    fun elaborateResponse(event: MessageEvent, onFallDetected: () -> Unit) {
         val bytes = event.data
         if (bytes.size != 4) {
             Log.e("FALL_RESULT", "Invalid data size: ${bytes.size}, expected 4")
@@ -186,7 +186,7 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
         // Logica di rilevamento caduta
         if (result == 1f) {
             Log.d("FALL_RESULT", "Fall detected!")
-            function()
+            onFallDetected()
             stopSending = true
             stopSendingTime = System.currentTimeMillis()
         } else {
