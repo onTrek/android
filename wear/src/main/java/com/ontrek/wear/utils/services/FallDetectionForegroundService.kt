@@ -9,9 +9,11 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -37,6 +39,17 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
     private val accelData = mutableListOf<FloatArray>()
     private val gyroData = mutableListOf<FloatArray>()
     private var mockData = null as List<MockItem>?
+
+    private var stopSending = false
+    private var stopSendingTime = 0L
+
+    inner class LocalBinder : Binder() {
+        fun getService(): FallDetectionForegroundService = this@FallDetectionForegroundService
+    }
+
+    private val binder = LocalBinder()
+
+    override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onCreate() {
         super.onCreate()
@@ -96,12 +109,11 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
         return assets.open(fileName).bufferedReader().use { it.readText() }
     }
 
+
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
@@ -136,15 +148,19 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
                 window[i * 6 + 5] = gyroData[i][2]
             }
 
-            if (test) {
-                Log.d("FALL_DETECTION", "Sending window of size: ${testWindow.size}")
-                Log.d("FALL_DETECTION", "First 6 values: ${testWindow.take(6)}")
-                Log.d("FALL_RESULT", "True label: ${item.label}")
-                sendWindowToPhone(testWindow)
-            } else {
-                Log.d("FALL_DETECTION", "Sending window of size: ${window.size}")
-                Log.d("FALL_DETECTION", "First 6 values: ${window.take(6)}")
-                sendWindowToPhone(window)
+            if (stopSending && System.currentTimeMillis() - stopSendingTime > 5000) {
+                stopSending = false
+            } else if (!stopSending) {
+                if (test) {
+                    Log.d("FALL_DETECTION", "Sending window of size: ${testWindow.size}")
+                    Log.d("FALL_DETECTION", "First 6 values: ${testWindow.take(6)}")
+                    Log.d("FALL_RESULT", "True label: ${item.label}")
+                    sendWindowToPhone(testWindow)
+                } else {
+                    Log.d("FALL_DETECTION", "Sending window of size: ${window.size}")
+                    Log.d("FALL_DETECTION", "First 6 values: ${window.take(6)}")
+                    sendWindowToPhone(window)
+                }
             }
 
             accelData.subList(0, sliding).clear()
@@ -153,9 +169,32 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
 
     }
 
-    private fun sendWindowToPhone(window: FloatArray) {
-        Log.d("FALL_DETECTION", "Preparing to send window to phone")
+    fun elaborateResponse(event: MessageEvent, function: () -> Unit) {
+        val bytes = event.data
+        if (bytes.size != 4) {
+            Log.e("FALL_RESULT", "Invalid data size: ${bytes.size}, expected 4")
+            return
+        }
 
+        // Ricostruisci il singolo float
+        val result = ByteBuffer.wrap(bytes)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .float
+
+        Log.d("FALL_RESULT", "Fall probability: $result")
+
+        // Logica di rilevamento caduta
+        if (result == 1f) {
+            Log.d("FALL_RESULT", "Fall detected!")
+            function()
+            stopSending = true
+            stopSendingTime = System.currentTimeMillis()
+        } else {
+            Log.d("FALL_RESULT", "No fall")
+        }
+    }
+
+    private fun sendWindowToPhone(window: FloatArray) {
         val nodeClient = Wearable.getNodeClient(this)
         nodeClient.connectedNodes.addOnSuccessListener { nodes ->
             val nodeId = nodes.firstOrNull()?.id

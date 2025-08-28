@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.pow
 
-private const val THRESHOLD = 0.9
+private const val THRESHOLD = 0.8
 private const val VARIANCE_THRESHOLD = 0.01
 private const val ACCELL_THRESHOLD = 2.5f
 private const val PROCEESS_VAR = 1e-5f
@@ -34,6 +34,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
     private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
     private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
     private var lastFallTime = 0L
+
 
     override fun onCreate() {
         super.onCreate()
@@ -112,6 +113,8 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
                 filteredData,
                 longArrayOf(1, windowSize.toLong(), numFeatures.toLong())
             )
+
+            Log.d("FALL_DETECTION", "Accel peaks: $accelPeaks, Inactive: $inactive")
 
             // 4. Inference
             try {
