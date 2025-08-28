@@ -88,7 +88,8 @@ fun TrackScreen(
     // Ottiene il contesto corrente per accedere ai sensori del dispositivo
     val context = LocalContext.current
     val applicationContext = context.applicationContext
-    val isAmbientMode by (LocalActivity.current as MainActivity).isInAmbientMode.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current as MainActivity
+    val isAmbientMode by activity.isInAmbientMode.collectAsStateWithLifecycle()
 
     // Inizializza il sensore della bussola e lo memorizza tra le composizioni
     val compassSensor = remember { CompassSensor(context) }
@@ -226,12 +227,29 @@ fun TrackScreen(
         }
     }
 
-    LaunchedEffect(isAmbientMode) {
-        if (isAmbientMode && accuracy == 3) {
-            Log.d("AMBIENT_MODE", "Entering ambient mode, stopping compass sensor")
-            compassSensor.stop()
+    DisposableEffect(isAmbientMode) {
+        val layoutParams = activity.window.attributes
+
+        if (isAmbientMode) {
+            Log.d("AMBIENT_MODE", "Entering ambient mode")
+            layoutParams.screenBrightness = 0.0f
+            if (accuracy == 3) {
+                Log.d("AMBIENT_MODE", "Stopping compass sensor")
+                compassSensor.stop()
+            }
         } else {
-            compassSensor.start()
+            Log.d("AMBIENT_MODE", "Exiting ambient mode")
+            layoutParams.screenBrightness = 1.0f // Set brightness to maximum (1.0f)
+            if (accuracy == 3) {
+                compassSensor.start()
+            }
+        }
+
+        activity.window.attributes = layoutParams
+
+        onDispose {
+            layoutParams.screenBrightness = -1.0f //system default brightness
+            activity.window.attributes = layoutParams
         }
     }
 
