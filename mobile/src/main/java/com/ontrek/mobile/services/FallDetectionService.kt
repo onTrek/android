@@ -25,7 +25,7 @@ private const val VARIANCE_THRESHOLD = 0.01
 private const val ACCELL_THRESHOLD = 2.5f
 private const val PROCEESS_VAR = 1e-5f
 private const val MEASUREMENT_VAR = 1e-2f
-private const val MODEL_NAME = "fall_model_cicb_50hz_lite.pt"
+private const val MODEL_NAME = "fall_model_cicb_vag_50hz_lite.pt"
 
 
 class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {

@@ -26,18 +26,26 @@ private const val samplingPeriodUs = (1_000_000 / freq) // in microseconds
 private const val windowSize = (freq * 2.5).toInt() // 62 samples for 2.5 seconds at 25Hz, 125 for 2.5 seconds at 50Hz
 private const val sliding = 62
 private const val test = false
-private const val testSet = "test_dataset${freq}Hz.json"
+private const val testSet = "test_dataset_${freq}Hz-vga.json"
 
 data class MockItem(
     val sequence: List<List<Double>>,
     val label: Int
 )
 
+data class TimedValues(
+    val time: Long,
+    val values: FloatArray
+)
+
 class FallDetectionForegroundService : Service(), SensorEventListener{
 
     private lateinit var sensorManager: SensorManager
-    private val accelData = mutableListOf<FloatArray>()
-    private val gyroData = mutableListOf<FloatArray>()
+    private val accelBuffer = mutableListOf<TimedValues>()
+    private val gyroBuffer = mutableListOf<TimedValues>()
+    private val alignedData = mutableListOf<FloatArray>()
+    private var latestQuaternion = FloatArray(4) // [w, x, y, z]
+
     private var mockData = null as List<MockItem>?
 
     private var stopSending = false
@@ -86,9 +94,15 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
         )
         sensorManager.registerListener(
             this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+            samplingPeriodUs
+        )
+        sensorManager.registerListener(
+            this,
             sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
             samplingPeriodUs
         )
+
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
             .setContentTitle("Fall Detection")
@@ -113,18 +127,79 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
+        accelBuffer.clear()
+        gyroBuffer.clear()
+        alignedData.clear()
+        latestQuaternion = FloatArray(4) { 0f }
+        mockData = null
+        Log.d("FALL_DETECTION", "Service destroyed")
+    }
+
+    private fun getWorldAcceleration(acc: FloatArray, quat: FloatArray): FloatArray {
+        val w = quat[0]
+        val x = quat[1]
+        val y = quat[2]
+        val z = quat[3]
+
+        val ax = acc[0]
+        val ay = acc[1]
+        val az = acc[2]
+
+        // Matrice di rotazione 3x3 dal quaternione
+        val r00 = 1 - 2*(y*y + z*z)
+        val r01 = 2*(x*y - z*w)
+        val r02 = 2*(x*z + y*w)
+
+        val r10 = 2*(x*y + z*w)
+        val r11 = 1 - 2*(x*x + z*z)
+        val r12 = 2*(y*z - x*w)
+
+        val r20 = 2*(x*z - y*w)
+        val r21 = 2*(y*z + x*w)
+        val r22 = 1 - 2*(x*x + y*y)
+
+        // Trasformiamo l'accelerazione dal sistema device → mondo
+        val worldAx = r00 * ax + r01 * ay + r02 * az
+        val worldAy = r10 * ax + r11 * ay + r12 * az
+        val worldAz = r20 * ax + r21 * ay + r22 * az
+
+        return floatArrayOf(worldAx, worldAy, worldAz)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> accelData.add(event.values.clone())
-            Sensor.TYPE_GYROSCOPE -> gyroData.add(event.values.clone())
+            Sensor.TYPE_ACCELEROMETER -> {
+                val acc = getWorldAcceleration(event.values.clone(), latestQuaternion)
+                accelBuffer.add(TimedValues(event.timestamp, acc))
+
+                if (gyroBuffer.isNotEmpty()) {
+                    val accTime = event.timestamp
+                    val gyro = gyroBuffer.minByOrNull { g -> kotlin.math.abs(g.time - accTime) }
+                    if (gyro != null) {
+                        val sample = floatArrayOf(
+                            acc[0], acc[1], acc[2],
+                            gyro.values[0], gyro.values[1], gyro.values[2]
+                        )
+                        alignedData.add(sample)
+                    }
+                }
+            }
+
+            Sensor.TYPE_GYROSCOPE -> {
+                gyroBuffer.add(TimedValues(event.timestamp, event.values.clone()))
+            }
+
+            Sensor.TYPE_ROTATION_VECTOR -> {
+                val quat = FloatArray(4)
+                SensorManager.getQuaternionFromVector(quat, event.values)
+                latestQuaternion = quat
+            }
         }
 
         var testWindow = FloatArray(0)
         var item = MockItem(listOf(), 0)
 
-        if (accelData.size >= windowSize && gyroData.size >= windowSize) {
+        if (alignedData.size >= windowSize) {
             if (test) {
                 item = mockData?.random() ?: return
                 testWindow = FloatArray(item.sequence.size * 6)
@@ -140,12 +215,13 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
 
             val window = FloatArray(windowSize * 6)
             for (i in 0 until windowSize) {
-                window[i * 6 + 0] = accelData[i][0]
-                window[i * 6 + 1] = accelData[i][1]
-                window[i * 6 + 2] = accelData[i][2]
-                window[i * 6 + 3] = gyroData[i][0]
-                window[i * 6 + 4] = gyroData[i][1]
-                window[i * 6 + 5] = gyroData[i][2]
+                val sample = alignedData[i]
+                window[i * 6 + 0] = sample[0] // worldAx
+                window[i * 6 + 1] = sample[1] // worldAy
+                window[i * 6 + 2] = sample[2] // worldAz
+                window[i * 6 + 3] = sample[3] // gx
+                window[i * 6 + 4] = sample[4] // gy
+                window[i * 6 + 5] = sample[5] // gz
             }
 
             if (stopSending && System.currentTimeMillis() - stopSendingTime > 5000) {
@@ -163,8 +239,14 @@ class FallDetectionForegroundService : Service(), SensorEventListener{
                 }
             }
 
-            accelData.subList(0, sliding).clear()
-            gyroData.subList(0, sliding).clear()
+            alignedData.subList(0, sliding).clear()
+            val maxBufferSize = windowSize * 2
+            if (accelBuffer.size > maxBufferSize) {
+                accelBuffer.subList(0, accelBuffer.size - maxBufferSize).clear()
+            }
+            if (gyroBuffer.size > maxBufferSize) {
+                gyroBuffer.subList(0, gyroBuffer.size - maxBufferSize).clear()
+            }
         }
 
     }
