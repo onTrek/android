@@ -360,11 +360,16 @@ fun TrackScreen(
 
 
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-    val infobackgroundColor: Color =
-        if (isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false) MaterialTheme.colorScheme.errorContainer else if (progress == 1f) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-    val infotextColor: Color =
-        if (isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false) MaterialTheme.colorScheme.onErrorContainer else if (progress == 1f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-
+val infoBackgroundColor: Color = when {
+    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
+    progress == 1f -> MaterialTheme.colorScheme.primaryContainer
+    else -> MaterialTheme.colorScheme.surfaceContainer
+}
+val infoTextColor: Color = when {
+    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
+    progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
+    else -> MaterialTheme.colorScheme.onSurface
+}
 
     if (parsingError.isNotEmpty()) {
         ErrorScreen(
@@ -397,7 +402,7 @@ fun TrackScreen(
                 timeText = {
                     if (!isSosButtonPressed) {
                         TimeText(
-                            backgroundColor = infobackgroundColor,
+                            backgroundColor = infoBackgroundColor,
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
                             val displayText = when {
@@ -411,7 +416,7 @@ fun TrackScreen(
                             curvedText(
                                 text = displayText,
                                 overflow = TextOverflow.Ellipsis,
-                                color = infotextColor,
+                                color = infoTextColor,
                                 fontSize = dynamicFontSize
                             )
                         }
