@@ -9,10 +9,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.lerp
 import androidx.wear.compose.material3.MaterialTheme
+import com.ontrek.wear.screens.track.notificationTrackDistanceThreshold
 
 /**
  * Componente che disegna una freccia direzionale.
@@ -25,13 +27,22 @@ import androidx.wear.compose.material3.MaterialTheme
 fun Arrow(
     modifier: Modifier = Modifier,
     direction: Float,
-    distanceFraction: Float? = null
+    distanceFromTrack: Double = 0.0,
+    isOffTrack: Boolean = true
 ) {
     val correctColor = MaterialTheme.colorScheme.primaryContainer
+    val middleColor = Color(0xFFFFA500) // Orange
     val wrongColor = MaterialTheme.colorScheme.errorContainer
 
-    val arrowColor =
-        if (distanceFraction != null) lerp(correctColor, wrongColor, distanceFraction) else correctColor
+
+    val arrowColor = if (isOffTrack) {
+        val distanceFraction = distanceFromTrack.let {
+            ((it - notificationTrackDistanceThreshold + 1 ) / (notificationTrackDistanceThreshold * 3))
+                .toFloat()
+                .coerceIn(0f, 1f)
+        }
+        lerp(middleColor, wrongColor, distanceFraction)
+    } else correctColor
 
     // Memorizza l'ultimo valore di direzione per calcolare il percorso più breve
     val lastDirection = remember { mutableFloatStateOf(direction) }
