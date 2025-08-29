@@ -465,9 +465,8 @@ val infoTextColor: Color = when {
 
                     Arrow(
                         direction = arrowDirection,
-                        distanceFraction = distanceFromTrack?.let {
-                            (it / notificationTrackDistanceThreshold).toFloat().coerceIn(0f, 1f)
-                        },
+                        distanceFromTrack = distanceFromTrack ?: 0.0,
+                        isOffTrack = isOffTrack || hasBeenNearTheTrack == false,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(50.dp),  // Padding per evitare che la freccia tocchi i bordi dello schermo
