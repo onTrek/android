@@ -22,6 +22,7 @@ import com.ontrek.wear.utils.functions.getNearestPoints
 import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -92,6 +93,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val _listHelpRequestState = MutableStateFlow<List<MemberInfo>>(emptyList())
     val listHelpRequestState: StateFlow<List<MemberInfo>> = _listHelpRequestState
+
+    private val _notifyOnTrackAgain = MutableStateFlow(false)
+    val notifyOnTrackAgain: StateFlow<Boolean> = _notifyOnTrackAgain
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -329,33 +333,40 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         val distance = _distanceFromTrack.value!!
 
-        val notificationThreshold = notificationTrackDistanceThreshold
 
-        if (_hasBeenNearTheTrack.value == null) _hasBeenNearTheTrack.value = distance < notificationThreshold
+        if (_hasBeenNearTheTrack.value == null) _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
 
-        _isOffTrack.value = distance > notificationThreshold && _hasBeenNearTheTrack.value == true
+        _isOffTrack.value = distance > notificationTrackDistanceThreshold && _hasBeenNearTheTrack.value == true
 
         Log.d(
             "ON_TRACK_COMPUTATION",
             "Distance from track: $distance, by air line: ${_distanceAirLine.value}",
         )
 
+        notifyIfNecessary(distance)
+    }
+
+    private fun notifyIfNecessary(distance: Double) {
         if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
         } else if (!_isOffTrack.value) {
+            if (_alreadyNotifiedOffTrack.value) {
+                _alreadyNotifiedOffTrack.value = false
+                _notifyOnTrackAgain.value = true
+            }
             _notifyOffTrack.value = false
-            _alreadyNotifiedOffTrack.value = false
-            _hasBeenNearTheTrack.value = distance < notificationThreshold
+            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
         }
     }
+
     fun snoozeOffTrackNotification(snoozeTimeMultiplier: Int = 1) {
         _notifyOffTrack.value = false
         lastSnoozeTime = System.currentTimeMillis()
         val snoozeTime = lastSnoozeTime
 
         viewModelScope.launch {
-            kotlinx.coroutines.delay(defaultSnoozeTime * snoozeTimeMultiplier)
+            delay(defaultSnoozeTime * snoozeTimeMultiplier)
 
             //If the user rejoined the track, and then got off track again,
             //the old snooze time is not valid anymore
@@ -387,6 +398,13 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
             lastPublishedDirection.value = angle
             arrowDirection.value = angle.toFloat()
+        }
+    }
+
+    fun cancelOnTrackAgainNotification() {
+        viewModelScope.launch {
+            delay(5000)
+            _notifyOnTrackAgain.value = false
         }
     }
 

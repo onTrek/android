@@ -140,6 +140,7 @@ fun TrackScreen(
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     // Raccoglie la lista delle richieste di aiuto come stato osservabile
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
+    val notifyOnTrackAgain by gpxViewModel.notifyOnTrackAgain.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
@@ -358,16 +359,29 @@ fun TrackScreen(
         }
     }
 
+    LaunchedEffect(notifyOnTrackAgain) {
+        if (notifyOnTrackAgain) {
+            vibrator?.vibrate(
+                VibrationEffect.createWaveform(
+                    longArrayOf(100, 300),
+                    intArrayOf(100, 100),
+                    -1 // -1 means no repeat
+                )
+            )
+            gpxViewModel.cancelOnTrackAgainNotification()
+        }
+    }
+
 
     val buttonWidth = if (alone) 0f else buttonSweepAngle
 val infoBackgroundColor: Color = when {
     isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
-    progress == 1f -> MaterialTheme.colorScheme.primaryContainer
+    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
     else -> MaterialTheme.colorScheme.surfaceContainer
 }
 val infoTextColor: Color = when {
     isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
-    progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
+    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
     else -> MaterialTheme.colorScheme.onSurface
 }
 
@@ -407,6 +421,7 @@ val infoTextColor: Color = when {
                         ) { time ->
                             val displayText = when {
                                 isOffTrack -> "Off track!"
+                                notifyOnTrackAgain -> "Back OnTrek!"
                                 progress == 1f -> "Track Completed"
                                 !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 isGpsAccuracyLow() -> gpsAccuracyText
