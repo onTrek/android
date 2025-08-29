@@ -283,10 +283,10 @@ fun TrackScreen(
         }
     }
 
-    DisposableEffect(notifyOffTrackModalOpen) {
+    DisposableEffect(notifyOffTrackModalOpen, distanceFromTrack) {
         if (notifyOffTrackModalOpen) {
-            //get the min between distance from track and 255
-            val vibrationIntensity = (distanceFromTrack ?: 0).toInt().coerceAtMost(255)
+            //get a vibration intensity between 100 and 255 depending on the distance from the track
+            val vibrationIntensity = (distanceFromTrack ?: 0).toInt().coerceIn(100, 255)
             val longArray = longArrayOf(300, 300)
             val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
             vibrator?.vibrate(
