@@ -136,6 +136,8 @@ fun TrackScreen(
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza in linea d'aria
     val distanceAirLine by gpxViewModel.distanceAirLine.collectAsStateWithLifecycle()
+    // Raccoglie la distanza ancora da percorrere
+    val remainingDistance by gpxViewModel.remainingDistance.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
     // Raccoglie i membri della sessione come stato osservabile
@@ -425,7 +427,7 @@ fun TrackScreen(
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
                             val displayText = when {
-                                threadSafeFollowingUser != null -> "${threadSafeFollowingUser.distance}m away"
+                                threadSafeFollowingUser != null -> "${remainingDistance}m away"
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 notifyOnTrackAgain -> "OnTrek!"
                                 progress == 1f -> "Track Completed"

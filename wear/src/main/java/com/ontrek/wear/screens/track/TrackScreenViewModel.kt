@@ -69,14 +69,12 @@ const val waitNumberOfLocations = 5
 data class FollowedUser(
     val userId: String,
     val username: String,
-    val color: Color,
-    val distance: Int?
+    val color: Color
 ) {
-    constructor(memberInfo: MemberInfo, distance: Int? = null) : this(
+    constructor(memberInfo: MemberInfo) : this(
         userId = memberInfo.user.id,
         username = memberInfo.user.username,
         color = Color(memberInfo.user.color.toColorInt()),
-        distance = distance
     )
 }
 
@@ -103,6 +101,8 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val progress = MutableStateFlow(0F) // Progress along the track
     val progressState: StateFlow<Float> = progress
+    private val _remainingDistance = MutableStateFlow(0) // Progress along the track
+    val remainingDistance: StateFlow<Int> = _remainingDistance
     private val _isOffTrack = MutableStateFlow(false)
     val isOffTrack: StateFlow<Boolean> = _isOffTrack
 
@@ -228,7 +228,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
 
         //to uncomment only on debug
-        //elaborateDirection(0f)
+        elaborateDirection(0f)
     }
 
     private fun computeProgress(
@@ -257,6 +257,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             )
         } else {
             progress.value = ((trackPoint.totalDistanceTraveled - distanceAirLine) / totalLength.value)
+            _remainingDistance.value = (totalLength.value - (trackPoint.totalDistanceTraveled + (trackPoint.distanceToPrevious - distanceAirLine))).toInt()
         }
         Log.d("PROGRESS_COMPUTATION", "Progress: ${progress.value}")
     }
@@ -269,7 +270,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     ) {
         if (goingTo != null) {
             computeSOSTrack(goingTo)
-            _followingUser.value = FollowedUser(goingTo)
+            _followingUser.value = FollowedUser(goingTo, )
         }
         if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo != null) {
             viewModelScope.launch {
@@ -387,7 +388,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 getGroupMembers(
                     groupId,
                     onSuccess = { members ->
-                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Fetched members' locations successfully")
                         if (members != null) {
                             _membersLocation.value = members
                         }
