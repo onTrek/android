@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.OfflinePin
@@ -41,10 +42,12 @@ import com.ontrek.wear.utils.components.Loading
 fun GroupButton(
     group: GroupUI,
     downloadState: DownloadState,
-    downloadTrack: (trackId: Int) -> Unit,
+    downloadTrack: () -> Unit,
+    deleteTrack: () -> Unit,
     navigateToTrack: (trackID: Int, trackName: String, sessionID: Int) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    var downloadedNow by remember { mutableStateOf(false) }
     val hasTrack = group.track.id != -1
 
     Button(
@@ -58,8 +61,7 @@ fun GroupButton(
         onLongClick = {
             showDialog = true
         },
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface
@@ -79,14 +81,11 @@ fun GroupButton(
                         !hasTrack -> Icons.Default.Block
                         downloadState == DownloadState.Completed -> Icons.Default.OfflinePin
                         else -> Icons.Outlined.DownloadForOffline
-                    },
-                    contentDescription = "Track",
-                    tint = when {
+                    }, contentDescription = "Track", tint = when {
                         !hasTrack -> MaterialTheme.colorScheme.errorDim
                         downloadState == DownloadState.Completed -> MaterialTheme.colorScheme.primary
                         else -> MaterialTheme.colorScheme.outline
-                    },
-                    modifier = Modifier
+                    }, modifier = Modifier
                         .size(16.dp)
                         .padding(end = 4.dp)
                 )
@@ -106,8 +105,8 @@ fun GroupButton(
         }
     }
 
-    if (hasTrack) {
-        GroupDialog(
+    if (hasTrack && (downloadState == DownloadState.NotStarted || downloadState == DownloadState.InProgress || downloadedNow)) {
+        TrackDownloadDialog(
             groupTitle = group.description,
             trackTitle = group.track.title,
             downloadState = downloadState,
@@ -115,23 +114,33 @@ fun GroupButton(
             onDismiss = { showDialog = false },
             onConfirm = {
                 if (downloadState == DownloadState.NotStarted) {
-                    downloadTrack(group.track.id)
+                    downloadTrack()
+                    downloadedNow = true
                 } else {
                     navigateToTrack(group.track.id, group.track.title, group.group_id)
                 }
-            }
-        )
+            })
+    } else if (hasTrack && downloadState == DownloadState.Completed) {
+        TrackDeleteDialog(
+            groupTitle = group.description,
+            trackTitle = group.track.title,
+            downloadState = downloadState,
+            visible = showDialog,
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                deleteTrack()
+                showDialog = false
+            })
     } else {
         EmptyTrackDialog(
             groupTitle = group.description,
             visible = showDialog,
-            onDismiss = { showDialog = false }
-        )
+            onDismiss = { showDialog = false })
     }
 }
 
 @Composable
-fun GroupDialog(
+fun TrackDownloadDialog(
     groupTitle: String,
     trackTitle: String,
     downloadState: DownloadState,
@@ -158,8 +167,7 @@ fun GroupDialog(
         },
         text = {
             Text(
-                text = if (downloadState == DownloadState.Completed) "You are about to join the group '$groupTitle' for the hike '$trackTitle'."
-                else "You need to download the track '$trackTitle' to join the group '$groupTitle'.",
+                text = "You need to download the track '$trackTitle' before joining the group '$groupTitle'.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -215,47 +223,106 @@ fun GroupDialog(
 }
 
 @Composable
-fun EmptyTrackDialog(
+fun TrackDeleteDialog(
     groupTitle: String,
+    trackTitle: String,
+    downloadState: DownloadState,
     visible: Boolean,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
 ) {
     AlertDialog(
         visible = visible,
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = groupTitle,
+                text = "Delete Track?",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.error
             )
         },
         icon = {
             Icon(
-                imageVector = Icons.Filled.Groups,
-                contentDescription = "Group",
-                tint = MaterialTheme.colorScheme.primary
+                imageVector = Icons.Filled.Delete,
+                contentDescription = "Delete Track",
+                tint = MaterialTheme.colorScheme.error
             )
         },
         text = {
             Text(
-                text = "No track associated with this group. Use the smartphone app to add it.",
+                text = "Are you sure you want to delete the track '$trackTitle' associated with the group '$groupTitle'?",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },
-        edgeButton = {
-            IconButton(
+        dismissButton = {
+            Button(
                 onClick = onDismiss,
-                modifier = Modifier.padding(vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(end = 4.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Dismiss",
-                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
-        }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                enabled = downloadState != DownloadState.InProgress,
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Confirm",
+                )
+            }
+        },
     )
+}
+
+@Composable
+fun EmptyTrackDialog(
+    groupTitle: String, visible: Boolean, onDismiss: () -> Unit
+) {
+    AlertDialog(visible = visible, onDismissRequest = onDismiss, title = {
+        Text(
+            text = groupTitle,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }, icon = {
+        Icon(
+            imageVector = Icons.Filled.Groups,
+            contentDescription = "Group",
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }, text = {
+        Text(
+            text = "No track associated with this group. Use the smartphone app to add it.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }, edgeButton = {
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier.padding(vertical = 8.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Dismiss",
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    })
 }

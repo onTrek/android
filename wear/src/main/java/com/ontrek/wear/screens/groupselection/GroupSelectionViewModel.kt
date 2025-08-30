@@ -16,6 +16,7 @@ import com.ontrek.wear.data.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 data class GroupUI(
     val group_id: Int,
@@ -108,6 +109,27 @@ class GroupSelectionViewModel(private val db: AppDatabase) : ViewModel() {
 
         Log.d("GroupTrack", "Track exists: ${exists.value} for ID: $trackID")
         return exists.value == true  // because it can be null
+    }
+
+    fun deleteTrack(groupIndex: Int, context: Context) {
+        val group = _groupsListState.value[groupIndex]
+        if (group.track.id == -1) {
+            Log.d("DeleteTrack", "No track associated with this group.")
+            return
+        }
+        Log.d("DeleteTrack", "Deleting track: ${group.track.title}")
+
+        viewModelScope.launch {
+            try {
+                db.trackDao().deleteTrackById(group.track.id)
+
+                File(context.filesDir, "${group.track.id}.gpx").delete()
+
+                updateDownloadState(groupIndex, DownloadState.NotStarted)
+            } catch (e: Exception) {
+                Log.e("DeleteTrack", "Error deleting track: ${e.message}")
+            }
+        }
     }
 
     fun downloadTrack(groupIndex: Int, trackId: Int, context: Context) {
