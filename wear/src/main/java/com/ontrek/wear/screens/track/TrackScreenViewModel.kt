@@ -256,8 +256,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 "User has reached the end of the track, $distanceAirLine"
             )
         } else {
-            progress.value = ((trackPoint.totalDistanceTraveled - distanceAirLine) / totalLength.value)
-            _remainingDistance.value = (totalLength.value - (trackPoint.totalDistanceTraveled + (trackPoint.distanceToPrevious - distanceAirLine))).toInt()
+            val distanceTraveled = trackPoint.totalDistanceTraveled - distanceAirLine
+            progress.value = distanceTraveled / totalLength.value
+            _remainingDistance.value = (totalLength.value - distanceTraveled).toInt()
         }
         Log.d("PROGRESS_COMPUTATION", "Progress: ${progress.value}")
     }
@@ -269,7 +270,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         goingTo: MemberInfo? = null
     ) {
         if (goingTo != null) {
-            computeSOSTrack(goingTo)
+            computeSOSTrack(goingTo, currentLocation)
             _followingUser.value = FollowedUser(goingTo, )
         }
         if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo != null) {
@@ -325,7 +326,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
     }
 
-    private fun computeSOSTrack(goingTo: MemberInfo) {
+    private fun computeSOSTrack(goingTo: MemberInfo, location: Location) {
         val userPosition = SimplePoint(
             latitude = goingTo.latitude,
             longitude = goingTo.longitude
@@ -368,6 +369,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
         probablePointIndex.value = 1
         totalLength.value = partialDistance
+        elaboratePosition(location)
     }
 
     fun cutArray(start: Int, end: Int): List<TrackPoint> {
