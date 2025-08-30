@@ -108,6 +108,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     private var lastSnoozeTime by mutableStateOf<Long>(0L)
 
     private var sendLocationCounter by mutableIntStateOf(0)
+    private var wasFarFromTrack by mutableStateOf(true)
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -168,10 +169,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             nextTrackPoint.value = finderResult.nextTrackPoint
             probablePointIndex.value = finderResult.nextProbablePoint
             elaboratePosition(currentLocation)
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
             Log.d(
                 "TRACK_SCREEN_VIEW_MODEL",
-                "Starting from ${nextTrackPoint.value?.index ?: "unknown"}"
+                "Starting from ${nextTrackPoint.value?.index ?: "unknown"}/${trackPoints.value.size}, progress: ${progress.value}"
             )
             //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
             //but this is a first approximation, more accurate results will be obtained when accuracy improves
@@ -193,13 +193,12 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         val newIndex = nextTrackPoint.value!!.index
 
-        if (oldIndex != newIndex) {
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-        }
         computeIfOnTrack(currentLocation)
 
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Is... Initial: ${_hasBeenNearTheTrack.value}, Offtrack: ${_isOffTrack.value}")
+        if (oldIndex != newIndex) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
+        }
+        computeProgress(currentLocation, nextTrackPoint.value)
 
         if (_isOffTrack.value || _hasBeenNearTheTrack.value == false) {
             val nearestPoint = getNearestPoints(currentLocation, trackPoints.value)[0]
@@ -209,6 +208,36 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         //to uncomment only on debug
         //elaborateDirection(0f)
+    }
+
+    private fun computeProgress(
+        currentLocation: Location,
+        trackPoint: TrackPoint?
+    ) {
+
+        if (_hasBeenNearTheTrack.value == false || _isOffTrack.value) {
+            //If the user is off track, we do not compute the progress
+            progress.value = 0F
+            return
+        }
+
+        val newIndex = trackPoint!!.index
+        val distanceAirLine = getDistanceTo(
+            currentLocation.toSimplePoint(),
+            trackPoint.toSimplePoint()
+        ).toFloat()
+
+        if (newIndex == trackPoints.value.size - 1 && distanceAirLine < trackPointThreshold) {
+            // User has reached the end of the track
+            progress.value = 1F
+            Log.d(
+                "PROGRESS_COMPUTATION",
+                "User has reached the end of the track, $distanceAirLine"
+            )
+        } else {
+            progress.value = ((trackPoint.totalDistanceTraveled - distanceAirLine) / totalLength.value)
+        }
+        Log.d("PROGRESS_COMPUTATION", "Progress: ${progress.value}")
     }
 
     fun sendCurrentLocation(
@@ -334,29 +363,29 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         val distance = _distanceFromTrack.value!!
 
 
-        if (_hasBeenNearTheTrack.value == null) _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
+        if (_hasBeenNearTheTrack.value == null) {
+            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
+            wasFarFromTrack = _hasBeenNearTheTrack.value == false
+        } else if (_hasBeenNearTheTrack.value == false) {
+            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
+        }
 
         _isOffTrack.value = distance > notificationTrackDistanceThreshold && _hasBeenNearTheTrack.value == true
 
-        Log.d(
-            "ON_TRACK_COMPUTATION",
-            "Distance from track: $distance, by air line: ${_distanceAirLine.value}",
-        )
-
-        notifyIfNecessary(distance)
+        notifyIfNecessary()
     }
 
-    private fun notifyIfNecessary(distance: Double) {
+    private fun notifyIfNecessary() {
         if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
-        } else if (!_isOffTrack.value) {
-            if (_alreadyNotifiedOffTrack.value) {
+        } else if (!_isOffTrack.value && _hasBeenNearTheTrack.value == true) {
+            if (_alreadyNotifiedOffTrack.value || wasFarFromTrack) {
                 _alreadyNotifiedOffTrack.value = false
                 _notifyOnTrackAgain.value = true
+                wasFarFromTrack = false
             }
             _notifyOffTrack.value = false
-            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
         }
     }
 
