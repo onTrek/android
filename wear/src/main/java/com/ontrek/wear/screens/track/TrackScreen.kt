@@ -286,8 +286,9 @@ fun TrackScreen(
     DisposableEffect(notifyOffTrackModalOpen) {
         if (notifyOffTrackModalOpen) {
             //get a vibration intensity between 100 and 255 depending on the distance from the track
+            // the further we are, the more intense the vibration is
             val vibrationIntensity = (((distanceFromTrack
-                ?: 0.0) - notificationTrackDistanceThreshold) * notificationTrackDistanceThreshold)
+                ?: 0.0) - notificationTrackDistanceThreshold) / 5 * notificationTrackDistanceThreshold + 100)
                 .toInt()
                 .coerceIn(100, 255)
             val longArray = longArrayOf(300, 300)
