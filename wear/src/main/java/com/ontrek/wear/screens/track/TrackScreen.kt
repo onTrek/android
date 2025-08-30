@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.graphics.toColorInt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material3.CircularProgressIndicator
@@ -143,19 +142,8 @@ fun TrackScreen(
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     // Raccoglie la lista delle richieste di aiuto come stato osservabile
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
+    val followingUser by gpxViewModel.followingUser.collectAsStateWithLifecycle()
     val notifyOnTrackAgain by gpxViewModel.notifyOnTrackAgain.collectAsStateWithLifecycle()
-
-    val possibleColors = listOf(
-        "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-        "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8",
-        "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080",
-    )
-    // TODO: collect this variable as viewmodel states
-    val followedUser = object {
-        val username = "tizio caduto"
-        val distance = 9999
-        val color = Color(possibleColors[2].toColorInt())
-    }
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
@@ -387,19 +375,19 @@ fun TrackScreen(
         }
     }
 
-
+    val threadSafeFollowingUser = followingUser
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-val infoBackgroundColor: Color = when {
-    followedUser != null -> followedUser.color
-    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
-    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
-    else -> MaterialTheme.colorScheme.surfaceContainer
-}
-val infoTextColor: Color = when {
-    followedUser != null -> getContrastingTextColor(followedUser.color)
-    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
-    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
-    else -> MaterialTheme.colorScheme.onSurface
+    val infoBackgroundColor: Color = when {
+        threadSafeFollowingUser != null -> threadSafeFollowingUser.color
+        isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
+        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.surfaceContainer
+    }
+    val infoTextColor: Color = when {
+        threadSafeFollowingUser != null -> getContrastingTextColor(threadSafeFollowingUser.color)
+        isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
+        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
 }
 
     if (parsingError.isNotEmpty()) {
@@ -437,7 +425,7 @@ val infoTextColor: Color = when {
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
                             val displayText = when {
-                                followedUser != null -> "${followedUser.distance}m away"
+                                threadSafeFollowingUser != null -> "${threadSafeFollowingUser.distance}m away"
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 notifyOnTrackAgain -> "OnTrek!"
                                 progress == 1f -> "Track Completed"
@@ -492,10 +480,10 @@ val infoTextColor: Color = when {
                     )
 
                     if (!alone) {
-                        if (followedUser != null) {
+                        if (threadSafeFollowingUser != null) {
                             FollowButton(
-                                username = followedUser.username,
-                                userColor = followedUser.color,
+                                username = threadSafeFollowingUser.username,
+                                userColor = threadSafeFollowingUser.color,
                                 sweepAngle = buttonSweepAngle,
                                 stopFollow = { }
                             )
@@ -553,7 +541,11 @@ val infoTextColor: Color = when {
                         },
                         onConfirm = {
                             showDialogForMember[member.user.id] = false
-                            gpxViewModel.confirmGoingToFriend(member)
+                            gpxViewModel.sendCurrentLocation(
+                                currentLocation = currentLocation!!,
+                                sessionId = sessionID,
+                                goingTo = member
+                            )
                         },
                         member = member,
                     )

@@ -5,14 +5,18 @@ import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.groups.getGroupMembers
 import com.ontrek.shared.api.groups.updateMemberLocation
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
+import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.computeDistanceFromTrack
@@ -62,6 +66,20 @@ const val defaultSnoozeTime: Long = 1 * 60 * 1000 // 1 minute
  */
 const val waitNumberOfLocations = 5
 
+data class FollowedUser(
+    val userId: String,
+    val username: String,
+    val color: Color,
+    val distance: Int?
+) {
+    constructor(memberInfo: MemberInfo, distance: Int? = null) : this(
+        userId = memberInfo.user.id,
+        username = memberInfo.user.username,
+        color = Color(memberInfo.user.color.toColorInt()),
+        distance = distance
+    )
+}
+
 class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
@@ -96,6 +114,8 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val _notifyOnTrackAgain = MutableStateFlow(false)
     val notifyOnTrackAgain: StateFlow<Boolean> = _notifyOnTrackAgain
+    private val _followingUser = MutableStateFlow<FollowedUser?>(null)
+    val followingUser: StateFlow<FollowedUser?> = _followingUser
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -105,10 +125,10 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
-    private var lastSnoozeTime by mutableStateOf<Long>(0L)
-
+    private var lastSnoozeTime by mutableLongStateOf(0L)
     private var sendLocationCounter by mutableIntStateOf(0)
     private var wasFarFromTrack by mutableStateOf(true)
+    private var baseTrackPoints by mutableStateOf<List<TrackPoint>>(emptyList())
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -117,7 +137,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 val gpxFile = context.openFileInput(fileName)
                 val parsedGpx: Gpx? = parser.parse(gpxFile)
                 var partialDistance = 0F
-                parsedGpx?.let {
+                parsedGpx?.let { it ->
                     Log.d(
                         "TrackScreenViewModel", "GPX file parsed successfully: ${it.metadata?.name}"
                     )
@@ -144,6 +164,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                             }
                         }
                     }
+                    baseTrackPoints = trackPoints.value.map { el -> el.copy() }
                     totalLength.value = partialDistance
                 } ?: {
                     Log.e("TrackScreenViewModel", "Generic GPX parsing error")
@@ -201,7 +222,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         computeProgress(currentLocation, nextTrackPoint.value)
 
         if (_isOffTrack.value || _hasBeenNearTheTrack.value == false) {
-            val nearestPoint = getNearestPoints(currentLocation, trackPoints.value)[0]
+            val nearestPoint = getNearestPoints(currentLocation.toSimplePoint(), trackPoints.value)[0]
             nextTrackPoint.value = trackPoints.value[nearestPoint.index]
             _distanceAirLine.value = nearestPoint.distanceToUser
         }
@@ -244,9 +265,13 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         currentLocation: Location,
         sessionId: String,
         helpRequest: Boolean = false,
-        goingTo: String = ""
+        goingTo: MemberInfo? = null
     ) {
-        if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo.isNotEmpty()) {
+        if (goingTo != null) {
+            computeSOSTrack(goingTo)
+            _followingUser.value = FollowedUser(goingTo)
+        }
+        if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo != null) {
             viewModelScope.launch {
                 try {
                     val groupId = sessionId.toInt()
@@ -256,7 +281,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                         longitude = currentLocation.longitude,
                         accuracy = currentLocation.accuracy.toDouble(),
                         altitude = currentLocation.altitude,
-                        going_to = goingTo,
+                        going_to = _followingUser.value?.userId ?: "",
                         help_request = helpRequest
                     )
 
@@ -296,6 +321,61 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             }
         } else {
             sendLocationCounter += 1
+        }
+    }
+
+    private fun computeSOSTrack(goingTo: MemberInfo) {
+        val userPosition = SimplePoint(
+            latitude = goingTo.latitude,
+            longitude = goingTo.longitude
+        )
+        var newTrackPoints: List<TrackPoint>
+        val nearestPoint = getNearestPoints(userPosition, trackPoints.value)[0]
+        newTrackPoints = if (nearestPoint.index >= probablePointIndex.value!!) {
+            cutArray(if(probablePointIndex.value!! == 0) 0 else probablePointIndex.value!! - 1, nearestPoint.index)
+        } else {
+            cutArray(nearestPoint.index, probablePointIndex.value!!).reversed().mapIndexed { index, trackPoint ->
+                trackPoint.copy(index = index)
+            }
+        }
+        newTrackPoints = newTrackPoints + listOf(
+            TrackPoint(
+                latitude = goingTo.latitude,
+                longitude = goingTo.longitude,
+                elevation = null,
+                distanceToPrevious = 0.0,
+                totalDistanceTraveled = 0F,
+                index = newTrackPoints.size
+            )
+        )
+        var partialDistance = 0f
+        trackPoints.value = newTrackPoints.mapIndexed { index, trackPoint ->
+            val distance = if (index > 0) {
+                getDistanceTo(
+                    trackPoint.toSimplePoint(),
+                    newTrackPoints[index - 1].toSimplePoint()
+                )
+            } else {
+                0.0
+            }
+            partialDistance = partialDistance + distance.toFloat()
+            trackPoint.copy(
+                index = index,
+                distanceToPrevious = distance,
+                totalDistanceTraveled = partialDistance
+            )
+        }
+        probablePointIndex.value = 1
+        totalLength.value = partialDistance
+    }
+
+    fun cutArray(start: Int, end: Int): List<TrackPoint> {
+        if (start < 0 || end >= trackPoints.value.size || start >= end) {
+            Log.e("TAGLIA_ARRAY", "Invalid start or end index")
+            throw IllegalArgumentException("Invalid start or end index")
+        }
+        return trackPoints.value.subList(start, end + 1).mapIndexed { index, trackPoint ->
+            trackPoint.copy(index = index)
         }
     }
 
@@ -341,19 +421,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             }
         }
         _listHelpRequestState.value = emptyList()
-    }
-
-    // TODO
-    fun confirmGoingToFriend(member: MemberInfo) {
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Confirming going to friend: ${member.user.username}")
-        val updatedMembers = _membersLocation.value.map { existingMember ->
-            if (existingMember.user.id == member.user.id) {
-                existingMember.copy(going_to = member.going_to)
-            } else {
-                existingMember
-            }
-        }
-        _membersLocation.value = updatedMembers
     }
 
     fun computeIfOnTrack(currentLocation: Location) {

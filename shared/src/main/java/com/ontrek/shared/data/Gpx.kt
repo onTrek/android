@@ -27,7 +27,7 @@ fun TrackPoint.toSimplePoint(): SimplePoint {
 data class SimplePoint(
     val latitude: Double,
     val longitude: Double,
-    val elevation: Double?,
+    val elevation: Double? = null,
 )
 
 fun io.ticofab.androidgpxparser.parser.domain.TrackPoint.toSimplePoint(): SimplePoint {
