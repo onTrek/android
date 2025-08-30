@@ -421,7 +421,7 @@ val infoTextColor: Color = when {
                         ) { time ->
                             val displayText = when {
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
-                                notifyOnTrackAgain -> "Back OnTrek!"
+                                notifyOnTrackAgain -> "OnTrek!"
                                 progress == 1f -> "Track Completed"
                                 isGpsAccuracyLow() -> gpsAccuracyText
                                 else -> time
