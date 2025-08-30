@@ -1,7 +1,6 @@
 package com.ontrek.shared.theme
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 
 
 val primaryLight = Color(0xFF336940)
@@ -114,7 +113,7 @@ val surfaceContainerHighestLightHighContrast = Color(0xFFC3C8C0)
 
 val primaryDark = Color(0xFF99D4A2)
 val onPrimaryDark = Color(0xFF003917)
-val primaryContainerDark = Color(0xFF1E922F)
+val primaryContainerDark = Color(0xFF19512A)
 val onPrimaryContainerDark = Color(0xFFB5F1BD)
 val secondaryDark = Color(0xFFB7CCB7)
 val onSecondaryDark = Color(0xFF233426)
