@@ -287,7 +287,9 @@ fun TrackScreen(
         if (notifyOffTrackModalOpen) {
             //get a vibration intensity between 100 and 255 depending on the distance from the track
             val vibrationIntensity = (((distanceFromTrack
-                ?: 0.0) - notificationTrackDistanceThreshold) * 10).toInt().coerceIn(100, 255)
+                ?: 0.0) - notificationTrackDistanceThreshold) * notificationTrackDistanceThreshold)
+                .toInt()
+                .coerceIn(100, 255)
             val longArray = longArrayOf(300, 300)
             val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
             vibrator?.vibrate(
