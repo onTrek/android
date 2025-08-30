@@ -158,7 +158,8 @@ fun GroupDialog(
         },
         text = {
             Text(
-                text = "You are about to join the group '$groupTitle' for the hike '$trackTitle'.",
+                text = if (downloadState == DownloadState.Completed) "You are about to join the group '$groupTitle' for the hike '$trackTitle'."
+                else "You need to download the track '$trackTitle' to join the group '$groupTitle'.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
