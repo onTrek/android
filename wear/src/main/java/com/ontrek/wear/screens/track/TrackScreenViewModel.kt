@@ -248,6 +248,8 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             trackPoint.toSimplePoint()
         ).toFloat()
 
+        val distanceTraveled = trackPoint.totalDistanceTraveled - distanceAirLine
+        _remainingDistance.value = (totalLength.value - distanceTraveled).toInt()
         if (newIndex == trackPoints.value.size - 1 && distanceAirLine < trackPointThreshold) {
             // User has reached the end of the track
             progress.value = 1F
@@ -256,9 +258,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 "User has reached the end of the track, $distanceAirLine"
             )
         } else {
-            val distanceTraveled = trackPoint.totalDistanceTraveled - distanceAirLine
             progress.value = distanceTraveled / totalLength.value
-            _remainingDistance.value = (totalLength.value - distanceTraveled).toInt()
         }
         Log.d("PROGRESS_COMPUTATION", "Progress: ${progress.value}")
     }
