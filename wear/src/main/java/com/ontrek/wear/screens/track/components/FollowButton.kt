@@ -23,6 +23,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
@@ -31,6 +33,7 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import androidx.wear.tooling.preview.devices.WearDevices
 import com.ontrek.wear.utils.functions.getContrastingTextColor
 
 @Composable
@@ -70,11 +73,14 @@ fun FollowButton(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.75f)
                     .padding(top = 2.dp)
             ) {
                 Text(
-                    text = "Following",
+                    text = username,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.bodyExtraSmall,
                     textAlign = TextAlign.Center,
@@ -145,5 +151,16 @@ fun FollowButton(
                 )
             }
         }
+    )
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Composable
+fun FollowButtonPreview() {
+    FollowButton(
+        username = "Gioele Maria Zoccoli",
+        userColor = Color(0xFF6200EE),
+        sweepAngle = 60f,
+        stopFollow = {}
     )
 }
