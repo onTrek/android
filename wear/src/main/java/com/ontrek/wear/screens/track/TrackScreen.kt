@@ -288,24 +288,17 @@ fun TrackScreen(
         }
     }
 
-    DisposableEffect(notifyOffTrackModalOpen, distanceFromTrack) {
+    LaunchedEffect(notifyOffTrackModalOpen) {
         if (notifyOffTrackModalOpen) {
-            //get a vibration intensity between 100 and 255 depending on the distance from the track
-            val vibrationIntensity = (distanceFromTrack ?: 0).toInt().coerceIn(100, 255)
-            val longArray = longArrayOf(300, 300)
-            val vibrationPattern = intArrayOf(vibrationIntensity, vibrationIntensity)
-            vibrator?.vibrate(
-                VibrationEffect.createWaveform(
-                    longArray,
-                    vibrationPattern,
-                    0
+                vibrator?.vibrate(
+                    VibrationEffect.createWaveform(
+                        longArrayOf(300),
+                        intArrayOf(255),
+                        0
+                    )
                 )
-            )
-        } else {
-            vibrator?.cancel()
-        }
 
-        onDispose {
+        } else {
             vibrator?.cancel()
         }
     }
@@ -376,6 +369,13 @@ fun TrackScreen(
             gpxViewModel.cancelOnTrackAgainNotification()
         }
     }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            vibrator?.cancel()
+        }
+    }
+
 
     val threadSafeFollowingUser = followingUser
     val buttonWidth = if (alone) 0f else buttonSweepAngle
