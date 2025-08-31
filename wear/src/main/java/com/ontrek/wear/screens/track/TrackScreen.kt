@@ -357,6 +357,7 @@ fun TrackScreen(
     }
 
     LaunchedEffect(listHelpRequest) {
+        var shouldVibrate = false
         showDialogForMember.keys.forEach { key ->
             if (listHelpRequest.none { it.user.id == key }) {
                 showDialogForMember.remove(key)
@@ -364,7 +365,17 @@ fun TrackScreen(
         }
         listHelpRequest.forEach { member ->
             val key = member.user.id
-            showDialogForMember.getOrPut(key) { true }
+            if (showDialogForMember[key] == null) shouldVibrate = true
+            showDialogForMember.put(key, true)
+        }
+        if (shouldVibrate && listHelpRequest.isNotEmpty()) {
+            vibrator?.vibrate(
+                VibrationEffect.createWaveform(
+                    longArrayOf(100, 100, 100, 100, 100, 100, 500),
+                    intArrayOf(255, 0, 255, 0, 255, 0, 255),
+                    -1 // -1 means no repeat
+                )
+            )
         }
     }
 
