@@ -56,6 +56,7 @@ import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
 import com.ontrek.wear.screens.track.components.SosButton
 import com.ontrek.wear.screens.track.components.SosFriendDialog
+import com.ontrek.wear.screens.track.components.StopSosDialog
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.functions.calculateFontSize
@@ -146,6 +147,7 @@ fun TrackScreen(
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
     val followingUser by gpxViewModel.followingUser.collectAsStateWithLifecycle()
     val notifyOnTrackAgain by gpxViewModel.notifyOnTrackAgain.collectAsStateWithLifecycle()
+    val showStopDialog by gpxViewModel.showStopDialog.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
     var isSosButtonPressed by remember { mutableStateOf(false) }
@@ -154,6 +156,7 @@ fun TrackScreen(
     var snoozeModalOpen by remember { mutableStateOf(false) }
     var distantAtStartupModalOpen by remember { mutableStateOf(false) }
     var oldDirection by remember { mutableStateOf<Float?>(null) }
+    var followingCompleted by remember { mutableStateOf(false) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -260,17 +263,25 @@ fun TrackScreen(
     }
 
     LaunchedEffect(progress) {
-        if (progress == 1f && !trackCompleted) {
-            Log.d("GPS_TRACK", "Track completed")
-            vibrator?.vibrate(
-                VibrationEffect.createWaveform(
-                    longArrayOf(100, 100, 500),
-                    intArrayOf(100, 0, 100),
-                    -1 // -1 means no repeat
+        if (progress == 1f) {
+            if (!trackCompleted || followingUser != null) {
+                Log.d("GPS_TRACK", "Track completed")
+                vibrator?.vibrate(
+                    VibrationEffect.createWaveform(
+                        longArrayOf(100, 100, 500),
+                        intArrayOf(100, 0, 100),
+                        -1 // -1 means no repeat
+                    )
                 )
-            )
-            showEndTrackDialog = true
-            trackCompleted = true
+            }
+
+            if (followingUser == null) {
+                showEndTrackDialog = true
+                trackCompleted = true
+            } else {
+                gpxViewModel.stopFollowing(true)
+                followingCompleted = true
+            }
         }
     }
 
@@ -346,6 +357,7 @@ fun TrackScreen(
     }
 
     LaunchedEffect(listHelpRequest) {
+        var shouldVibrate = false
         showDialogForMember.keys.forEach { key ->
             if (listHelpRequest.none { it.user.id == key }) {
                 showDialogForMember.remove(key)
@@ -353,7 +365,17 @@ fun TrackScreen(
         }
         listHelpRequest.forEach { member ->
             val key = member.user.id
-            showDialogForMember.getOrPut(key) { true }
+            if (showDialogForMember[key] == null) shouldVibrate = true
+            showDialogForMember.put(key, true)
+        }
+        if (shouldVibrate && listHelpRequest.isNotEmpty()) {
+            vibrator?.vibrate(
+                VibrationEffect.createWaveform(
+                    longArrayOf(100, 100, 100, 100, 100, 100, 500),
+                    intArrayOf(255, 0, 255, 0, 255, 0, 255),
+                    -1 // -1 means no repeat
+                )
+            )
         }
     }
 
@@ -370,6 +392,13 @@ fun TrackScreen(
         }
     }
 
+    LaunchedEffect(followingUser) {
+        val threadSafeLocation = currentLocation
+        if (followingUser == null && threadSafeLocation != null) {
+            gpxViewModel.resumeTrack(threadSafeLocation)
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             vibrator?.cancel()
@@ -382,13 +411,13 @@ fun TrackScreen(
     val infoBackgroundColor: Color = when {
         threadSafeFollowingUser != null -> threadSafeFollowingUser.color
         isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
-        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
+        notifyOnTrackAgain || trackCompleted -> MaterialTheme.colorScheme.primaryContainer
         else -> MaterialTheme.colorScheme.surfaceContainer
     }
     val infoTextColor: Color = when {
         threadSafeFollowingUser != null -> getContrastingTextColor(threadSafeFollowingUser.color)
         isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
-        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
+        notifyOnTrackAgain || trackCompleted -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurface
 }
 
@@ -430,7 +459,7 @@ fun TrackScreen(
                                 threadSafeFollowingUser != null -> "${remainingDistance}m away"
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 notifyOnTrackAgain -> "OnTrek!"
-                                progress == 1f -> "Track Completed"
+                                trackCompleted -> "Track Completed"
                                 isGpsAccuracyLow() -> gpsAccuracyText
                                 else -> time
                             }
@@ -487,7 +516,7 @@ fun TrackScreen(
                                 username = threadSafeFollowingUser.username,
                                 userColor = threadSafeFollowingUser.color,
                                 sweepAngle = buttonSweepAngle,
-                                stopFollow = { }
+                                stopFollow = { gpxViewModel.stopFollowing()}
                             )
                         } else {
                             SosButton(
@@ -553,6 +582,15 @@ fun TrackScreen(
                     )
                 }
             }
+            StopSosDialog(
+                username = showStopDialog,
+                end = followingCompleted,
+                visible = showStopDialog.isNotEmpty(),
+                onDismiss = {
+                    gpxViewModel.setShowStopDialog()
+                    followingCompleted = false
+                },
+            )
             DistantFromTrackDialog(
                 showDialog = distantAtStartupModalOpen,
                 onConfirm = {

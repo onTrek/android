@@ -105,7 +105,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     val remainingDistance: StateFlow<Int> = _remainingDistance
     private val _isOffTrack = MutableStateFlow(false)
     val isOffTrack: StateFlow<Boolean> = _isOffTrack
-
     private val _membersLocation = MutableStateFlow(listOf<MemberInfo>())
     val membersLocation: StateFlow<List<MemberInfo>> = _membersLocation
 
@@ -116,6 +115,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     val notifyOnTrackAgain: StateFlow<Boolean> = _notifyOnTrackAgain
     private val _followingUser = MutableStateFlow<FollowedUser?>(null)
     val followingUser: StateFlow<FollowedUser?> = _followingUser
+
+    private val _showStopDialog = MutableStateFlow("")
+    val showStopDialog: StateFlow<String> = _showStopDialog
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -228,7 +230,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
 
         //to uncomment only on debug
-        //elaborateDirection(0f)
+//        elaborateDirection(0f)
     }
 
     private fun computeProgress(
@@ -273,56 +275,52 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             computeSOSTrack(goingTo, currentLocation)
             _followingUser.value = FollowedUser(goingTo, )
         }
-        if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo != null) {
-            viewModelScope.launch {
-                try {
-                    val groupId = sessionId.toInt()
+        viewModelScope.launch {
+            try {
+                val groupId = sessionId.toInt()
 
-                    val memberInfo = MemberInfoUpdate(
-                        latitude = currentLocation.latitude,
-                        longitude = currentLocation.longitude,
-                        accuracy = currentLocation.accuracy.toDouble(),
-                        altitude = currentLocation.altitude,
-                        going_to = _followingUser.value?.userId ?: "",
-                        help_request = helpRequest
-                    )
+                val memberInfo = MemberInfoUpdate(
+                    latitude = currentLocation.latitude,
+                    longitude = currentLocation.longitude,
+                    accuracy = currentLocation.accuracy.toDouble(),
+                    altitude = currentLocation.altitude,
+                    going_to = _followingUser.value?.userId ?: "",
+                    help_request = helpRequest
+                )
 
-                    Log.d(
-                        "TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
-                                "lat=${currentLocation.latitude}, " +
-                                "lon=${currentLocation.longitude}, " +
-                                "alt=${currentLocation.altitude}, " +
-                                "acc=${currentLocation.accuracy}, " +
-                                "sessionId=$sessionId, " +
-                                "going_to=${memberInfo.going_to}, " +
-                                "help_request=${memberInfo.help_request}"
-                    )
+                Log.d(
+                    "TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
+                            "lat=${currentLocation.latitude}, " +
+                            "lon=${currentLocation.longitude}, " +
+                            "alt=${currentLocation.altitude}, " +
+                            "acc=${currentLocation.accuracy}, " +
+                            "sessionId=$sessionId, " +
+                            "going_to=${memberInfo.going_to}, " +
+                            "help_request=${memberInfo.help_request}"
+                )
 
-                    updateMemberLocation(
-                        groupId, memberInfo,
-                        onSuccess = {
-                            Log.d(
-                                "TRACK_SCREEN_VIEW_MODEL",
-                                "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}"
-                            )
-                            sendLocationCounter = 0
-                        },
-                        onError = { error ->
-                            Log.e(
-                                "TRACK_SCREEN_VIEW_MODEL",
-                                "Error sending location to server: $error"
-                            )
-                        }
-                    )
-                } catch (e: Exception) {
-                    Log.e(
-                        "TRACK_SCREEN_VIEW_MODEL",
-                        "Error sending location to server: ${e.message}"
-                    )
-                }
+                updateMemberLocation(
+                    groupId, memberInfo,
+                    onSuccess = {
+                        Log.d(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}"
+                        )
+                        sendLocationCounter = 0
+                    },
+                    onError = { error ->
+                        Log.e(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Error sending location to server: $error"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(
+                    "TRACK_SCREEN_VIEW_MODEL",
+                    "Error sending location to server: ${e.message}"
+                )
             }
-        } else {
-            sendLocationCounter += 1
         }
     }
 
@@ -372,6 +370,20 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         elaboratePosition(location)
     }
 
+    /* DO NOT CALL THIS FUNCTION DIRECTLY, USE stopFollowing() INSTEAD
+     * Resets the track points to the original ones, and re-elaborates the position
+     */
+    fun resumeTrack(location: Location) {
+        trackPoints.value = baseTrackPoints.map { el -> el.copy() }
+        totalLength.value = trackPoints.value.lastOrNull()?.totalDistanceTraveled ?: 0F
+        elaboratePosition(location)
+    }
+
+    fun stopFollowing(setName: Boolean = false) {
+        _showStopDialog.value = if (setName) _followingUser.value?.username ?: "" else ""
+        _followingUser.value = null
+    }
+
     fun cutArray(start: Int, end: Int): List<TrackPoint> {
         if (start < 0 || end >= trackPoints.value.size || start >= end) {
             Log.e("TAGLIA_ARRAY", "Invalid start or end index")
@@ -413,16 +425,18 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     }
 
     fun checkHelpRequest() {
-        Log.d("CheckHelpRequest", "Checking for help requests among members. Current member: $currentUserId")
         val members = _membersLocation.value
+        Log.d("CheckHelpRequest", "Members ${_membersLocation.value}")
         if (members.isNotEmpty()) {
-            val helpRequestMembers = members.filter { it.help_request && it.user.id != currentUserId }
-            if (helpRequestMembers.isNotEmpty()) {
-                _listHelpRequestState.value = helpRequestMembers
-                return
-            }
+            _listHelpRequestState.value = members.filter { it.help_request && it.user.id != currentUserId }
         }
-        _listHelpRequestState.value = emptyList()
+        else _listHelpRequestState.value = emptyList()
+        for (member in _listHelpRequestState.value) {
+            Log.d("CheckHelpRequest", "Member ${member.user.username} has requested help.")
+        }
+        if (_listHelpRequestState.value.find { it.user.id == _followingUser.value?.userId } == null && _followingUser.value != null) {
+            stopFollowing(true)
+        }
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
@@ -515,5 +529,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         nextTrackPoint.value = null
         arrowDirection.value = 0F
         position.value = null
+    }
+
+    fun setShowStopDialog() {
+        _showStopDialog.value = ""
     }
 }
