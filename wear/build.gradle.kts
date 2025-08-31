@@ -41,7 +41,6 @@ android {
 
 dependencies {
     implementation(project(":shared"))
-
     implementation(libs.wear.ongoing)
     implementation(libs.core)
     implementation(libs.wear)

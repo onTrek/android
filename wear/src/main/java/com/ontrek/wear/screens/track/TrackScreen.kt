@@ -34,7 +34,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -62,7 +61,6 @@ import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
-import com.ontrek.wear.utils.services.FallDetectionForegroundService
 
 
 private const val buttonSweepAngle = 60f
@@ -156,11 +154,7 @@ fun TrackScreen(
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
-    val fallIntent = Intent(context, FallDetectionForegroundService::class.java)
-
     if (!alone) {
-        ContextCompat.startForegroundService(context, fallIntent)
-
         DisposableEffect(fallDetected) {
             if (fallDetected) {
                 Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
@@ -239,8 +233,6 @@ fun TrackScreen(
             Log.d("NOTIFICATION_BUILDER", "Destroying notification for ongoing track navigation")
             // Cancel the notification to stop the ongoing activity
             notificationManager.cancel(NOTIFICATION_ID)
-
-            context.stopService(fallIntent)
         }
     }
 
@@ -579,7 +571,6 @@ fun TrackScreen(
                         // Clear the back stack to prevent going back to the track screen
                         popUpTo(Screen.TrackScreen.route) { inclusive = true }
                     }
-                    context.stopService(fallIntent)
                 },
                 trackName = trackName
             )
