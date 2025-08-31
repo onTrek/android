@@ -3,6 +3,8 @@ package com.ontrek.wear.screens.track.components
 import android.graphics.Paint
 import android.graphics.Path
 import android.location.Location
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Sos
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -222,6 +225,20 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
     onUserClick: (String) -> Unit = {},
     cluster: List<Pair<String, Boolean>> = emptyList()
 ) {
+    val animatedX by animateFloatAsState(
+        targetValue = polarResult.offset.x,
+        animationSpec = tween(durationMillis = 200),
+        label = "PolarAnimation"
+    )
+
+    val animatedY by animateFloatAsState(
+        targetValue = polarResult.offset.y,
+        animationSpec = tween(durationMillis = 200),
+        label = "PolarAnimation"
+    )
+
+    val animatedOffset = Offset(animatedX, animatedY)
+
     // Cerchio membro
     Canvas(modifier = Modifier.fillMaxSize()) {
         if (angleRad == 0f) {
@@ -235,7 +252,7 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
             drawCircle(
                 color = member.user.color.toColorInt().let { Color(it) },
                 radius = radiusPx,
-                center = polarResult.offset,
+                center = animatedOffset,
                 style = if (polarResult.isCapped) Stroke(width = 2f) else Fill
             )
         } else {
@@ -285,8 +302,8 @@ fun MemberMarker( // rinominato per evitare ambiguità col data class
                 .size(iconSizeDp) // dimensione cerchio
                 .offset {
                     IntOffset(
-                        (polarResult.offset.x - iconHalfPx).roundToInt(),
-                        (polarResult.offset.y - iconHalfPx).roundToInt()
+                        (animatedOffset.x - iconHalfPx).roundToInt(),
+                        (animatedOffset.y - iconHalfPx).roundToInt()
                     )
                 }
                 .clip(CircleShape)

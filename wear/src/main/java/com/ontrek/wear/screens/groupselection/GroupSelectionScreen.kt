@@ -111,6 +111,12 @@ fun GroupSelectionScreen(
                             context = context
                         )
                     },
+                    deleteTrack = {
+                        groupSelectionViewModel.deleteTrack(
+                            groupIndex = index,
+                            context = context
+                        )
+                    },
                     navigateToTrack = { trackID, trackName, sessionID ->
                         Log.d(
                             "GroupSelectionScreen",
