@@ -1,6 +1,5 @@
 package com.ontrek.wear.utils.functions
 
-import android.location.Location
 import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.objects.NearPoint
@@ -39,14 +38,14 @@ fun getDistanceTo(point1: SimplePoint, point2: SimplePoint): Double {
 }
 
 fun getNearestPoints(
-    gpsLocation: Location,
+    gpsLocation: SimplePoint,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
 ): List<NearPoint> {
     if (trackPoints.isEmpty()) throw IllegalArgumentException("Track points list cannot be empty")
 
     return getNearestPointsIndexes(gpsLocation, trackPoints).map { index ->
         val distance = getDistanceTo(
-            gpsLocation.toSimplePoint(),
+            gpsLocation,
             trackPoints[index].toSimplePoint()
         )
         NearPoint(index, distance)
@@ -54,14 +53,14 @@ fun getNearestPoints(
 }
 
 private fun getNearestPointsIndexes(
-    gpsLocation: Location,
+    gpsLocation: SimplePoint,
     trackPoints: List<com.ontrek.shared.data.TrackPoint>
 ): List<Int> {
     if (trackPoints.isEmpty()) throw IllegalArgumentException("Track points list cannot be empty")
 
     return trackPoints.indices.sortedBy { index ->
         getDistanceTo(
-            gpsLocation.toSimplePoint(),
+            gpsLocation,
             trackPoints[index].toSimplePoint()
         )
     }.take(5)

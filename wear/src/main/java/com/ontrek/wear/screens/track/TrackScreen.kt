@@ -50,6 +50,7 @@ import com.ontrek.wear.screens.track.components.Arrow
 import com.ontrek.wear.screens.track.components.CompassCalibrationNotice
 import com.ontrek.wear.screens.track.components.DistantFromTrackDialog
 import com.ontrek.wear.screens.track.components.EndTrack
+import com.ontrek.wear.screens.track.components.FollowButton
 import com.ontrek.wear.screens.track.components.FriendRadar
 import com.ontrek.wear.screens.track.components.OffTrackDialog
 import com.ontrek.wear.screens.track.components.SnoozeDialog
@@ -58,6 +59,7 @@ import com.ontrek.wear.screens.track.components.SosFriendDialog
 import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.functions.calculateFontSize
+import com.ontrek.wear.utils.functions.getContrastingTextColor
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 
@@ -134,12 +136,15 @@ fun TrackScreen(
     val distanceFromTrack by gpxViewModel.distanceFromTrack.collectAsStateWithLifecycle()
     // Raccoglie la distanza in linea d'aria
     val distanceAirLine by gpxViewModel.distanceAirLine.collectAsStateWithLifecycle()
+    // Raccoglie la distanza ancora da percorrere
+    val remainingDistance by gpxViewModel.remainingDistance.collectAsStateWithLifecycle()
     // Raccoglie la distanza minima per la notifica come stato osservabile
     val notifyOffTrackModalOpen by gpxViewModel.notifyOffTrack.collectAsStateWithLifecycle()
     // Raccoglie i membri della sessione come stato osservabile
     val membersLocation by gpxViewModel.membersLocation.collectAsStateWithLifecycle()
     // Raccoglie la lista delle richieste di aiuto come stato osservabile
     val listHelpRequest by gpxViewModel.listHelpRequestState.collectAsStateWithLifecycle()
+    val followingUser by gpxViewModel.followingUser.collectAsStateWithLifecycle()
     val notifyOnTrackAgain by gpxViewModel.notifyOnTrackAgain.collectAsStateWithLifecycle()
 
     val alone = sessionID.isEmpty() //if session ID is empty, we are alone in the track
@@ -372,16 +377,19 @@ fun TrackScreen(
     }
 
 
+    val threadSafeFollowingUser = followingUser
     val buttonWidth = if (alone) 0f else buttonSweepAngle
-val infoBackgroundColor: Color = when {
-    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
-    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
-    else -> MaterialTheme.colorScheme.surfaceContainer
-}
-val infoTextColor: Color = when {
-    isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
-    notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
-    else -> MaterialTheme.colorScheme.onSurface
+    val infoBackgroundColor: Color = when {
+        threadSafeFollowingUser != null -> threadSafeFollowingUser.color
+        isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.errorContainer
+        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.surfaceContainer
+    }
+    val infoTextColor: Color = when {
+        threadSafeFollowingUser != null -> getContrastingTextColor(threadSafeFollowingUser.color)
+        isGpsAccuracyLow() || isOffTrack || hasBeenNearTheTrack == false -> MaterialTheme.colorScheme.onErrorContainer
+        notifyOnTrackAgain || progress == 1f -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
 }
 
     if (parsingError.isNotEmpty()) {
@@ -419,6 +427,7 @@ val infoTextColor: Color = when {
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
                             val displayText = when {
+                                threadSafeFollowingUser != null -> "${remainingDistance}m away"
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
                                 notifyOnTrackAgain -> "OnTrek!"
                                 progress == 1f -> "Track Completed"
@@ -453,7 +462,8 @@ val infoTextColor: Color = when {
                                 newDirection = direction,
                                 oldDirection = if (oldDirection != null) oldDirection!! else 0.0f,
                                 userLocation = userLocation,
-                                members = membersLocation.filter { it.user.id != currentUserId }.filter { it.accuracy != -1.0 },
+                                members = membersLocation.filter { it.user.id != currentUserId }
+                                    .filter { it.accuracy != -1.0 },
                                 modifier = Modifier.fillMaxSize(),
                                 onUserClick = { memberId ->
                                     showDialogForMember[memberId] = true
@@ -472,27 +482,36 @@ val infoTextColor: Color = when {
                     )
 
                     if (!alone) {
-                        SosButton(
-                            sweepAngle = buttonSweepAngle,
-                            onSosTriggered = {
-                                navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
-                                Log.d("SOS_BUTTON", "SOS button pressed")
-                                val threadSafeCurrentLocation = currentLocation
+                        if (threadSafeFollowingUser != null) {
+                            FollowButton(
+                                username = threadSafeFollowingUser.username,
+                                userColor = threadSafeFollowingUser.color,
+                                sweepAngle = buttonSweepAngle,
+                                stopFollow = { }
+                            )
+                        } else {
+                            SosButton(
+                                sweepAngle = buttonSweepAngle,
+                                onSosTriggered = {
+                                    navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
+                                    Log.d("SOS_BUTTON", "SOS button pressed")
+                                    val threadSafeCurrentLocation = currentLocation
 
-                                if (sessionID.isNotEmpty()) {
-                                    if (threadSafeCurrentLocation != null) {
-                                        gpxViewModel.sendCurrentLocation(
-                                            threadSafeCurrentLocation,
-                                            sessionID,
-                                            true
-                                        )
+                                    if (sessionID.isNotEmpty()) {
+                                        if (threadSafeCurrentLocation != null) {
+                                            gpxViewModel.sendCurrentLocation(
+                                                threadSafeCurrentLocation,
+                                                sessionID,
+                                                true
+                                            )
+                                        }
                                     }
-                                }
-                            },
-                            onPressStateChanged = { pressed: Boolean ->
-                                isSosButtonPressed = pressed
-                            },
-                        )
+                                },
+                                onPressStateChanged = { pressed: Boolean ->
+                                    isSosButtonPressed = pressed
+                                },
+                            )
+                        }
                     }
                 }
                 OffTrackDialog(
@@ -524,7 +543,11 @@ val infoTextColor: Color = when {
                         },
                         onConfirm = {
                             showDialogForMember[member.user.id] = false
-                            gpxViewModel.confirmGoingToFriend(member)
+                            gpxViewModel.sendCurrentLocation(
+                                currentLocation = currentLocation!!,
+                                sessionId = sessionID,
+                                goingTo = member
+                            )
                         },
                         member = member,
                     )
