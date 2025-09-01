@@ -1,6 +1,7 @@
 package com.ontrek.wear.theme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material3.ColorScheme
 import androidx.wear.compose.material3.MaterialTheme
 import com.ontrek.shared.theme.backgroundDark
@@ -19,7 +20,6 @@ import com.ontrek.shared.theme.onTertiaryContainerDark
 import com.ontrek.shared.theme.onTertiaryDark
 import com.ontrek.shared.theme.outlineDark
 import com.ontrek.shared.theme.outlineVariantDark
-import com.ontrek.shared.theme.primaryContainerDark
 import com.ontrek.shared.theme.primaryDark
 import com.ontrek.shared.theme.secondaryContainerDark
 import com.ontrek.shared.theme.secondaryDark
@@ -32,7 +32,7 @@ import com.ontrek.shared.theme.tertiaryDark
 private val ColorPalette = ColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
-    primaryContainer = primaryContainerDark,
+    primaryContainer = Color(0xFF1E922F),
     onPrimaryContainer = onPrimaryContainerDark,
     secondary = secondaryDark,
     onSecondary = onSecondaryDark,

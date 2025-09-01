@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.code.gson:gson:2.13.1")
     implementation(libs.pytorch.android.lite)
     implementation(libs.pytorch.android.torchvision.lite)
     implementation(project(":shared"))
@@ -60,6 +62,7 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.datastore.preferences)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

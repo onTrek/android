@@ -2,12 +2,8 @@ package com.ontrek.wear
 
 import android.Manifest
 import android.R.style.Theme_DeviceDefault
-import android.content.ComponentName
-import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -38,8 +34,9 @@ import com.ontrek.wear.screens.login.Login
 import com.ontrek.wear.theme.OnTrekTheme
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.components.PermissionRequester
-import com.ontrek.wear.utils.services.FallDetectionForegroundService
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, MessageClient.OnMessageReceivedListener {
 
@@ -50,9 +47,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     val isInAmbientMode = MutableStateFlow(false)
     private var ambientModeEnabled by mutableStateOf(false)
     val fallDetectionState = MutableStateFlow(false)
-
-    private var fallService: FallDetectionForegroundService? = null
-    private var bound = false
 
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -143,33 +137,24 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
         super.onPause()
     }
 
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as FallDetectionForegroundService.LocalBinder
-            fallService = binder.getService()
-            bound = true
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            bound = false
-        }
-    }
-
-    private fun connectServieIfNotBound() {
-        if (!bound) {
-            Intent(this, FallDetectionForegroundService::class.java).also { intent ->
-                bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            }
-        }
-    }
-
     override fun onMessageReceived(event: MessageEvent) {
-        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
-
         if (event.path == "/fall_detection_result") {
-            connectServieIfNotBound()
-            if (bound) {
-                fallService?.elaborateResponse(event, { fallDetectionState.value = true })
+            Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
+            val bytes = event.data
+            if (bytes.size != 4) {
+                Log.e("FALL_RESULT", "Invalid data size: ${bytes.size}, expected 4")
+                return
+            }
+
+            // Ricostruisci il singolo float
+            val result = ByteBuffer.wrap(bytes)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .float
+
+            // Logica di rilevamento caduta
+            if (result == 1f) {
+                Log.d("FALL_RESULT", "Fall detected!")
+                fallDetectionState.value = true
             }
         }
     }

@@ -4,11 +4,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.wearable.MessageClient
-import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
@@ -18,26 +21,31 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.pow
 
-private const val THRESHOLD = 0.8
-private const val VARIANCE_THRESHOLD = 0.01
-private const val ACCELL_THRESHOLD = 2.5f
+private const val FREQUENCY = 20
+private const val SAMPLING_PERIODS = (1_000_000 / FREQUENCY)
+private const val SLIDING = 70
+private const val THRESHOLD = 0.60
 private const val PROCEESS_VAR = 1e-5f
 private const val MEASUREMENT_VAR = 1e-2f
-private const val MODEL_NAME = "fall_model_cicb_50hz_lite.pt"
+private const val MODEL_NAME = "fall_model_coarse_lite.pt"
+private const val WINDOW_SIZE = 140
+private const val FEATURES = 3
 
-
-class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener {
-
+class FallDetectionService : Service(), SensorEventListener {
+    private lateinit var sensorManager: SensorManager
+    private val accelBuffer = mutableListOf<FloatArray>()
     private lateinit var module: Module
-    private val windowSize = 125  // 125 per modello 50Hz, oppure 62 se 25Hz
-    private val numFeatures = 6   // accel (x,y,z) + gyro (x,y,z)
+    inner class LocalBinder : Binder() {
+        fun getService(): FallDetectionService = this@FallDetectionService
+    }
+    private val binder = LocalBinder()
     private var lastFallTime = 0L
-
+    private var lastAccSampleTime = 0L
 
     override fun onCreate() {
         super.onCreate()
+
         Log.d("FALL_DETECTION", "Service created")
 
         val channel = NotificationChannel(
@@ -51,6 +59,13 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
 
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        sensorManager.registerListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            SAMPLING_PERIODS
+        )
+
         val notification = NotificationCompat.Builder(this, "fall_channel")
             .setContentTitle("Fall Detection")
             .setContentText("Monitoring for falls...")
@@ -58,114 +73,83 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath(MODEL_NAME))
-
-        Wearable.getMessageClient(this).addListener(this)
+        module = LiteModuleLoader.load(loadModelFromFile())
 
         startForeground(1, notification)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Wearable.getMessageClient(this).removeListener(this)
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    private fun byteArrayToFloatArray(bytes: ByteArray): FloatArray {
-        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
-        val floats = FloatArray(bytes.size / 4)
-        buffer.asFloatBuffer().get(floats)
-        return floats
-    }
-
-    override fun onMessageReceived(event: MessageEvent) {
-        Log.d("FALL_DETECTION", "Message received on path: ${event.path}")
-
-        if (event.path == "/fall_window") {
-            val rawData = event.data
-
-            // 1. Converte ByteArray -> FloatArray
-            val floatData = byteArrayToFloatArray(rawData)
-
-            // 2. Filtro di Kalman
-            val filteredData = applyKalman(floatData)
-
-            // 2a. Controllo picchi accelerometro > 2.5g
-            val accelPeaks = (0 until filteredData.size step 6)
-                .any { i ->
-                    val ax = filteredData[i]
-                    val ay = filteredData[i + 1]
-                    val az = filteredData[i + 2]
-                    ax > ACCELL_THRESHOLD || ay > ACCELL_THRESHOLD || az > ACCELL_THRESHOLD
+    override fun onSensorChanged(event: SensorEvent) {
+        when (event.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> {
+                val now = System.currentTimeMillis()
+                if (now - lastAccSampleTime >= 25) {
+                    accelBuffer.add(event.values.clone())
+                    lastAccSampleTime = now
                 }
-
-            // 2b. Controllo inattività (solo per log/monitoraggio)
-            val accelValues = (0 until filteredData.size step 6).flatMap { i ->
-                listOf(filteredData[i], filteredData[i + 1], filteredData[i + 2])
             }
-            val mean = accelValues.average()
-            val variance = accelValues.map { (it - mean).pow(2) }.average()
-            val inactive = variance < VARIANCE_THRESHOLD
+        }
 
-            // 3. Crea tensore Torch
-            val inputTensor = Tensor.fromBlob(
-                filteredData,
-                longArrayOf(1, windowSize.toLong(), numFeatures.toLong())
-            )
-
-            Log.d("FALL_DETECTION", "Accel peaks: $accelPeaks, Inactive: $inactive")
-
-            // 4. Inference
-            try {
-                val output = module.forward(IValue.from(inputTensor)).toTensor()
-                val probabilityFall = getFallProbability(output)
-
-                val currentTime = System.currentTimeMillis()
-                // Invia caduta se supera la soglia e timeout, indipendentemente dall'inattività
-                if (probabilityFall > THRESHOLD && accelPeaks && (currentTime - lastFallTime) > 5000) {
-                    sendResultToWatch(1f)
-                    lastFallTime = currentTime
-                    Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
-
-                    if (inactive) {
-                        Log.d("FALL_DETECTION", "User is inactive post-fall")
-                        // Qui puoi aggiungere allarmi o monitoraggio post-caduta
-                    }
+        if (accelBuffer.size >= WINDOW_SIZE) {
+            val window = FloatArray(WINDOW_SIZE * FEATURES)
+            for (j in 0 until FEATURES) {          // prima feature
+                for (i in 0 until WINDOW_SIZE) {   // poi time step
+                    window[j * WINDOW_SIZE + i] = accelBuffer[i][j]
                 }
-
-            } catch (e: Exception) {
-                Log.e("FALL_DETECTION", "Error during inference", e)
             }
+
+            elaborateData(applyKalman(window))
+            accelBuffer.subList(0, SLIDING).clear()
         }
     }
 
+    fun elaborateData(data: FloatArray) {
+        // 3. Crea tensore Torch
+        val inputTensor = Tensor.fromBlob(
+            data,
+            longArrayOf(1, FEATURES.toLong(), WINDOW_SIZE.toLong())
+        )
 
-    fun getFallProbability(outputTensor: Tensor): Double {
-        val logits = outputTensor.dataAsFloatArray
-        if (logits.size != 2) {
-            throw IllegalArgumentException("Expected 2-class output, got ${logits.size} elements")
+        // 4. Inference
+        try {
+            val output = module.forward(IValue.from(inputTensor)).toTensor()
+            val logits = output.dataAsFloatArray
+            val probs = softmax(logits)
+            val probabilityFall = probs[1]  // Indice 1 = caduta
+            val probabilityNoFall = probs[0] // Indice 0 = non caduta
+
+            val currentTime = System.currentTimeMillis()
+
+            Log.d("FALL_DETECTION", "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall")
+
+            if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 7_000)) {
+                sendResultToWatch()
+                lastFallTime = currentTime
+                Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
+            }
+
+        } catch (e: Exception) {
+            Log.e("FALL_DETECTION", "Error during inference", e)
         }
 
-        val exp0 = Math.exp(logits[0].toDouble())
-        val exp1 = Math.exp(logits[1].toDouble())
-        val sumExp = exp0 + exp1
-
-        return exp1 / sumExp  // probabilità della classe "caduta"
     }
 
-
+    fun softmax(logits: FloatArray): FloatArray {
+        val maxLogit = logits.maxOrNull() ?: 0f
+        val exp = logits.map { Math.exp((it - maxLogit).toDouble()) }
+        val sum = exp.sum()
+        return exp.map { (it / sum).toFloat() }.toFloatArray()
+    }
 
     // Applica filtro di Kalman a ciascuna colonna (feature)
     private fun applyKalman(data: FloatArray): FloatArray {
-        val nRows = data.size / numFeatures   // numero di time step = windowSize
+        val nRows = data.size / FEATURES   // numero di time step = windowSize
         val result = data.copyOf()
 
         // per ogni colonna (ax, ay, az, gx, gy, gz)
-        for (col in 0 until numFeatures) {
+        for (col in 0 until FEATURES) {
             // estrai la sequenza temporale della colonna (es. ax0..axN)
             val columnValues = FloatArray(nRows) { row ->
-                data[row * numFeatures + col]
+                data[row * FEATURES + col]
             }
 
             // applica filtro Kalman alla colonna
@@ -173,7 +157,7 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
 
             // reinserisci nel risultato nello stesso layout row-major
             for (row in 0 until nRows) {
-                result[row * numFeatures + col] = filteredColumn[row]
+                result[row * FEATURES + col] = filteredColumn[row]
             }
         }
         return result
@@ -211,9 +195,9 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
         return xEst
     }
 
-    private fun sendResultToWatch(result: Float) {
-        Log.d("FALL_DETECTION", "Sending result to watch: $result")
-        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(result).array()
+    private fun sendResultToWatch() {
+        Log.d("FALL_DETECTION", "Sending fall alert to watch")
+        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(1f).array()
 
         Wearable.getNodeClient(this).connectedNodes
             .addOnSuccessListener { nodes ->
@@ -225,12 +209,12 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             }
     }
 
-    private fun assetFilePath(assetName: String): String {
-        val file = File(filesDir, assetName)
+    private fun loadModelFromFile(): String {
+        val file = File(filesDir, MODEL_NAME)
         if (file.exists() && file.length() > 0) {
             return file.absolutePath
         }
-        assets.open(assetName).use { inputStream ->
+        assets.open(MODEL_NAME).use { inputStream ->
             FileOutputStream(file).use { outputStream ->
                 val buffer = ByteArray(4 * 1024)
                 var read: Int
@@ -242,4 +226,8 @@ class FallDetectionService : Service(), MessageClient.OnMessageReceivedListener 
             return file.absolutePath
         }
     }
+
+    override fun onBind(intent: Intent?): IBinder = binder
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }

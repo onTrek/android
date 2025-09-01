@@ -5,14 +5,18 @@ import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ontrek.shared.api.groups.getGroupMembers
 import com.ontrek.shared.api.groups.updateMemberLocation
 import com.ontrek.shared.data.MemberInfo
 import com.ontrek.shared.data.MemberInfoUpdate
+import com.ontrek.shared.data.SimplePoint
 import com.ontrek.shared.data.TrackPoint
 import com.ontrek.shared.data.toSimplePoint
 import com.ontrek.wear.utils.functions.computeDistanceFromTrack
@@ -22,6 +26,7 @@ import com.ontrek.wear.utils.functions.getNearestPoints
 import com.ontrek.wear.utils.functions.shouldUpdateDirection
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -61,6 +66,18 @@ const val defaultSnoozeTime: Long = 1 * 60 * 1000 // 1 minute
  */
 const val waitNumberOfLocations = 5
 
+data class FollowedUser(
+    val userId: String,
+    val username: String,
+    val color: Color
+) {
+    constructor(memberInfo: MemberInfo) : this(
+        userId = memberInfo.user.id,
+        username = memberInfo.user.username,
+        color = Color(memberInfo.user.color.toColorInt()),
+    )
+}
+
 class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val trackPoints = MutableStateFlow(listOf<TrackPoint>())
@@ -84,14 +101,23 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
     private val progress = MutableStateFlow(0F) // Progress along the track
     val progressState: StateFlow<Float> = progress
+    private val _remainingDistance = MutableStateFlow(0) // Progress along the track
+    val remainingDistance: StateFlow<Int> = _remainingDistance
     private val _isOffTrack = MutableStateFlow(false)
     val isOffTrack: StateFlow<Boolean> = _isOffTrack
-
     private val _membersLocation = MutableStateFlow(listOf<MemberInfo>())
     val membersLocation: StateFlow<List<MemberInfo>> = _membersLocation
 
     private val _listHelpRequestState = MutableStateFlow<List<MemberInfo>>(emptyList())
     val listHelpRequestState: StateFlow<List<MemberInfo>> = _listHelpRequestState
+
+    private val _notifyOnTrackAgain = MutableStateFlow(false)
+    val notifyOnTrackAgain: StateFlow<Boolean> = _notifyOnTrackAgain
+    private val _followingUser = MutableStateFlow<FollowedUser?>(null)
+    val followingUser: StateFlow<FollowedUser?> = _followingUser
+
+    private val _showStopDialog = MutableStateFlow("")
+    val showStopDialog: StateFlow<String> = _showStopDialog
 
     // States only used inside the viewModel functions
     private val nextTrackPoint =
@@ -101,9 +127,10 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     private val position = MutableStateFlow<Location?>(null) // Current position of the user
     private val totalLength = MutableStateFlow(0F)
     private val lastPublishedDirection = MutableStateFlow<Double?>(null)
-    private var lastSnoozeTime by mutableStateOf<Long>(0L)
-
+    private var lastSnoozeTime by mutableLongStateOf(0L)
     private var sendLocationCounter by mutableIntStateOf(0)
+    private var wasFarFromTrack by mutableStateOf(true)
+    private var baseTrackPoints by mutableStateOf<List<TrackPoint>>(emptyList())
 
     fun loadGpx(context: Context, fileName: String) {
         val parser = GPXParser()
@@ -112,7 +139,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 val gpxFile = context.openFileInput(fileName)
                 val parsedGpx: Gpx? = parser.parse(gpxFile)
                 var partialDistance = 0F
-                parsedGpx?.let {
+                parsedGpx?.let { it ->
                     Log.d(
                         "TrackScreenViewModel", "GPX file parsed successfully: ${it.metadata?.name}"
                     )
@@ -139,6 +166,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                             }
                         }
                     }
+                    baseTrackPoints = trackPoints.value.map { el -> el.copy() }
                     totalLength.value = partialDistance
                 } ?: {
                     Log.e("TrackScreenViewModel", "Generic GPX parsing error")
@@ -164,10 +192,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
             nextTrackPoint.value = finderResult.nextTrackPoint
             probablePointIndex.value = finderResult.nextProbablePoint
             elaboratePosition(currentLocation)
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
             Log.d(
                 "TRACK_SCREEN_VIEW_MODEL",
-                "Starting from ${nextTrackPoint.value?.index ?: "unknown"}"
+                "Starting from ${nextTrackPoint.value?.index ?: "unknown"}/${trackPoints.value.size}, progress: ${progress.value}"
             )
             //Accuracy may be low, since this code may be running while the user is in the "improve accuracy screen"
             //but this is a first approximation, more accurate results will be obtained when accuracy improves
@@ -189,80 +216,224 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         val newIndex = nextTrackPoint.value!!.index
 
-        if (oldIndex != newIndex) {
-            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
-            progress.value = (nextTrackPoint.value!!.totalDistanceTraveled / totalLength.value)
-        }
         computeIfOnTrack(currentLocation)
 
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Is... Initial: ${_hasBeenNearTheTrack.value}, Offtrack: ${_isOffTrack.value}")
+        if (oldIndex != newIndex) {
+            Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
+        }
+        computeProgress(currentLocation, nextTrackPoint.value)
 
         if (_isOffTrack.value || _hasBeenNearTheTrack.value == false) {
-            val nearestPoint = getNearestPoints(currentLocation, trackPoints.value)[0]
+            val nearestPoint = getNearestPoints(currentLocation.toSimplePoint(), trackPoints.value)[0]
             nextTrackPoint.value = trackPoints.value[nearestPoint.index]
             _distanceAirLine.value = nearestPoint.distanceToUser
         }
 
         //to uncomment only on debug
-        //elaborateDirection(0f)
+//        elaborateDirection(0f)
+    }
+
+    private fun computeProgress(
+        currentLocation: Location,
+        trackPoint: TrackPoint?
+    ) {
+
+        if (_hasBeenNearTheTrack.value == false || _isOffTrack.value) {
+            //If the user is off track, we do not compute the progress
+            progress.value = 0F
+            return
+        }
+
+        val newIndex = trackPoint!!.index
+        val distanceAirLine = getDistanceTo(
+            currentLocation.toSimplePoint(),
+            trackPoint.toSimplePoint()
+        ).toFloat()
+
+        val distanceTraveled = trackPoint.totalDistanceTraveled - distanceAirLine
+        _remainingDistance.value = (totalLength.value - distanceTraveled).toInt()
+        if (newIndex == trackPoints.value.size - 1 && distanceAirLine < trackPointThreshold) {
+            // User has reached the end of the track
+            progress.value = 1F
+            Log.d(
+                "PROGRESS_COMPUTATION",
+                "User has reached the end of the track, $distanceAirLine"
+            )
+        } else {
+            progress.value = distanceTraveled / totalLength.value
+        }
+        Log.d("PROGRESS_COMPUTATION", "Progress: ${progress.value}")
     }
 
     fun sendCurrentLocation(
         currentLocation: Location,
         sessionId: String,
         helpRequest: Boolean = false,
-        goingTo: String = ""
+        goingTo: MemberInfo? = null
     ) {
-        if (sendLocationCounter >= waitNumberOfLocations || helpRequest || goingTo.isNotEmpty()) {
-            viewModelScope.launch {
-                try {
-                    val groupId = sessionId.toInt()
+        if (goingTo != null) {
+            computeSOSTrack(goingTo, currentLocation)
+            _followingUser.value = FollowedUser(goingTo, )
+        }
+        viewModelScope.launch {
+            try {
+                val groupId = sessionId.toInt()
 
-                    val memberInfo = MemberInfoUpdate(
-                        latitude = currentLocation.latitude,
-                        longitude = currentLocation.longitude,
-                        accuracy = currentLocation.accuracy.toDouble(),
-                        altitude = currentLocation.altitude,
-                        going_to = goingTo,
-                        help_request = helpRequest
-                    )
+                val memberInfo = MemberInfoUpdate(
+                    latitude = currentLocation.latitude,
+                    longitude = currentLocation.longitude,
+                    accuracy = currentLocation.accuracy.toDouble(),
+                    altitude = currentLocation.altitude,
+                    going_to = _followingUser.value?.userId ?: "",
+                    help_request = helpRequest
+                )
 
-                    Log.d(
-                        "TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
-                                "lat=${currentLocation.latitude}, " +
-                                "lon=${currentLocation.longitude}, " +
-                                "alt=${currentLocation.altitude}, " +
-                                "acc=${currentLocation.accuracy}, " +
-                                "sessionId=$sessionId, " +
-                                "going_to=${memberInfo.going_to}, " +
-                                "help_request=${memberInfo.help_request}"
-                    )
+                Log.d(
+                    "TRACK_SCREEN_VIEW_MODEL", "Sending location to server: " +
+                            "lat=${currentLocation.latitude}, " +
+                            "lon=${currentLocation.longitude}, " +
+                            "alt=${currentLocation.altitude}, " +
+                            "acc=${currentLocation.accuracy}, " +
+                            "sessionId=$sessionId, " +
+                            "going_to=${memberInfo.going_to}, " +
+                            "help_request=${memberInfo.help_request}"
+                )
 
-                    updateMemberLocation(
-                        groupId, memberInfo,
-                        onSuccess = {
-                            Log.d(
-                                "TRACK_SCREEN_VIEW_MODEL",
-                                "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}"
-                            )
-                            sendLocationCounter = 0
-                        },
-                        onError = { error ->
-                            Log.e(
-                                "TRACK_SCREEN_VIEW_MODEL",
-                                "Error sending location to server: $error"
-                            )
-                        }
-                    )
-                } catch (e: Exception) {
-                    Log.e(
-                        "TRACK_SCREEN_VIEW_MODEL",
-                        "Error sending location to server: ${e.message}"
-                    )
-                }
+                updateMemberLocation(
+                    groupId, memberInfo,
+                    onSuccess = {
+                        Log.d(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Location sent to server: lat=${currentLocation.latitude}, lon=${currentLocation.longitude}, alt=${currentLocation.altitude}, acc=${currentLocation.accuracy}"
+                        )
+                        sendLocationCounter = 0
+                    },
+                    onError = { error ->
+                        Log.e(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Error sending location to server: $error"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(
+                    "TRACK_SCREEN_VIEW_MODEL",
+                    "Error sending location to server: ${e.message}"
+                )
             }
+        }
+    }
+
+    fun deleteLocation(
+        sessionId: String,
+    ) {
+        viewModelScope.launch {
+            try {
+                val groupId = sessionId.toInt()
+
+                val memberInfo = MemberInfoUpdate(
+                    latitude = -1.0,
+                    longitude = -1.0,
+                    accuracy = -1.0,
+                    altitude = -1.0,
+                    going_to = "",
+                    help_request = false
+                )
+
+                Log.d(
+                    "TRACK_SCREEN_VIEW_MODEL", "Deleting location from server")
+
+                updateMemberLocation(
+                    groupId, memberInfo,
+                    onSuccess = {
+                        Log.d(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Location deleted from server successfully"
+                        )
+                    },
+                    onError = { error ->
+                        Log.e(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Error deleting location from server: $error"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(
+                    "TRACK_SCREEN_VIEW_MODEL",
+                    "Error deleting location from server: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun computeSOSTrack(goingTo: MemberInfo, location: Location) {
+        val userPosition = SimplePoint(
+            latitude = goingTo.latitude,
+            longitude = goingTo.longitude
+        )
+        var newTrackPoints: List<TrackPoint>
+        val nearestPoint = getNearestPoints(userPosition, trackPoints.value)[0]
+        newTrackPoints = if (nearestPoint.index >= probablePointIndex.value!!) {
+            cutArray(if(probablePointIndex.value!! == 0) 0 else probablePointIndex.value!! - 1, nearestPoint.index)
         } else {
-            sendLocationCounter += 1
+            cutArray(nearestPoint.index, probablePointIndex.value!!).reversed().mapIndexed { index, trackPoint ->
+                trackPoint.copy(index = index)
+            }
+        }
+        newTrackPoints = newTrackPoints + listOf(
+            TrackPoint(
+                latitude = goingTo.latitude,
+                longitude = goingTo.longitude,
+                elevation = null,
+                distanceToPrevious = 0.0,
+                totalDistanceTraveled = 0F,
+                index = newTrackPoints.size
+            )
+        )
+        var partialDistance = 0f
+        trackPoints.value = newTrackPoints.mapIndexed { index, trackPoint ->
+            val distance = if (index > 0) {
+                getDistanceTo(
+                    trackPoint.toSimplePoint(),
+                    newTrackPoints[index - 1].toSimplePoint()
+                )
+            } else {
+                0.0
+            }
+            partialDistance = partialDistance + distance.toFloat()
+            trackPoint.copy(
+                index = index,
+                distanceToPrevious = distance,
+                totalDistanceTraveled = partialDistance
+            )
+        }
+        probablePointIndex.value = 1
+        totalLength.value = partialDistance
+        elaboratePosition(location)
+    }
+
+    /* DO NOT CALL THIS FUNCTION DIRECTLY, USE stopFollowing() INSTEAD
+     * Resets the track points to the original ones, and re-elaborates the position
+     */
+    fun resumeTrack(location: Location) {
+        trackPoints.value = baseTrackPoints.map { el -> el.copy() }
+        totalLength.value = trackPoints.value.lastOrNull()?.totalDistanceTraveled ?: 0F
+        elaboratePosition(location)
+    }
+
+    fun stopFollowing(setName: Boolean = false) {
+        _showStopDialog.value = if (setName) _followingUser.value?.username ?: "" else ""
+        _followingUser.value = null
+    }
+
+    fun cutArray(start: Int, end: Int): List<TrackPoint> {
+        if (start < 0 || end >= trackPoints.value.size || start >= end) {
+            Log.e("TAGLIA_ARRAY", "Invalid start or end index")
+            throw IllegalArgumentException("Invalid start or end index")
+        }
+        return trackPoints.value.subList(start, end + 1).mapIndexed { index, trackPoint ->
+            trackPoint.copy(index = index)
         }
     }
 
@@ -274,7 +445,6 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
                 getGroupMembers(
                     groupId,
                     onSuccess = { members ->
-                        Log.d("TRACK_SCREEN_VIEW_MODEL", "Fetched members' locations successfully")
                         if (members != null) {
                             _membersLocation.value = members
                         }
@@ -298,29 +468,18 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
     }
 
     fun checkHelpRequest() {
-        Log.d("CheckHelpRequest", "Checking for help requests among members. Current member: $currentUserId")
         val members = _membersLocation.value
+        Log.d("CheckHelpRequest", "Members ${_membersLocation.value}")
         if (members.isNotEmpty()) {
-            val helpRequestMembers = members.filter { it.help_request && it.user.id != currentUserId }
-            if (helpRequestMembers.isNotEmpty()) {
-                _listHelpRequestState.value = helpRequestMembers
-                return
-            }
+            _listHelpRequestState.value = members.filter { it.help_request && it.user.id != currentUserId }
         }
-        _listHelpRequestState.value = emptyList()
-    }
-
-    // TODO
-    fun confirmGoingToFriend(member: MemberInfo) {
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "Confirming going to friend: ${member.user.username}")
-        val updatedMembers = _membersLocation.value.map { existingMember ->
-            if (existingMember.user.id == member.user.id) {
-                existingMember.copy(going_to = member.going_to)
-            } else {
-                existingMember
-            }
+        else _listHelpRequestState.value = emptyList()
+        for (member in _listHelpRequestState.value) {
+            Log.d("CheckHelpRequest", "Member ${member.user.username} has requested help.")
         }
-        _membersLocation.value = updatedMembers
+        if (_listHelpRequestState.value.find { it.user.id == _followingUser.value?.userId } == null && _followingUser.value != null) {
+            stopFollowing(true)
+        }
     }
 
     fun computeIfOnTrack(currentLocation: Location) {
@@ -329,33 +488,40 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
 
         val distance = _distanceFromTrack.value!!
 
-        val notificationThreshold = notificationTrackDistanceThreshold
 
-        if (_hasBeenNearTheTrack.value == null) _hasBeenNearTheTrack.value = distance < notificationThreshold
+        if (_hasBeenNearTheTrack.value == null) {
+            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
+            wasFarFromTrack = _hasBeenNearTheTrack.value == false
+        } else if (_hasBeenNearTheTrack.value == false) {
+            _hasBeenNearTheTrack.value = distance < notificationTrackDistanceThreshold
+        }
 
-        _isOffTrack.value = distance > notificationThreshold && _hasBeenNearTheTrack.value == true
+        _isOffTrack.value = distance > notificationTrackDistanceThreshold && _hasBeenNearTheTrack.value == true
 
-        Log.d(
-            "ON_TRACK_COMPUTATION",
-            "Distance from track: $distance, by air line: ${_distanceAirLine.value}",
-        )
+        notifyIfNecessary()
+    }
 
+    private fun notifyIfNecessary() {
         if (_isOffTrack.value && !_alreadyNotifiedOffTrack.value) {
             _notifyOffTrack.value = true
             _alreadyNotifiedOffTrack.value = true
-        } else if (!_isOffTrack.value) {
+        } else if (!_isOffTrack.value && _hasBeenNearTheTrack.value == true) {
+            if (_alreadyNotifiedOffTrack.value || wasFarFromTrack) {
+                _alreadyNotifiedOffTrack.value = false
+                _notifyOnTrackAgain.value = true
+                wasFarFromTrack = false
+            }
             _notifyOffTrack.value = false
-            _alreadyNotifiedOffTrack.value = false
-            _hasBeenNearTheTrack.value = distance < notificationThreshold
         }
     }
+
     fun snoozeOffTrackNotification(snoozeTimeMultiplier: Int = 1) {
         _notifyOffTrack.value = false
         lastSnoozeTime = System.currentTimeMillis()
         val snoozeTime = lastSnoozeTime
 
         viewModelScope.launch {
-            kotlinx.coroutines.delay(defaultSnoozeTime * snoozeTimeMultiplier)
+            delay(defaultSnoozeTime * snoozeTimeMultiplier)
 
             //If the user rejoined the track, and then got off track again,
             //the old snooze time is not valid anymore
@@ -383,11 +549,17 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         val targetBearing = (Math.toDegrees(initialBearing) + 360) % 360
 
         val angle = (compassDirection - targetBearing + 360) % 360
-        Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
         if (shouldUpdateDirection(angle, lastPublishedDirection.value)) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "New direction: $angle")
             lastPublishedDirection.value = angle
             arrowDirection.value = angle.toFloat()
+        }
+    }
+
+    fun cancelOnTrackAgainNotification() {
+        viewModelScope.launch {
+            delay(5000)
+            _notifyOnTrackAgain.value = false
         }
     }
 
@@ -400,5 +572,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         nextTrackPoint.value = null
         arrowDirection.value = 0F
         position.value = null
+    }
+
+    fun setShowStopDialog() {
+        _showStopDialog.value = ""
     }
 }

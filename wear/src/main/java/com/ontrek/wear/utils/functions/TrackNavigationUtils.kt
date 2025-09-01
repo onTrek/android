@@ -17,7 +17,7 @@ import kotlin.math.min
 fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int?): NextTrackPoint {
     val threadSafePosition = currentLocation
     val probableNextPoint = if (probablePointIndex == null) {
-        val nearestPoints = getNearestPoints(threadSafePosition, trackPoints)
+        val nearestPoints = getNearestPoints(threadSafePosition.toSimplePoint(), trackPoints)
         val nearestPoint = nearestPoints[0]
         if (nearestPoint.index > trackPoints.size - min(7, trackPoints.size)) nearestPoints.find { it.index < 5 } ?: nearestPoint else nearestPoint
     } else {
