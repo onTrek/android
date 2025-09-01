@@ -1,4 +1,4 @@
-package com.ontrek.mobile
+package com.ontrek.mobile.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.Wearable
+import com.ontrek.mobile.R
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
@@ -28,13 +29,20 @@ private const val SLIDING = 70
 private const val THRESHOLD = 0.60
 private const val PROCEESS_VAR = 1e-5f
 private const val MEASUREMENT_VAR = 1e-2f
-private const val MODEL_NAME = "fall_model_coarse_lite.pt"
+private const val MODEL_NAME = "fall_model_coarse-gyro_lite.pt"
 private const val WINDOW_SIZE = 140
-private const val FEATURES = 3
+private const val FEATURES = 6
+private const val MAX_BUFFER_SIZE = WINDOW_SIZE * 2
 
+data class TimedValue (
+    val timestamp: Long,
+    val value: FloatArray
+)
 class FallDetectionService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
-    private val accelBuffer = mutableListOf<FloatArray>()
+    private val alignedData = mutableListOf<FloatArray>()
+    private val accelBuffer = mutableListOf<TimedValue>()
+    private val gyroBuffer = mutableListOf<TimedValue>()
     private lateinit var module: Module
     inner class LocalBinder : Binder() {
         fun getService(): FallDetectionService = this@FallDetectionService
@@ -42,6 +50,7 @@ class FallDetectionService : Service(), SensorEventListener {
     private val binder = LocalBinder()
     private var lastFallTime = 0L
     private var lastAccSampleTime = 0L
+    private var lastGyroSampleTime = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -60,11 +69,20 @@ class FallDetectionService : Service(), SensorEventListener {
         manager.createNotificationChannel(channel)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SAMPLING_PERIODS
+            SAMPLING_PERIODS,
+            0
         )
+        sensorManager.registerListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+            SAMPLING_PERIODS,
+            0
+        )
+
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
             .setContentTitle("Fall Detection")
@@ -83,33 +101,57 @@ class FallDetectionService : Service(), SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 val now = System.currentTimeMillis()
                 if (now - lastAccSampleTime >= 25) {
-                    accelBuffer.add(event.values.clone())
+                    accelBuffer.add(TimedValue(now, event.values.clone()))
                     lastAccSampleTime = now
+                    if (gyroBuffer.isNotEmpty()) {
+                        val closestGyro = gyroBuffer.minByOrNull { Math.abs(it.timestamp - now) }
+                        if (closestGyro != null && Math.abs(closestGyro.timestamp - now) <= 12) {
+                            alignedData.add(floatArrayOf(
+                                event.values[0], event.values[1], event.values[2],
+                                closestGyro.value[0], closestGyro.value[1], closestGyro.value[2]
+                            ))
+                        }
+                    }
+                }
+            }
+            Sensor.TYPE_GYROSCOPE -> {
+                val now = System.currentTimeMillis()
+                if (now - lastGyroSampleTime >= 25) {
+                    gyroBuffer.add(TimedValue(now, event.values.clone()))
+                    lastGyroSampleTime = now
                 }
             }
         }
 
-        if (accelBuffer.size >= WINDOW_SIZE) {
+        if (alignedData.size >= WINDOW_SIZE) {
             val window = FloatArray(WINDOW_SIZE * FEATURES)
-            for (j in 0 until FEATURES) {          // prima feature
-                for (i in 0 until WINDOW_SIZE) {   // poi time step
-                    window[j * WINDOW_SIZE + i] = accelBuffer[i][j]
+            for (j in 0 until FEATURES) {
+                for (i in 0 until WINDOW_SIZE) {
+                    window[j * WINDOW_SIZE + i] = alignedData[i][j]
                 }
             }
 
+            Log.d("FALL_DETECTION", "Window ready, first row: ${alignedData[0].joinToString(", ")}")
+
+
             elaborateData(applyKalman(window))
-            accelBuffer.subList(0, SLIDING).clear()
+            val toIndex = minOf(SLIDING, alignedData.size)
+            alignedData.subList(0, toIndex).clear()
+        }
+        if (accelBuffer.size > MAX_BUFFER_SIZE) {
+            accelBuffer.subList(0, WINDOW_SIZE).clear()
+        }
+        if (gyroBuffer.size > MAX_BUFFER_SIZE) {
+            gyroBuffer.subList(0, WINDOW_SIZE).clear()
         }
     }
 
     fun elaborateData(data: FloatArray) {
-        // 3. Crea tensore Torch
         val inputTensor = Tensor.fromBlob(
             data,
             longArrayOf(1, FEATURES.toLong(), WINDOW_SIZE.toLong())
         )
 
-        // 4. Inference
         try {
             val output = module.forward(IValue.from(inputTensor)).toTensor()
             val logits = output.dataAsFloatArray
@@ -121,10 +163,13 @@ class FallDetectionService : Service(), SensorEventListener {
 
             Log.d("FALL_DETECTION", "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall")
 
-            if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 7_000)) {
+            if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 30_000)) {
                 sendResultToWatch()
                 lastFallTime = currentTime
                 Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
+                accelBuffer.clear()
+                gyroBuffer.clear()
+                alignedData.clear()
             }
 
         } catch (e: Exception) {
