@@ -166,7 +166,7 @@ fun TrackScreen(
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
     if (!alone) {
-        DisposableEffect(fallDetected) {
+        LaunchedEffect(fallDetected) {
             if (fallDetected) {
                 Log.d("FALL_DETECTION", "Fall detected, navigating to fall screen")
                 showFallDialog = true
@@ -178,10 +178,6 @@ fun TrackScreen(
                     )
                 )
             } else if(!notifyOffTrackModalOpen) {
-                vibrator?.cancel()
-            }
-
-            onDispose {
                 vibrator?.cancel()
             }
         }
@@ -351,7 +347,7 @@ fun TrackScreen(
                     )
                 )
 
-        } else {
+        } else if (!fallDetected) {
             vibrator?.cancel()
         }
     }
