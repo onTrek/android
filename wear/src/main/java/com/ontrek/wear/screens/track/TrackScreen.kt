@@ -61,6 +61,7 @@ import com.ontrek.wear.utils.components.ErrorScreen
 import com.ontrek.wear.utils.components.Loading
 import com.ontrek.wear.utils.functions.calculateFontSize
 import com.ontrek.wear.utils.functions.getContrastingTextColor
+import com.ontrek.wear.utils.functions.getReadableDistance
 import com.ontrek.wear.utils.sensors.CompassSensor
 import com.ontrek.wear.utils.sensors.GpsSensor
 
@@ -470,8 +471,8 @@ fun TrackScreen(
                             modifier = Modifier.padding(10.dp)
                         ) { time ->
                             val displayText = when {
-                                threadSafeFollowingUser != null -> "${remainingDistance}m away"
-                                isOffTrack || !hasBeenNearTheTrack!! -> "${distanceAirLine?.toInt()}m away"
+                                threadSafeFollowingUser != null -> "${getReadableDistance(remainingDistance.toDouble())} away"
+                                isOffTrack || !hasBeenNearTheTrack!! -> "${getReadableDistance(distanceAirLine ?: 0.0)} away"
                                 notifyOnTrackAgain -> "OnTrek!"
                                 trackCompleted -> "Track Completed"
                                 isGpsAccuracyLow() -> gpsAccuracyText

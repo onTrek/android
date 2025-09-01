@@ -36,3 +36,11 @@ fun getContrastingTextColor(backgroundColor: Color): Color {
         Color.Black
     }
 }
+
+fun getReadableDistance(meters: Double): String {
+    return if (meters >= 1000) {
+        "%.1f km".format(meters / 1000.0)
+    } else {
+        "${meters.toInt()} m"
+    }
+}
