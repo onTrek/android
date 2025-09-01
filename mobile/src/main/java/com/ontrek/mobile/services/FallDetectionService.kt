@@ -3,7 +3,6 @@ package com.ontrek.mobile
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -14,8 +13,6 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.Wearable
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
@@ -34,36 +31,20 @@ private const val MEASUREMENT_VAR = 1e-2f
 private const val MODEL_NAME = "fall_model_coarse_lite.pt"
 private const val WINDOW_SIZE = 140
 private const val FEATURES = 3
-private const val TEST = false
-private const val TEST_SET = "test_dataset.json"
-data class MockItem(
-    val sequence: List<List<Double>>,
-    val label: Int
-)
 
 class FallDetectionService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
-    private val accelData = mutableListOf<FloatArray>()
-    private var mockData = null as List<MockItem>?
+    private val accelBuffer = mutableListOf<FloatArray>()
     private lateinit var module: Module
     inner class LocalBinder : Binder() {
         fun getService(): FallDetectionService = this@FallDetectionService
     }
     private val binder = LocalBinder()
     private var lastFallTime = 0L
-    private var lastSampleTime = 0L
+    private var lastAccSampleTime = 0L
 
     override fun onCreate() {
         super.onCreate()
-
-        if (TEST) {
-            Thread {
-                mockData = loadMockData()
-                Log.d("FALL_DETECTION", "Mock data loaded with ${mockData?.size} items")
-            }.start()
-        } else {
-            mockData = null
-        }
 
         Log.d("FALL_DETECTION", "Service created")
 
@@ -92,65 +73,33 @@ class FallDetectionService : Service(), SensorEventListener {
             .build()
 
         // Carica modello TorchScript dal folder assets
-        module = LiteModuleLoader.load(assetFilePath(MODEL_NAME))
+        module = LiteModuleLoader.load(loadModelFromFile())
 
         startForeground(1, notification)
-    }
-
-    fun Context.loadMockData(): List<MockItem> {
-        val json = readJsonFromAssets(TEST_SET)
-        val type = object : TypeToken<List<MockItem>>() {}.type
-        return Gson().fromJson(json, type)
-    }
-
-    fun Context.readJsonFromAssets(fileName: String): String {
-        return assets.open(fileName).bufferedReader().use { it.readText() }
     }
 
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
                 val now = System.currentTimeMillis()
-                if (now - lastSampleTime >= 25) {
-                    accelData.add(event.values.clone())
-                    lastSampleTime = now
+                if (now - lastAccSampleTime >= 25) {
+                    accelBuffer.add(event.values.clone())
+                    lastAccSampleTime = now
                 }
             }
         }
 
-        var testWindow = FloatArray(0)
-        var item = MockItem(listOf(), 0)
-
-        if (accelData.size >= WINDOW_SIZE) {
-            if (TEST) {
-                item = mockData?.random() ?: return
-                testWindow = FloatArray(WINDOW_SIZE * FEATURES)
-                for (i in 0 until WINDOW_SIZE) {
-                    for (j in 0 until FEATURES) {
-                        testWindow[i * FEATURES + j] = item.sequence[j][i].toFloat()
-                    }
-                }
-            }
-
+        if (accelBuffer.size >= WINDOW_SIZE) {
             val window = FloatArray(WINDOW_SIZE * FEATURES)
-            for (i in 0 until WINDOW_SIZE) {
-                val values = accelData[i]
-                for (j in 0 until FEATURES) {
-                    window[i * FEATURES + j] = values[j]
+            for (j in 0 until FEATURES) {          // prima feature
+                for (i in 0 until WINDOW_SIZE) {   // poi time step
+                    window[j * WINDOW_SIZE + i] = accelBuffer[i][j]
                 }
             }
 
-            if (TEST) {
-                Log.d("FALL_DETECTION", "Test item label: ${item.label}")
-                Log.d("FALL_DETECTION", "Test item sequence shape: ${item.sequence.size}x${item.sequence[0].size}")
-                elaborateData(testWindow)
-            } else {
-                Log.d("FALL_DETECTION", "Test item sequence shape: ${window.size / FEATURES}x$FEATURES")
-                elaborateData(applyKalman(window))
-            }
-            accelData.subList(0, SLIDING).clear()
+            elaborateData(applyKalman(window))
+            accelBuffer.subList(0, SLIDING).clear()
         }
-
     }
 
     fun elaborateData(data: FloatArray) {
@@ -173,7 +122,7 @@ class FallDetectionService : Service(), SensorEventListener {
             Log.d("FALL_DETECTION", "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall")
 
             if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 7_000)) {
-                sendResultToWatch(1f)
+                sendResultToWatch()
                 lastFallTime = currentTime
                 Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
             }
@@ -246,9 +195,9 @@ class FallDetectionService : Service(), SensorEventListener {
         return xEst
     }
 
-    private fun sendResultToWatch(result: Float) {
-        Log.d("FALL_DETECTION", "Sending result to watch: $result")
-        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(result).array()
+    private fun sendResultToWatch() {
+        Log.d("FALL_DETECTION", "Sending fall alert to watch")
+        val bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(1f).array()
 
         Wearable.getNodeClient(this).connectedNodes
             .addOnSuccessListener { nodes ->
@@ -260,12 +209,12 @@ class FallDetectionService : Service(), SensorEventListener {
             }
     }
 
-    private fun assetFilePath(assetName: String): String {
-        val file = File(filesDir, assetName)
+    private fun loadModelFromFile(): String {
+        val file = File(filesDir, MODEL_NAME)
         if (file.exists() && file.length() > 0) {
             return file.absolutePath
         }
-        assets.open(assetName).use { inputStream ->
+        assets.open(MODEL_NAME).use { inputStream ->
             FileOutputStream(file).use { outputStream ->
                 val buffer = ByteArray(4 * 1024)
                 var read: Int

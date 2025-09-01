@@ -151,14 +151,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
                 .order(ByteOrder.LITTLE_ENDIAN)
                 .float
 
-            Log.d("FALL_RESULT", "Fall probability: $result")
-
             // Logica di rilevamento caduta
             if (result == 1f) {
                 Log.d("FALL_RESULT", "Fall detected!")
                 fallDetectionState.value = true
-            } else {
-                Log.d("FALL_RESULT", "No fall")
             }
         }
     }
