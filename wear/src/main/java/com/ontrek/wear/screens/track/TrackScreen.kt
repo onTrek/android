@@ -215,7 +215,7 @@ fun TrackScreen(
                 kotlinx.coroutines.delay(500)
                 continue
             }
-            if (sessionID.isNotEmpty()) {
+            if (!alone) {
                 gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
                 gpxViewModel.getMembersLocation(sessionID)
             }
@@ -538,15 +538,14 @@ fun TrackScreen(
                                     Log.d("SOS_BUTTON", "SOS button pressed")
                                     val threadSafeCurrentLocation = currentLocation
 
-                                    if (sessionID.isNotEmpty()) {
-                                        if (threadSafeCurrentLocation != null) {
-                                            gpxViewModel.sendCurrentLocation(
-                                                threadSafeCurrentLocation,
-                                                sessionID,
-                                                true
-                                            )
-                                        }
+                                    if (threadSafeCurrentLocation != null) {
+                                        gpxViewModel.sendCurrentLocation(
+                                            threadSafeCurrentLocation,
+                                            sessionID,
+                                            true
+                                        )
                                     }
+
                                 },
                                 onPressStateChanged = { pressed: Boolean ->
                                     isSosButtonPressed = pressed

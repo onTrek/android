@@ -79,10 +79,9 @@ fun SOSScreen(
                 kotlinx.coroutines.delay(500)
                 continue
             }
-            if (sessionID.isNotEmpty()) {
-                sosViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
-                sosViewModel.getMembersLocation(sessionID)
-            }
+            sosViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+            sosViewModel.getMembersLocation(sessionID)
+
             kotlinx.coroutines.delay(3000)
         }
     }
