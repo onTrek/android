@@ -131,12 +131,12 @@ class FallDetectionService : Service(), SensorEventListener {
 
             elaborateData(applyKalman(window))
             alignedData.subList(0, SLIDING).clear()
-            if (accelBuffer.size > MAX_BUFFER_SIZE) {
-                accelBuffer.subList(0, WINDOW_SIZE).clear()
-            }
-            if (gyroBuffer.size > MAX_BUFFER_SIZE) {
-                gyroBuffer.subList(0, WINDOW_SIZE).clear()
-            }
+        }
+        if (accelBuffer.size > MAX_BUFFER_SIZE) {
+            accelBuffer.subList(0, WINDOW_SIZE).clear()
+        }
+        if (gyroBuffer.size > MAX_BUFFER_SIZE) {
+            gyroBuffer.subList(0, WINDOW_SIZE).clear()
         }
     }
 
