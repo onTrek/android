@@ -34,19 +34,22 @@ private const val WINDOW_SIZE = 140
 private const val FEATURES = 6
 private const val MAX_BUFFER_SIZE = WINDOW_SIZE * 2
 
-data class TimedValue (
+data class TimedValue(
     val timestamp: Long,
     val value: FloatArray
 )
+
 class FallDetectionService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private val alignedData = mutableListOf<FloatArray>()
     private val accelBuffer = mutableListOf<TimedValue>()
     private val gyroBuffer = mutableListOf<TimedValue>()
     private lateinit var module: Module
+
     inner class LocalBinder : Binder() {
         fun getService(): FallDetectionService = this@FallDetectionService
     }
+
     private val binder = LocalBinder()
     private var lastFallTime = 0L
     private var lastAccSampleTime = 0L
@@ -60,9 +63,12 @@ class FallDetectionService : Service(), SensorEventListener {
         val channel = NotificationChannel(
             "fall_channel",
             "Fall Detection Service",
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_HIGH
         ).apply {
             description = "Channel for fall detection service"
+            setShowBadge(false)
+            enableLights(false)
+            enableVibration(false)
         }
 
         val manager = getSystemService(NotificationManager::class.java)
@@ -85,9 +91,15 @@ class FallDetectionService : Service(), SensorEventListener {
 
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
-            .setContentTitle("Fall Detection")
-            .setContentText("Monitoring for falls...")
             .setSmallIcon(R.drawable.hiking)
+            .setContentTitle("Monitoring for falls...")
+            .setContentText("Keep your smartphone close to the waist")
+            .setOngoing(true)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setProgress(0, 0, true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setShowWhen(false)
             .build()
 
         // Carica modello TorchScript dal folder assets
@@ -106,14 +118,17 @@ class FallDetectionService : Service(), SensorEventListener {
                     if (gyroBuffer.isNotEmpty()) {
                         val closestGyro = gyroBuffer.minByOrNull { Math.abs(it.timestamp - now) }
                         if (closestGyro != null && Math.abs(closestGyro.timestamp - now) <= 12) {
-                            alignedData.add(floatArrayOf(
-                                event.values[0], event.values[1], event.values[2],
-                                closestGyro.value[0], closestGyro.value[1], closestGyro.value[2]
-                            ))
+                            alignedData.add(
+                                floatArrayOf(
+                                    event.values[0], event.values[1], event.values[2],
+                                    closestGyro.value[0], closestGyro.value[1], closestGyro.value[2]
+                                )
+                            )
                         }
                     }
                 }
             }
+
             Sensor.TYPE_GYROSCOPE -> {
                 val now = System.currentTimeMillis()
                 if (now - lastGyroSampleTime >= 25) {
@@ -161,7 +176,10 @@ class FallDetectionService : Service(), SensorEventListener {
 
             val currentTime = System.currentTimeMillis()
 
-            Log.d("FALL_DETECTION", "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall")
+            Log.d(
+                "FALL_DETECTION",
+                "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall"
+            )
 
             if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 30_000)) {
                 sendResultToWatch()
@@ -275,4 +293,5 @@ class FallDetectionService : Service(), SensorEventListener {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
 }
