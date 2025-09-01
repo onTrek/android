@@ -207,6 +207,22 @@ fun TrackScreen(
     }
     notificationManager.createNotificationChannel(channel)
 
+    LaunchedEffect(Unit) {
+        while (true) {
+            val threadSafeCurrentLocation = currentLocation
+            if (threadSafeCurrentLocation == null) {
+                Log.d("GPS_LOCATION", "Location not available")
+                kotlinx.coroutines.delay(500)
+                continue
+            }
+            if (sessionID.isNotEmpty()) {
+                gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
+                gpxViewModel.getMembersLocation(sessionID)
+            }
+            kotlinx.coroutines.delay(3000)
+        }
+    }
+
     DisposableEffect(Unit) {
         Log.d("NOTIFICATION_BUILDER", "Creating notification for ongoing track navigation")
 
@@ -336,10 +352,6 @@ fun TrackScreen(
         } else {
             // If we are near the track, we can proceed to elaborate the position
             gpxViewModel.elaboratePosition(threadSafeCurrentLocation)
-            if (!alone) {
-                gpxViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
-                gpxViewModel.getMembersLocation(sessionID)
-            }
         }
     }
 
@@ -366,7 +378,7 @@ fun TrackScreen(
         listHelpRequest.forEach { member ->
             val key = member.user.id
             if (showDialogForMember[key] == null) shouldVibrate = true
-            showDialogForMember.put(key, true)
+            showDialogForMember.getOrPut(key) { true }
         }
         if (shouldVibrate && listHelpRequest.isNotEmpty()) {
             vibrator?.vibrate(

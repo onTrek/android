@@ -71,6 +71,22 @@ fun SOSScreen(
 
     var oldDirection by remember { mutableStateOf<Float?>(null) }
 
+    LaunchedEffect(Unit) {
+        while (true) {
+            val threadSafeCurrentLocation = currentLocation
+            if (threadSafeCurrentLocation == null) {
+                Log.d("GPS_LOCATION", "Location not available")
+                kotlinx.coroutines.delay(500)
+                continue
+            }
+            if (sessionID.isNotEmpty()) {
+                sosViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID, true)
+                sosViewModel.getMembersLocation(sessionID)
+            }
+            kotlinx.coroutines.delay(3000)
+        }
+    }
+
     DisposableEffect(compassSensor, gpsSensor) {
         // Avvia la lettura dei dati dai sensori
         compassSensor.start()
@@ -92,25 +108,16 @@ fun SOSScreen(
     }
 
     LaunchedEffect(currentLocation) {
-        Log.d("GPS_LOCATION", "Current location updated: $currentLocation")
         val threadSafeCurrentLocation = currentLocation
-
         if (threadSafeCurrentLocation == null) {
             Log.d("GPS_LOCATION", "Location not available")
             return@LaunchedEffect
         }
-
         if (isInitialized == null) {
-            // Startup function
             sosViewModel.checkTrackDistanceAndInitialize(threadSafeCurrentLocation, direction)
         } else {
-            // If we are near the track, we can proceed to elaborate the position
             sosViewModel.elaboratePosition(threadSafeCurrentLocation)
-            if (sessionID.isNotEmpty()) {
-                sosViewModel.sendCurrentLocation(threadSafeCurrentLocation, sessionID)
-            }
         }
-        sosViewModel.getMembersLocation(sessionID)
     }
 
     ScreenScaffold(
