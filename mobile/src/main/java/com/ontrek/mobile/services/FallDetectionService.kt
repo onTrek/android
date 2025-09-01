@@ -157,7 +157,7 @@ class FallDetectionService : Service(), SensorEventListener {
 
             Log.d("FALL_DETECTION", "Probabilities -> No Fall: $probabilityNoFall, Fall: $probabilityFall")
 
-            if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 7_000)) {
+            if (probabilityFall > THRESHOLD && (currentTime - lastFallTime > 30_000)) {
                 sendResultToWatch()
                 lastFallTime = currentTime
                 Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
