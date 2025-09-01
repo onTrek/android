@@ -283,7 +283,7 @@ fun TrackScreen(
     LaunchedEffect(progress) {
         if (progress == 1f) {
             if (!trackCompleted || followingUser != null) {
-                Log.d("GPS_TRACK", "Track completed")
+                Log.d("GPS_TRACK", "Track complete")
                 vibrator?.vibrate(
                     VibrationEffect.createWaveform(
                         longArrayOf(100, 100, 500),
@@ -474,7 +474,7 @@ fun TrackScreen(
                                 threadSafeFollowingUser != null -> "${getReadableDistance(remainingDistance.toDouble())} away"
                                 isOffTrack || !hasBeenNearTheTrack!! -> "${getReadableDistance(distanceAirLine ?: 0.0)} away"
                                 notifyOnTrackAgain -> "OnTrek!"
-                                trackCompleted -> "Track Completed"
+                                trackCompleted -> "Track Complete"
                                 isGpsAccuracyLow() -> gpsAccuracyText
                                 else -> time
                             }
