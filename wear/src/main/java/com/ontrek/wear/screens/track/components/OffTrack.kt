@@ -30,7 +30,7 @@ fun OffTrackDialog(
                 imageVector = Icons.Outlined.Warning,
                 contentDescription = "Off Track",
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 30.dp)
+                modifier = Modifier.padding(top = 16.dp)
             )
         },
         title = {

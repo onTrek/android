@@ -13,6 +13,7 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import com.ontrek.wear.utils.functions.getReadableDistance
 
 
 @Composable
@@ -28,13 +29,13 @@ fun DistantFromTrackDialog(
         title = {
             Text(
                 text = "You are far from the track",
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.titleMedium,
             )
         },
         text = {
             Text(
-                text = "You are $metersAway meters away from the track.\nDo you want to continue?",
+                text = "You are ${getReadableDistance(metersAway.toDouble())} meters away from the track.\nDo you want to continue?",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )

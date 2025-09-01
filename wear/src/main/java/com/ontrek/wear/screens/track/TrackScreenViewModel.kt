@@ -187,7 +187,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         position.value = currentLocation
         if (trackPoints.value.isNotEmpty()) {
             val finderResult = findNextTrackPoint(
-                currentLocation, trackPoints.value, null
+                currentLocation, trackPoints.value, null, _hasBeenNearTheTrack.value == true
             )
             nextTrackPoint.value = finderResult.nextTrackPoint
             probablePointIndex.value = finderResult.nextProbablePoint
@@ -209,14 +209,16 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         val oldIndex = nextTrackPoint.value?.index
 
         val finderResult =
-            findNextTrackPoint(currentLocation, trackPoints.value, probablePointIndex.value)
+            findNextTrackPoint(currentLocation, trackPoints.value, probablePointIndex.value, _hasBeenNearTheTrack.value == true)
         nextTrackPoint.value = finderResult.nextTrackPoint
-        probablePointIndex.value = finderResult.nextProbablePoint
+
+        computeIfOnTrack(currentLocation, finderResult.nextProbablePoint)
+
+        // Update probable point index only if the user is on track
+        if (!_isOffTrack.value) probablePointIndex.value = finderResult.nextProbablePoint
 
 
         val newIndex = nextTrackPoint.value!!.index
-
-        computeIfOnTrack(currentLocation)
 
         if (oldIndex != newIndex) {
             Log.d("TRACK_SCREEN_VIEW_MODEL", "Next track point index: $newIndex")
@@ -230,7 +232,7 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
 
         //to uncomment only on debug
-//        elaborateDirection(0f)
+        //elaborateDirection(0f)
     }
 
     private fun computeProgress(
@@ -482,9 +484,9 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
     }
 
-    fun computeIfOnTrack(currentLocation: Location) {
+    fun computeIfOnTrack(currentLocation: Location, probablePointIndex: Int) {
         _distanceFromTrack.value =
-            computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex.value!!)
+            computeDistanceFromTrack(currentLocation, trackPoints.value, probablePointIndex)
 
         val distance = _distanceFromTrack.value!!
 
