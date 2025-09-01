@@ -324,6 +324,49 @@ class TrackScreenViewModel(private val currentUserId: String) : ViewModel() {
         }
     }
 
+    fun deleteLocation(
+        sessionId: String,
+    ) {
+        viewModelScope.launch {
+            try {
+                val groupId = sessionId.toInt()
+
+                val memberInfo = MemberInfoUpdate(
+                    latitude = -1.0,
+                    longitude = -1.0,
+                    accuracy = -1.0,
+                    altitude = -1.0,
+                    going_to = "",
+                    help_request = false
+                )
+
+                Log.d(
+                    "TRACK_SCREEN_VIEW_MODEL", "Deleting location from server")
+
+                updateMemberLocation(
+                    groupId, memberInfo,
+                    onSuccess = {
+                        Log.d(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Location deleted from server successfully"
+                        )
+                    },
+                    onError = { error ->
+                        Log.e(
+                            "TRACK_SCREEN_VIEW_MODEL",
+                            "Error deleting location from server: $error"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(
+                    "TRACK_SCREEN_VIEW_MODEL",
+                    "Error deleting location from server: ${e.message}"
+                )
+            }
+        }
+    }
+
     private fun computeSOSTrack(goingTo: MemberInfo, location: Location) {
         val userPosition = SimplePoint(
             latitude = goingTo.latitude,

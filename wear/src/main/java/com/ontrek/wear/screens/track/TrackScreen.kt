@@ -414,6 +414,7 @@ fun TrackScreen(
     DisposableEffect(Unit) {
         onDispose {
             vibrator?.cancel()
+            gpxViewModel.deleteLocation(sessionID)
         }
     }
 
