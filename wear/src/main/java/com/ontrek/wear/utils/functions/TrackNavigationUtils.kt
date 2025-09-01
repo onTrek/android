@@ -14,14 +14,14 @@ import com.ontrek.wear.utils.objects.SectionDistances
 import kotlin.math.abs
 import kotlin.math.min
 
-fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int?): NextTrackPoint {
+fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int?, hasBeenNearTheTrack: Boolean): NextTrackPoint {
     val threadSafePosition = currentLocation
     val probableNextPoint = if (probablePointIndex == null) {
         val nearestPoints = getNearestPoints(threadSafePosition.toSimplePoint(), trackPoints)
         val nearestPoint = nearestPoints[0]
         if (nearestPoint.index > trackPoints.size - min(7, trackPoints.size)) nearestPoints.find { it.index < 5 } ?: nearestPoint else nearestPoint
     } else {
-        extractNearestPoint(currentLocation, trackPoints, probablePointIndex)
+        extractNearestPoint(currentLocation, trackPoints, probablePointIndex, hasBeenNearTheTrack)
     }
 
     Log.d("TrackScreenUtils", "Probable next point: ${probableNextPoint.index}, with distance ${probableNextPoint.distanceToUser}")
@@ -86,7 +86,7 @@ fun findNextTrackPoint(currentLocation: Location, trackPoints: List<TrackPoint>,
     return NextTrackPoint(probableNextPoint.index,trackPoints[W])
 }
 
-fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int) : NearPoint {
+fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, probablePointIndex: Int, hasBeenNearTheTrack: Boolean) : NearPoint {
     val threadSafePosition = position
 
     //So if we have an actualPointIndex of 2, the array becomes [2, 3, 4, 5, ..., 0, 1]
@@ -100,6 +100,11 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, proba
         if (point.index == 0 || point.index == probablePointIndex) {
             continue // Skip the first and last points
         }
+        if (!hasBeenNearTheTrack &&
+            (point.index > trackPoints.size / 1.5) &&
+            getDistanceTo(trackPoints[0].toSimplePoint(), trackPoints[point.index].toSimplePoint()) < 50) {
+            continue //Skip the point if we are too far from the start and the point is close to the start
+        }
         val distanceOfPointInExam = computeDistanceFromTrack(threadSafePosition, trackPoints, point.index)
         if (distanceOfPointInExam <= bestPointDistanceFromTrack) {
             bestPointDistanceFromTrack = distanceOfPointInExam
@@ -110,7 +115,7 @@ fun extractNearestPoint(position: Location, trackPoints: List<TrackPoint>, proba
         if (bestPointDistanceFromTrack <= notificationTrackDistanceThreshold) {
             pointUnderThresholdFound = true
         }
-        //If we found a point under the threshold, we don't need to search in the starting points
+        //If we found a point under the threshold, we don't need to search in the starting points, unless we are at startup
         if (pointUnderThresholdFound && point.index == trackPoints.size - 1) break
     }
 

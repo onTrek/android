@@ -28,7 +28,7 @@ fun EndTrack(
         icon = {
             Icon(
                 imageVector = Icons.Filled.SportsScore,
-                contentDescription = "Track Completed",
+                contentDescription = "Track Complete",
                 tint = MaterialTheme.colorScheme.primary
             )
         },
