@@ -141,13 +141,11 @@ class FallDetectionService : Service(), SensorEventListener {
     }
 
     fun elaborateData(data: FloatArray) {
-        // 3. Crea tensore Torch
         val inputTensor = Tensor.fromBlob(
             data,
             longArrayOf(1, FEATURES.toLong(), WINDOW_SIZE.toLong())
         )
 
-        // 4. Inference
         try {
             val output = module.forward(IValue.from(inputTensor)).toTensor()
             val logits = output.dataAsFloatArray
@@ -163,6 +161,9 @@ class FallDetectionService : Service(), SensorEventListener {
                 sendResultToWatch()
                 lastFallTime = currentTime
                 Log.d("FALL_DETECTION", "Fall detected with probability: $probabilityFall")
+                accelBuffer.clear()
+                gyroBuffer.clear()
+                alignedData.clear()
             }
 
         } catch (e: Exception) {
