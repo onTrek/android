@@ -131,7 +131,8 @@ class FallDetectionService : Service(), SensorEventListener {
 
 
             elaborateData(applyKalman(window))
-            alignedData.subList(0, SLIDING).clear()
+            val toIndex = minOf(SLIDING, alignedData.size)
+            alignedData.subList(0, toIndex).clear()
         }
         if (accelBuffer.size > MAX_BUFFER_SIZE) {
             accelBuffer.subList(0, WINDOW_SIZE).clear()
