@@ -69,16 +69,20 @@ class FallDetectionService : Service(), SensorEventListener {
         manager.createNotificationChannel(channel)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SAMPLING_PERIODS
+            SAMPLING_PERIODS,
+            0
         )
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-            SAMPLING_PERIODS
+            SAMPLING_PERIODS,
+            0
         )
+
 
         val notification = NotificationCompat.Builder(this, "fall_channel")
             .setContentTitle("Fall Detection")
