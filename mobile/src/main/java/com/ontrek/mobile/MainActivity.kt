@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,12 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.google.android.gms.wearable.MessageClient
-import com.google.android.gms.wearable.MessageEvent
-import com.google.android.gms.wearable.Wearable
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.NavigationStack
 import com.ontrek.mobile.screens.auth.AuthScreen
+import com.ontrek.mobile.services.FallDetectionService
 import com.ontrek.mobile.ui.theme.OnTrekTheme
 import com.ontrek.mobile.utils.components.PermissionRequester
 import com.ontrek.shared.api.RetrofitClient

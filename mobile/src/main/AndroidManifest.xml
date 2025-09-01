@@ -30,7 +30,7 @@
         </activity>
 
         <service
-            android:name=".FallDetectionService"
+            android:name=".services.FallDetectionService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
