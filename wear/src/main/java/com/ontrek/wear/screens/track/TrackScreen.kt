@@ -157,6 +157,7 @@ fun TrackScreen(
     var distantAtStartupModalOpen by remember { mutableStateOf(false) }
     var oldDirection by remember { mutableStateOf<Float?>(null) }
     var followingCompleted by remember { mutableStateOf(false) }
+    var isSosNotTriggered by remember { mutableStateOf(true) }
 
     val showDialogForMember = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -414,7 +415,7 @@ fun TrackScreen(
     DisposableEffect(Unit) {
         onDispose {
             vibrator?.cancel()
-            gpxViewModel.deleteLocation(sessionID)
+            if (isSosNotTriggered) gpxViewModel.deleteLocation(sessionID)
         }
     }
 
@@ -535,10 +536,9 @@ fun TrackScreen(
                             SosButton(
                                 sweepAngle = buttonSweepAngle,
                                 onSosTriggered = {
-                                    navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
                                     Log.d("SOS_BUTTON", "SOS button pressed")
+                                    isSosNotTriggered = false
                                     val threadSafeCurrentLocation = currentLocation
-
                                     if (threadSafeCurrentLocation != null) {
                                         gpxViewModel.sendCurrentLocation(
                                             threadSafeCurrentLocation,
@@ -546,7 +546,7 @@ fun TrackScreen(
                                             true
                                         )
                                     }
-
+                                    navController.navigate(route = Screen.SOSScreen.route + "?sessionID=$sessionID&currentUserId=$currentUserId")
                                 },
                                 onPressStateChanged = { pressed: Boolean ->
                                     isSosButtonPressed = pressed
