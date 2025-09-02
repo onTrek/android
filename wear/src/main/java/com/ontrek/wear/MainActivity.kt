@@ -35,6 +35,9 @@ import com.ontrek.wear.utils.components.PermissionRequester
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
+    companion object {
+        var isInForeground: Boolean = false
+    }
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
@@ -122,6 +125,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     override fun onResume() {
         super.onResume()
+        isInForeground = true
         dataClient.addListener(this)
 
         val newPermissionState = checkPermissions()
@@ -135,6 +139,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     override fun onPause() {
         super.onPause()
+        isInForeground = false
         dataClient.removeListener(this)
     }
 
