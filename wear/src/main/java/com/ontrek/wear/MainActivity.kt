@@ -74,9 +74,17 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
         setTheme(Theme_DeviceDefault)
+
+        //TrackStartListenerService.kt
+        val trackId = intent.getIntExtra("trackId", -1)
+        val sessionId = intent.getIntExtra("sessionId", -1)
+        val trackName = intent.getStringExtra("trackName") ?: ""
+        if (trackId != -1) {
+            trackToStart.value = Triple(trackId, if (sessionId != -1) sessionId else null, trackName)
+            Log.d("WATCH_CONNECTION", "MainActivity avviata da TrackStartListenerService: trackId=$trackId, sessionId=$sessionId, trackName=$trackName")
+        }
 
         ambientController = AmbientLifecycleObserver(this, AmbientCallback())
         lifecycle.addObserver(ambientController)
