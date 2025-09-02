@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.ontrek.mobile.screens.profile.ProfileViewModel.ConnectionState
 import com.ontrek.shared.api.track.getMapTrack
 import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
@@ -114,7 +113,7 @@ class TrackDetailViewModel : ViewModel() {
 
                 Wearable.getDataClient(context).putDataItem(request)
                     .addOnSuccessListener {
-                        _msgToast.value = "Hike started!"
+                        _msgToast.value = "Loading track on wearable"
                     }
                     .addOnFailureListener {
                         _msgToast.value = "Failed to connect to wearable"

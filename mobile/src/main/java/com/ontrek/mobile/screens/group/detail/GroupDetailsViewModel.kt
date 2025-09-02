@@ -187,7 +187,7 @@ class GroupDetailsViewModel : ViewModel() {
 
                 Wearable.getDataClient(context).putDataItem(request)
                     .addOnSuccessListener {
-                        _msgToast.value = "Hike started!"
+                        _msgToast.value = "Loading track on wearable"
                     }
                     .addOnFailureListener {
                         _msgToast.value = "Failed to connect to wearable"
