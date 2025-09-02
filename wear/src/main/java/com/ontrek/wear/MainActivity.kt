@@ -43,6 +43,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     val isInAmbientMode = MutableStateFlow(false)
     private var ambientModeEnabled by mutableStateOf(false)
 
+    val trackToStart = MutableStateFlow<Triple<Int, Int?, String>?>(null)
+
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -146,9 +148,13 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 val sessionID = dataMap.getInt("sessionId")// -1 if empty
                 val trackName = dataMap.getString("trackName") ?: ""
                 Log.d("WATCH_CONNECTION", "Received track start: trackID=$trackID, sessionID=$sessionID, trackName=$trackName")
-                // TODO: check if the track exists on db and navigate to it
+                trackToStart.value = Triple(trackID, if (sessionID != -1) sessionID else null, trackName)
             }
         }
+    }
+
+    fun resetTrackToStart() {
+        trackToStart.value = null
     }
 
     fun checkPermissions(): Boolean {
