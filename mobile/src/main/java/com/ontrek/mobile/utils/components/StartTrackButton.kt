@@ -20,8 +20,8 @@ import androidx.compose.runtime.setValue
 fun StartTrackButton(
     trackName: String,
     trackId: Int,
-    sessionId: String? = null,
-    sendStartHikeMessage: (trackId: Int, sessionId: String?, trackName: String) -> Unit,
+    sessionId: Int? = null,
+    sendStartHikeMessage: (trackId: Int, sessionId: Int?, trackName: String) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 

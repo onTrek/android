@@ -1,8 +1,12 @@
 package com.ontrek.mobile.screens.track.detail
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
+import com.ontrek.mobile.screens.profile.ProfileViewModel.ConnectionState
 import com.ontrek.shared.api.track.getMapTrack
 import com.ontrek.shared.api.track.getTrack
 import com.ontrek.shared.data.Track
@@ -95,6 +99,29 @@ class TrackDetailViewModel : ViewModel() {
                     _msgToast.value = errorMsg
                 },
             )
+        }
+    }
+
+    fun sendStartToWearable(context: Context, trackId: Int, trackName: String) {
+        viewModelScope.launch {
+            try {
+                val putDataMapReq = PutDataMapRequest.create("/track-start").apply {
+                    dataMap.putInt("trackId", trackId)
+                    dataMap.putInt("sessionId", -1)
+                    dataMap.putString("trackName", trackName)
+                }
+                val request = putDataMapReq.asPutDataRequest().setUrgent()
+
+                Wearable.getDataClient(context).putDataItem(request)
+                    .addOnSuccessListener {
+                        _msgToast.value = "Hike started!"
+                    }
+                    .addOnFailureListener {
+                        _msgToast.value = "Failed to connect to wearable"
+                    }
+            } catch (e: Exception) {
+                _msgToast.value = "Error connecting to wearable: ${e.message}"
+            }
         }
     }
 

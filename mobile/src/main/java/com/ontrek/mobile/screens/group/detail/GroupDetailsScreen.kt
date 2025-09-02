@@ -121,8 +121,15 @@ fun GroupDetailsScreen(
                             StartTrackButton(
                                 trackName = groupState.groupInfo.track.title,
                                 trackId = groupState.groupInfo.track.id,
-                                sessionId = null,
-                                sendStartHikeMessage = { _, _, _ -> } // TODO: implementare
+                                sessionId = groupId,
+                                sendStartHikeMessage = { trackId, sessionId, trackName ->
+                                    viewModel.sendStartToWearable(
+                                        context,
+                                        trackId,
+                                        trackName,
+                                        sessionId ?: -1
+                                    )
+                                }
                             )
                         }
                     }

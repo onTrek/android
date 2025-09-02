@@ -142,8 +142,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 event.dataItem.uri.path == "/track-start"
             ) {
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-                val trackID = dataMap.getString("trackID") ?: ""
-                val sessionID = dataMap.getString("sessionID") ?: ""
+                val trackID = dataMap.getInt("trackId")
+                val sessionID = dataMap.getInt("sessionId")// -1 if empty
                 val trackName = dataMap.getString("trackName") ?: ""
                 Log.d("WATCH_CONNECTION", "Received track start: trackID=$trackID, sessionID=$sessionID, trackName=$trackName")
                 // TODO: check if the track exists on db and navigate to it

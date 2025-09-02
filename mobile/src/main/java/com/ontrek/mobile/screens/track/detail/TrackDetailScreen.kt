@@ -141,7 +141,13 @@ fun TrackDetailScreen(
                         StartTrackButton(
                             trackName = trackDetailState.track.title,
                             trackId = trackDetailState.track.id,
-                            sendStartHikeMessage = { _, _, _ -> }, // TODO: implementare
+                            sendStartHikeMessage = { trackId, _, trackName ->
+                                viewModel.sendStartToWearable(
+                                    context = current,
+                                    trackId = trackId,
+                                    trackName = trackName,
+                                )
+                            },
                         )
                     }
                 }

@@ -1,8 +1,11 @@
 package com.ontrek.mobile.screens.group.detail
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
 import com.ontrek.mobile.screens.group.GroupsViewModel.TrackState
 import com.ontrek.shared.api.groups.addMemberInGroup
 import com.ontrek.shared.api.groups.changeGPXInGroup
@@ -170,6 +173,29 @@ class GroupDetailsViewModel : ViewModel() {
 
     fun resetMsgToast() {
         _msgToast.value = ""
+    }
+
+    fun sendStartToWearable(context: Context, trackId: Int, trackName: String, sessionId: Int) {
+        viewModelScope.launch {
+            try {
+                val putDataMapReq = PutDataMapRequest.create("/track-start").apply {
+                    dataMap.putInt("trackId", trackId)
+                    dataMap.putInt("sessionId", sessionId)
+                    dataMap.putString("trackName", trackName)
+                }
+                val request = putDataMapReq.asPutDataRequest().setUrgent()
+
+                Wearable.getDataClient(context).putDataItem(request)
+                    .addOnSuccessListener {
+                        _msgToast.value = "Hike started!"
+                    }
+                    .addOnFailureListener {
+                        _msgToast.value = "Failed to connect to wearable"
+                    }
+            } catch (e: Exception) {
+                _msgToast.value = "Error connecting to wearable: ${e.message}"
+            }
+        }
     }
 
     sealed class GroupState {
