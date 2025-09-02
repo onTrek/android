@@ -39,6 +39,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, MessageClient.OnMessageReceivedListener {
+    companion object {
+        var isInForeground: Boolean = false
+    }
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
@@ -47,6 +50,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
     val isInAmbientMode = MutableStateFlow(false)
     private var ambientModeEnabled by mutableStateOf(false)
     val fallDetectionState = MutableStateFlow(false)
+
+    val trackToStart = MutableStateFlow<Triple<Int, Int?, String>?>(null)
 
     private val permissionsRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -80,9 +85,17 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
         setTheme(Theme_DeviceDefault)
+
+        //TrackStartListenerService.kt
+        val trackId = intent.getIntExtra("trackId", -1)
+        val sessionId = intent.getIntExtra("sessionId", -1)
+        val trackName = intent.getStringExtra("trackName") ?: ""
+        if (trackId != -1) {
+            trackToStart.value = Triple(trackId, if (sessionId != -1) sessionId else null, trackName)
+            Log.d("WATCH_CONNECTION", "MainActivity avviata da TrackStartListenerService: trackId=$trackId, sessionId=$sessionId, trackName=$trackName")
+        }
 
         ambientController = AmbientLifecycleObserver(this, AmbientCallback())
         lifecycle.addObserver(ambientController)
@@ -120,6 +133,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
 
     override fun onResume() {
         super.onResume()
+        isInForeground = true
         dataClient.addListener(this)
 
         val newPermissionState = checkPermissions()
@@ -135,6 +149,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
 
     override fun onPause() {
         super.onPause()
+        isInForeground = false
+        dataClient.removeListener(this)
     }
 
     override fun onMessageReceived(event: MessageEvent) {
@@ -169,8 +185,21 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener, Mess
                 val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
                 preferencesViewModel.saveToken(dataMap.getString("token") ?: "")
                 preferencesViewModel.saveCurrentUser(dataMap.getString("currentUser") ?: "")
+            } else if (event.type == DataEvent.TYPE_CHANGED &&
+                event.dataItem.uri.path == "/track-start"
+            ) {
+                val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
+                val trackID = dataMap.getInt("trackId")
+                val sessionID = dataMap.getInt("sessionId")// -1 if empty
+                val trackName = dataMap.getString("trackName") ?: ""
+                Log.d("WATCH_CONNECTION", "Received track start: trackID=$trackID, sessionID=$sessionID, trackName=$trackName")
+                trackToStart.value = Triple(trackID, if (sessionID != -1) sessionID else null, trackName)
             }
         }
+    }
+
+    fun resetTrackToStart() {
+        trackToStart.value = null
     }
 
     fun resetFallDetectionState() {
