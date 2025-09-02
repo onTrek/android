@@ -61,6 +61,7 @@ import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorComponent
 import com.ontrek.mobile.utils.components.InfoCardRow
+import com.ontrek.mobile.utils.components.StartTrackButton
 import com.ontrek.shared.data.TrackInfo
 import com.ontrek.shared.utils.formatDate
 
@@ -111,6 +112,19 @@ fun GroupDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
+                    }
+                },
+                actions = {
+                    if (groupState is GroupDetailsViewModel.GroupState.Success) {
+                        val groupState = groupState as GroupDetailsViewModel.GroupState.Success
+                        if (groupState.groupInfo.track.id != -1) { // Se è associata una track
+                            StartTrackButton(
+                                trackName = groupState.groupInfo.track.title,
+                                trackId = groupState.groupInfo.track.id,
+                                sessionId = null,
+                                sendStartHikeMessage = { _, _, _ -> } // TODO: implementare
+                            )
+                        }
                     }
                 }
             )

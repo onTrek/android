@@ -59,10 +59,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -71,6 +73,7 @@ import coil.request.ImageRequest.Builder
 import com.ontrek.mobile.utils.components.BottomNavBar
 import com.ontrek.mobile.utils.components.DeleteConfirmationDialog
 import com.ontrek.mobile.utils.components.ErrorComponent
+import com.ontrek.mobile.utils.components.StartTrackButton
 import com.ontrek.shared.utils.formatDate
 import com.ontrek.shared.utils.formatDuration
 
@@ -130,6 +133,17 @@ fun TrackDetailScreen(
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    if (trackDetailState is TrackDetailViewModel.TrackDetailState.Success) {
+                        val trackDetailState =
+                            trackDetailState as TrackDetailViewModel.TrackDetailState.Success
+                        StartTrackButton(
+                            trackName = trackDetailState.track.title,
+                            trackId = trackDetailState.track.id,
+                            sendStartHikeMessage = { _, _, _ -> }, // TODO: implementare
+                        )
+                    }
                 }
             )
         },
@@ -182,7 +196,7 @@ fun TrackDetailScreen(
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Start
+                            textAlign = TextAlign.Start
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -374,7 +388,7 @@ fun TrackDetailScreen(
 
 @Composable
 fun TrackInfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     value: String
 ) {
