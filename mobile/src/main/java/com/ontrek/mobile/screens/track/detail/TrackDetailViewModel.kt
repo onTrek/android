@@ -107,6 +107,7 @@ class TrackDetailViewModel : ViewModel() {
                 val putDataMapReq = PutDataMapRequest.create("/track-start").apply {
                     dataMap.putInt("trackId", trackId)
                     dataMap.putInt("sessionId", -1)
+                    dataMap.putLong("timestamp", System.currentTimeMillis())
                     dataMap.putString("trackName", trackName)
                 }
                 val request = putDataMapReq.asPutDataRequest().setUrgent()
