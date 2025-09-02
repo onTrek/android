@@ -43,6 +43,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.curvedText
 import androidx.wear.ongoing.OngoingActivity
+import com.google.android.gms.wearable.Wearable
 import com.ontrek.wear.MainActivity
 import com.ontrek.wear.R
 import com.ontrek.wear.screens.Screen
@@ -252,10 +253,32 @@ fun TrackScreen(
         ongoingActivity.apply(applicationContext)
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
 
+        if (!alone) {
+            Wearable.getNodeClient(context).connectedNodes
+                .addOnSuccessListener { nodes ->
+                    nodes.forEach { node ->
+                        Wearable.getMessageClient(context).sendMessage(
+                            node.id, "/fall-detection/start-service", byteArrayOf()
+                        )
+                    }
+                }
+        }
+
         onDispose {
             Log.d("NOTIFICATION_BUILDER", "Destroying notification for ongoing track navigation")
             // Cancel the notification to stop the ongoing activity
             notificationManager.cancel(NOTIFICATION_ID)
+
+            if (!alone) {
+                Wearable.getNodeClient(context).connectedNodes
+                    .addOnSuccessListener { nodes ->
+                        nodes.forEach { node ->
+                            Wearable.getMessageClient(context).sendMessage(
+                                node.id, "/fall-detection/stop-service", byteArrayOf()
+                            )
+                        }
+                    }
+            }
         }
     }
 

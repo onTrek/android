@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +19,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.Wearable
 import com.ontrek.mobile.data.PreferencesViewModel
 import com.ontrek.mobile.screens.NavigationStack
 import com.ontrek.mobile.screens.auth.AuthScreen
@@ -26,10 +30,11 @@ import com.ontrek.mobile.ui.theme.OnTrekTheme
 import com.ontrek.mobile.utils.components.PermissionRequester
 import com.ontrek.shared.api.RetrofitClient
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListener  {
 
     private val preferencesViewModel: PreferencesViewModel by viewModels { PreferencesViewModel.Factory }
     private var hasPermissions = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,9 +60,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (localPermissions) {
-            startFallDetectionService()
-        }
+
     }
 
     private val permissionsRequest = registerForActivityResult(
@@ -137,41 +140,22 @@ class MainActivity : ComponentActivity() {
         if (hasPermissions != newPermissionState) {
             hasPermissions = newPermissionState
             recreate()
-            if (hasPermissions) {
-                startFallDetectionService()
-            }
         }
 
+        Wearable.getMessageClient(this).addListener(this)
     }
 
-    // Avvia il servizio in foreground
-    private fun startFallDetectionService() {
-        val intent = Intent(this, FallDetectionService::class.java)
-        startForegroundService(intent)
+    override fun onMessageReceived(messageEvent: MessageEvent) {
+        Log.d("MessageClient", "Message received from path: ${messageEvent.path}, data: ${String(messageEvent.data)}")
+        if (messageEvent.path == "/fall-detection/start-service") {
+            if (hasPermissions) {
+                val intent = Intent(this, FallDetectionService::class.java)
+                startForegroundService(intent)
+            }
+        } else if (messageEvent.path == "/fall-detection/stop-service") {
+            // Ferma il servizio di rilevamento delle cadute
+            val intent = Intent(this, FallDetectionService::class.java)
+            stopService(intent)
+        }
     }
 }
-/* Può tornare utile per debuggare la connessione tra mobile e watch
-fun printSignatureSHA1(context: Context) {
-    val packageInfo = context.packageManager.getPackageInfo(
-        context.packageName,
-        PackageManager.GET_SIGNING_CERTIFICATES // Use GET_SIGNATURES on old APIs
-    )
-
-    val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.signingInfo?.apkContentsSigners
-    } else {
-        @Suppress("DEPRECATION")
-        packageInfo.signatures
-    }
-
-    if (signatures != null) {
-        for (signature in signatures) {
-            val digest = MessageDigest.getInstance("SHA1")
-            digest.update(signature.toByteArray())
-            val sha1 = digest.digest().joinToString(":") {
-                String.format("%02X", it)
-            }
-            Log.d("AppSignature", "SHA-1: $sha1")
-        }
-    }
-}*/
