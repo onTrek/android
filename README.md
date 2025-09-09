@@ -13,18 +13,19 @@ OnTrek is a modern Android application built with Jetpack Compose that provides 
 ## Features
 
 ### Mobile App
-- Trail navigation and GPS tracking
 - Authentication and user management
-- Track management and history
+- Hike goups management
+- Track management
 - Modern Material Design 3 UI
 - Real-time location services
 
 ### Wear OS App
-- Standalone watch functionality
-- Compass and navigation tools
+- Track navigations
 - Track start/stop controls
 - Radar and proximity features
+- Help requests and follow friends
 - Optimized for small screens
+- Standalone watch functionality
 
 ## Project Structure
 
@@ -126,7 +127,3 @@ The app requires the following permissions:
 3. Make your changes
 4. Test thoroughly on both mobile and wear devices
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
