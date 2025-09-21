@@ -21,8 +21,7 @@ import androidx.wear.compose.material3.Text
 
 @Composable
 fun PermissionRequester(
-    context: Context,
-    ambientModeEnabled: Boolean
+    context: Context
 ) {
     ScreenScaffold {
         Box (
@@ -31,20 +30,19 @@ fun PermissionRequester(
         ) {
             Column {
                 Text(
-                    text = if (ambientModeEnabled) "Location and notification permissions denied"
-                        else "Always-On Screen is needed in order to use this app",
+                    text = "Location and notification permissions denied",
                     modifier = Modifier.fillMaxWidth(0.95f),
                     textAlign = TextAlign.Center,
                     style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium
                 )
                 CompactButton(
                     onClick = {
-                        if (ambientModeEnabled) openAppSettings(context) else openAmbientModeSettings(context)
+                        openAppSettings(context)
                     },
                     modifier = Modifier.fillMaxWidth(0.95f)
                 ) {
                     Text(
-                        text = if (ambientModeEnabled) "Grant Permissions" else "Open Settings",
+                        text = "Grant Permissions",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -52,11 +50,6 @@ fun PermissionRequester(
             }
         }
     }
-}
-
-fun openAmbientModeSettings(context: Context) {
-    val intent = Intent(Settings.ACTION_DISPLAY_SETTINGS)
-    context.startActivity(intent)
 }
 
 fun openAppSettings(context: Context) {
