@@ -4,7 +4,6 @@ import android.Manifest
 import android.R.style.Theme_DeviceDefault
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,8 +12,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -44,7 +41,6 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     private var hasPermissions = false
     private lateinit var ambientController: AmbientLifecycleObserver
     val isInAmbientMode = MutableStateFlow(false)
-    private var ambientModeEnabled by mutableStateOf(false)
 
     val trackToStart = MutableStateFlow<Triple<Int, Int?, String>?>(null)
 
@@ -103,7 +99,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     token == null -> Loading(Modifier.fillMaxSize())
                     // if GPS permissions are not granted, show a message or handle it
                     (!localPermissions) -> {
-                        PermissionRequester(context, ambientModeEnabled)
+                        PermissionRequester(context)
                     }
 
                     token!!.isEmpty() -> Login(
@@ -186,16 +182,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
 
-        try {
-            ambientModeEnabled =
-                Settings.Global.getInt(contentResolver, "ambient_enabled") == 1
-        } catch (e: Exception) {
-            Log.e("AMBIENT_MODE", "Error checking ambient mode setting: ${e.message}")
-        }
+        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission")
 
-        Log.d("PERMISSIONS", "Fine Location: $hasFineLocationPermission, Coarse Location: $hasCoarseLocationPermission, Notifications: $hasNotificationPermission, Ambient Mode: $ambientModeEnabled")
-
-        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission && ambientModeEnabled
+        return hasFineLocationPermission && hasCoarseLocationPermission && hasNotificationPermission
     }
 
     private fun checkAndRequestPermissions(): Boolean {
